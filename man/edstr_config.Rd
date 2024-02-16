@@ -2,7 +2,7 @@
 % Please edit documentation in R/edstr_config.R
 \name{edstr_config}
 \alias{edstr_config}
-\title{Title}
+\title{Generate a configuration file}
 \usage{
 edstr_config(dest_dir, dest_filename, str, concepts, config_name = ".config")
 }
@@ -16,7 +16,7 @@ A character vector.}
 \item{str}{Path to a RData file containing string for further text management.
 A character vector.}
 
-\item{concepts}{Path to a RData file containing a list of concepts to use with \link{edstr_extract}.}
+\item{concepts}{Path to a RData file containing a list of concepts to use with \code{\link[=edstr_extract]{edstr_extract()}}.}
 
 \item{config_name}{Configuration filename. A character vector. Default is ".config".}
 }
@@ -24,5 +24,5 @@ A character vector.}
 Two hidden objects
 }
 \description{
-Title
+Generate a configuration file
 }

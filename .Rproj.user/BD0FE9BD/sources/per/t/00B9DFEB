@@ -1,6 +1,6 @@
 {
     "id": "00B9DFEB",
-    "path": "~/$r_pkgs/edstr/NAMESPACE",
+    "path": "~/~r_pkgs/edstr/NAMESPACE",
     "project_path": "NAMESPACE",
     "type": "r_namespace",
     "hash": "744674909",
@@ -12,7 +12,7 @@
     "properties": {
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "6,0",
+        "cursorPosition": "3,20",
         "scrollLine": "0"
     },
     "folds": "",

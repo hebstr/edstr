@@ -1,6 +1,6 @@
 {
     "id": "EAD1CEA5",
-    "path": "~/$r_pkgs/edstr/R/helpers.R",
+    "path": "~/~r_pkgs/edstr/R/helpers.R",
     "project_path": "R/helpers.R",
     "type": "r_source",
     "hash": "2600434662",
@@ -12,7 +12,7 @@
     "properties": {
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "5,10",
+        "cursorPosition": "22,10",
         "scrollLine": "0"
     },
     "folds": "",

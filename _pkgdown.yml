@@ -1,0 +1,13 @@
+url: ~
+template:
+  bootstrap: 5
+
+reference:
+- title: Main functions
+  contents:
+  - edstr_config
+
+- title: Helpers
+  contents:
+  - easy_replace
+  - str_u

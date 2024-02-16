@@ -1,4 +1,4 @@
-#' Title
+#' Generate a configuration file
 #'
 #' @param dest_dir Path to the destination directory.
 #'    Automatically created if not existing.
@@ -6,7 +6,7 @@
 #' @param dest_filename Name of file to create, placed in the destination directory.
 #' @param str Path to a RData file containing string for further text management.
 #'    A character vector.
-#' @param concepts Path to a RData file containing a list of concepts to use with [edstr_extract].
+#' @param concepts Path to a RData file containing a list of concepts to use with [edstr_extract()].
 #' @param config_name Configuration filename. A character vector. Default is ".config".
 #'
 #' @return Two hidden objects
