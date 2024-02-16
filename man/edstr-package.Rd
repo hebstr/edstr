@@ -9,7 +9,7 @@
 A set of functions to import, clean up and extract non-structured text from a database.
 }
 \author{
-\strong{Maintainer}: Julien ELICES-DIEZ \email{ju.diez@protonmail.com}
+\strong{Maintainer}: pas chatGPT \email{ju.diez@protonmail.com}
 
 }
 \keyword{internal}

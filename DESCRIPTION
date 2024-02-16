@@ -2,7 +2,7 @@ Package: edstr
 Title: Manage a non-structured text input
 Version: 0.0.0.9000
 Authors@R: 
-    person("Julien", "ELICES-DIEZ", , "ju.diez@protonmail.com", role = c("aut", "cre"))
+    person("pas", "chatGPT", , "ju.diez@protonmail.com", role = c("aut", "cre"))
 Description: A set of functions to import, clean up and extract non-structured text from a database.
 License: GPL (>= 3)
 Encoding: UTF-8

@@ -8,10 +8,9 @@ edstr_config(dest_dir, dest_filename, str, concepts, config_name = ".config")
 }
 \arguments{
 \item{dest_dir}{Path to the destination directory.
-Automatically created if not existing.
 A character vector.}
 
-\item{dest_filename}{Name of file to create, placed in the destination directory.}
+\item{dest_filename}{Base name of files to create, located in destination directory.}
 
 \item{str}{Path to a RData file containing string for further text management.
 A character vector.}

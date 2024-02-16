@@ -4,7 +4,9 @@ output: github_document
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-```{r, include = FALSE}
+```{r}
+#| include: false
+
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
@@ -22,7 +24,7 @@ The goal of edstr is to ...
 
 ## Installation
 
-You can install the development version of [PACKAGE] from [Codeberg](https://codeberg.org/hebstr) like so:
+You can install the development version of edstr from [Codeberg](https://codeberg.org/hebstr/edstr) like so:
 
 ``` r
 # install.packages("devtools")
@@ -31,25 +33,16 @@ devtools::install_git("https://codeberg.org/hebstr/edstr")
 
 ## Example
 
-This is a basic example which shows you how to solve a common problem:
+```{r}
+#| include: false
 
-```{r example}
 library(edstr)
-## basic example code
 ```
 
-What is special about using `README.Rmd` instead of just `README.md`? You can include R chunks like so:
-
-```{r cars}
-summary(cars)
+```{r}
+edstr_config(dest_dir = "~/Documents/pro/data/fracture2",
+             dest_filename = "urgtest",
+             str = "~/Documents/pro/~des/$eds/config/str.RData",
+             concepts = "~/Documents/pro/~des/$eds/config/concepts.RData")
 ```
 
-You'll still need to render `README.Rmd` regularly, to keep `README.md` up-to-date. `devtools::build_readme()` is handy for this.
-
-You can also embed plots, for example:
-
-```{r pressure, echo = FALSE}
-plot(pressure)
-```
-
-In that case, don't forget to commit and push the resulting figure files, so they display on GitHub and CRAN.

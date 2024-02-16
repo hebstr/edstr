@@ -1,9 +1,8 @@
 #' Generate a configuration file
 #'
 #' @param dest_dir Path to the destination directory.
-#'    Automatically created if not existing.
 #'    A character vector.
-#' @param dest_filename Name of file to create, placed in the destination directory.
+#' @param dest_filename Base name of files to create, located in destination directory.
 #' @param str Path to a RData file containing string for further text management.
 #'    A character vector.
 #' @param concepts Path to a RData file containing a list of concepts to use with [edstr_extract()].
@@ -54,14 +53,19 @@ assign(".config_name",
 
 ### CLI ---------------------------------------------------------------------------------
 
+dir_status <- cli::style_underline(dir_status)
+dirname <- with(get(config_name), dir)
+filename <- cli::col_red(with(get(config_name), file))
+config_name <- cli::col_green(config_name)
+
 cli::cli_h1("edstr_config")
 cli::cli_text("\n\n")
 cli::cli_alert_info("{.strong working directory:} {getwd()}")
 cli::cli_text("\n\n")
 cli::cli_alert_info("{.strong destination}")
 cli::cli_ul()
-  cli::cli_li("{style_underline(dir_status)} directory: {.path { with(get(config_name), dir) }}")
-  cli::cli_li("filename: {col_red(with(get(config_name), file))}")
+  cli::cli_li("{dir_status} directory: {.path {dirname}}")
+  cli::cli_li("filename: {filename}")
 cli::cli_end()
 cli::cli_text("\n\n")
 cli::cli_alert_info("{.strong configuration file:} {config_name}")
