@@ -60,7 +60,7 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
                    config_concepts = with(config, concepts),
                    text_input = with(config, text)) {
 
-  error_config()
+  cli_error_config()
 
   if (is.character(data)) data <- get(data)
   if (is.character(config)) config <- get(config)

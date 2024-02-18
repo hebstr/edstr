@@ -23,7 +23,7 @@ edstr_clean <- \(data = glue::glue("{with(config, file)}_import"),
                  config_str = with(config, str),
                  text_input = with(config, text)) {
 
-  error_config()
+  cli_error_config()
 
   if (is.character(config)) config <- get(config)
 

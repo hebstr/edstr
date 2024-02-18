@@ -40,10 +40,12 @@ library(edstr)
 ```
 
 ```{r}
-edstr_config(dest_dir = "~/Documents/pro/data/fracture2",
-             dest_filename = "urgtest",
-             str = "~/Documents/pro/~des/$eds/config/str.RData",
-             concepts = "~/Documents/pro/~des/$eds/config/concepts.RData",
+#| eval: false
+
+edstr_config(dest_dir = "../data/fracture",
+             dest_filename = "gs",
+             str = "config/str.RData",
+             concepts = "config/concepts.RData",
              text = "text")
 ```
 

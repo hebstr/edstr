@@ -19,7 +19,7 @@ edstr_import <- \(query,
                   load = FALSE,
                   config = get(.config_name)) {
 
-  error_config()
+  cli_error_config()
 
   if (is.character(config)) config <- get(config)
 

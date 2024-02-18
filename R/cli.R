@@ -1,4 +1,4 @@
-error_config <- \() {
+cli_error_config <- \() {
 
   if (!exists(".config_name")) {
 
