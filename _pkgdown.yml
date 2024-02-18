@@ -3,18 +3,13 @@ template:
   bootstrap: 5
 
 reference:
-- title: Main functions
+- title: Processing functions
   contents:
   - edstr_config
   - edstr_import
   - edstr_clean
   - edstr_extract
 
-- title: Explore
+- title: Explorating functions
   contents:
   - edstr_view
-
-- title: Helpers
-  contents:
-  - str_u
-  - easy_replace
