@@ -24,3 +24,6 @@ Imports:
     tibble,
     tidyr,
     tidytext
+Suggests:
+    hebstr
+Additional_repositories: https://codeberg.org/hebstr

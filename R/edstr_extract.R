@@ -166,7 +166,7 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
     tidytext::unnest_tokens(output = !!text_input,
                             input = !!text_input,
                             token = stringr::str_split,
-                            pattern = str_u(with(config_str, eval(rlang::enexpr(split)))),
+                            pattern = hebstr::str_u(with(config_str, eval(rlang::enexpr(split)))),
                             to_lower = FALSE) |>
     dplyr::mutate(!!text_input :=
                     purrr::reduce(with(config_str, !!rlang::enexpr(replace)),
@@ -197,7 +197,7 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
 
   if (!is.list(str)) str <- as.list(c("<concept>" = str))
 
-  lim <- \(start, end) glue::glue("{start}({str_u(str)}){end}")
+  lim <- \(start, end) glue::glue("{start}({hebstr::str_u(str)}){end}")
 
   switch(limits,
          "start" = .cpts_str <- lim("^", ""),
@@ -231,7 +231,7 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
 
   str_exclus <-
   data_match[text_input] |>
-    dplyr::filter(!stringr::str_detect(text, glue::glue("^({str_u(exclus_auto_except)})$"))) |>
+    dplyr::filter(!stringr::str_detect(text, glue::glue("^({hebstr::str_u(exclus_auto_except)})$"))) |>
     dplyr::distinct() |>
     dplyr::pull()
 
@@ -281,9 +281,9 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
 
     data_exclus_auto <-
     data_exclus_auto |>
-      dplyr::filter(!stringr::str_detect(end_match, str_u(data_exclus_auto[[text_input]])) |
+      dplyr::filter(!stringr::str_detect(end_match, hebstr::str_u(data_exclus_auto[[text_input]])) |
                     is.na(end_match)) |>
-      dplyr::filter(!stringr::str_detect(start_match, str_u(data_exclus_auto[[text_input]])) |
+      dplyr::filter(!stringr::str_detect(start_match, hebstr::str_u(data_exclus_auto[[text_input]])) |
                     is.na(start_match))
 
   }
@@ -295,7 +295,7 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
 
   data_exclus_man <-
   data_match_final |>
-    dplyr::filter(stringr::str_detect(get(text_input), str_u(exclus_man)))
+    dplyr::filter(stringr::str_detect(get(text_input), hebstr::str_u(exclus_man)))
 
   data_match_final <-
   data_match_final |>
@@ -313,7 +313,7 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
     purrr::map(~ data_match_final |>
                  dplyr::mutate(concept =
                                  ifelse(stringr::str_starts(get(text_input),
-                                                            str_u(str[[.]])), ., NA))) |>
+                                                            hebstr::str_u(str[[.]])), ., NA))) |>
     dplyr::bind_rows() |>
     tidyr::drop_na()
 
@@ -454,7 +454,7 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
   print_query <-
   purrr::map2(.x = names(str),
               .y = seq(str),
-              ~ rlang::list2(!!.x := glue::glue("^({str_u(str[.y])})$"))) |>
+              ~ rlang::list2(!!.x := glue::glue("^({hebstr::str_u(str[.y])})$"))) |>
     unlist()
 
   print_concept <-
