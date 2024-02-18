@@ -23,12 +23,7 @@ edstr_clean <- \(data = glue::glue("{with(config, file)}_import"),
                  config_str = with(config, str),
                  text_input = with(config, text)) {
 
-  if (!exists(".config_name")) {
-
-    cli::cli_abort(c("Configuration file doesn't exists!",
-                     "i" = "Please create it first with {.fn edstr_config}"))
-
-  }
+  error_config()
 
   if (is.character(config)) config <- get(config)
 
@@ -105,9 +100,9 @@ edstr_clean <- \(data = glue::glue("{with(config, file)}_import"),
 
 ### SAVE ---------------------------------------------------------------------------------
 
-    cli::cli_progress_step("Saving {.strong {config_file}}\n\n")
+    cli::cli_progress_step("Saving {.strong {config_file}}")
 
-    assign(config_file, data_clean, .GlobalEnv)
+    assign(config_file, data_clean, envir = .GlobalEnv)
 
     save(list = config_file, file = config_save)
 
@@ -127,29 +122,7 @@ edstr_clean <- \(data = glue::glue("{with(config, file)}_import"),
 
   } else {
 
-### ERROR ---------------------------------------------------------------------------------
-
-    if (!file.exists(config_save)) {
-
-      cli::cli_abort(c("{.strong {config_file}} not found in {.path {config_dir}}",
-                       "i" = "Please create {.strong {config_file}} first with {.field load = FALSE}
-                        or change directory in {.fn edstr_config}"))
-
-    }
-
-### LOAD ---------------------------------------------------------------------------------
-
-    cli::cli_progress_step("Loading {.strong {config_file}}")
-
-    load(config_save, envir = .GlobalEnv)
-
-    cli::cli_progress_done()
-
-### CLI ---------------------------------------------------------------------------------
-
-    cli::cli_alert_success("{.strong {config_file}} loaded from {.path {config_save}}")
-    cli::cli_text("\n\n")
-    cli::cli_rule()
+    eval(cli_load())
 
   }
 

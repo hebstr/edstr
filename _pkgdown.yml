@@ -7,6 +7,12 @@ reference:
   contents:
   - edstr_config
   - edstr_import
+  - edstr_clean
+  - edstr_extract
+
+- title: Explore
+  contents:
+  - edstr_view
 
 - title: Helpers
   contents:

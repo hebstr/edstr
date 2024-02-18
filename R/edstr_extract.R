@@ -60,571 +60,582 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
                    config_concepts = with(config, concepts),
                    text_input = with(config, text)) {
 
-  if (!exists(".config_name")) {
+  error_config()
 
-    cli::cli_abort(c("Configuration file doesn't exists!",
-                     "i" = "Please create it first with {.fn edstr_config}"))
+  if (is.character(data)) data <- get(data)
+  if (is.character(config)) config <- get(config)
+
+  filter <- rlang::enexpr(filter)
+  exclus_uf_code <- rlang::enexpr(exclus_uf_code)
+  exclus_uf_libelle <- rlang::enexpr(exclus_uf_libelle)
+  llm <- rlang::enexpr(llm)
+  str <- with(config_concepts, eval(rlang::enexpr(str)))
+
+  cli::cli_h1("edstr_extract")
+  cli::cli_text("\n\n")
+
+  #--- SAVE PARAMS ---------------------------------------------------------------------------------
+
+  dir_name <- glue::glue("{with(config, file)}_extract")
+  save_dir <- glue::glue("{with(config, dir)}/{dir_name}")
+  save_files <- dir_name
+
+  if (!is.null(dir_suffix)) save_dir <- glue::glue("{save_dir}_{dir_suffix}")
+
+  if (!is.null(filename_suffix)) save_files <- glue::glue("{dir_name}_{filename_suffix}")
+
+  if (!file.exists(glue::glue(save_dir))) dir.create(path = glue::glue(save_dir))
+
+  .save_extract <- glue::glue("{save_dir}/{save_files}")
+
+  .lib <- glue::glue("{save_dir}/lib")
+  if (exists(.lib)) unlink(.lib, recursive = TRUE)
+
+  #--- FILTERS -------------------------------------------------------------------------------------
+
+  data_total <- data
+
+  if (!is.null(sample)) {
+
+    data <- data[sample(nrow(data), sample), ]
+
+    cli::cli_alert_info("sample: {sample}")
+
+    if (is.null(filter)) cli::cli_text("\n\n")
+
+  } else sample <- nrow(data_total)
+
+  if (!is.null(filter)) {
+
+    data <- data |> dplyr::filter(!!filter)
+
+    cli::cli_alert_info("filter ON")
+    cli::cli_text("\n\n")
 
   }
 
-if (is.character(data)) data <- get(data)
-if (is.character(config)) config <- get(config)
+  data_exclus_uf <-
+  data |>
+    dplyr::filter(stringr::str_detect(!!exclus_uf_code$var, !!exclus_uf_code$code) |
+                  stringr::str_detect(!!exclus_uf_libelle$var, !!exclus_uf_libelle$libelle)) |>
+    dplyr::count(code_uf_entree, libelle_uf_entree, sort = TRUE) |>
+    dplyr::mutate(prop = round(n/nrow(data), 3))
 
-filter <- rlang::enexpr(filter)
-exclus_uf_code <- rlang::enexpr(exclus_uf_code)
-exclus_uf_libelle <- rlang::enexpr(exclus_uf_libelle)
-llm <- rlang::enexpr(llm)
-str <- with(config_concepts, eval(rlang::enexpr(str)))
+  data <-
+  data |>
+    dplyr::filter(!stringr::str_detect(!!exclus_uf_code$var, !!exclus_uf_code$code)) |>
+    dplyr::filter(!stringr::str_detect(!!exclus_uf_libelle$var, !!exclus_uf_libelle$libelle))
 
-cli::cli_h1("edstr_extract")
-cli::cli_text("\n\n")
+  n_uf <- NA
 
-#--- SAVE PARAMS ---------------------------------------------------------------------------------
+  if (exclus_uf_code$var != "" & exclus_uf_libelle$var == "") {
 
-dir_name <- glue::glue("{with(config, file)}_extract")
-save_dir <- glue::glue("{with(config, dir)}/{dir_name}")
-save_files <- dir_name
+    n_uf <- dplyr::n_distinct(data[[exclus_uf_code$var]])
 
-if (!is.null(dir_suffix)) save_dir <- glue::glue("{save_dir}_{dir_suffix}")
+  }
 
-if (!is.null(filename_suffix)) save_files <- glue::glue("{dir_name}_{filename_suffix}")
+  if (exclus_uf_code$var == "" & exclus_uf_libelle$var != "") {
 
-if (!file.exists(glue::glue(save_dir))) dir.create(path = glue::glue(save_dir))
+    n_uf <- dplyr::n_distinct(data[[exclus_uf_libelle$var]])
 
-.save_extract <- glue::glue("{save_dir}/{save_files}")
+  }
 
-.lib <- glue::glue("{save_dir}/lib")
-if (exists(.lib)) unlink(.lib, recursive = TRUE)
+  if (exclus_uf_code$var != "" & exclus_uf_libelle$var != "") {
 
-#--- FILTERS -------------------------------------------------------------------------------------
+    n_uf <- dplyr::n_distinct(data[[exclus_uf_code$var]])
 
-data_total <- data
+  }
 
-if (!is.null(sample)) {
+  if (!is.null(llm)) {
 
-  data <- data[sample(nrow(data), sample), ]
+    llm_filter <-
+    readr::read_csv(glue::glue(llm$filename)) |>
+      dplyr::filter(!!llm$filter) |>
+      dplyr::pull(!!llm$select)
 
-  cli::cli_alert_info("sample: {sample}")
+    data <- data |> dplyr::filter(!!llm$select %in% llm_filter)
 
-  if (is.null(filter)) cli::cli_text("\n\n")
+  }
 
-} else sample <- nrow(data_total)
+  #--- SPLIT -------------------------------------------------------------------------------------
 
-if (!is.null(filter)) {
+  cli::cli_progress_step("{.strong step 1:} split & replace")
 
-  data <- data |> dplyr::filter(!!filter)
+  data_split <-
+  data |>
+    tidytext::unnest_tokens(output = !!text_input,
+                            input = !!text_input,
+                            token = stringr::str_split,
+                            pattern = str_u(with(config_str, eval(rlang::enexpr(split)))),
+                            to_lower = FALSE) |>
+    dplyr::mutate(!!text_input :=
+                    purrr::reduce(with(config_str, !!rlang::enexpr(replace)),
+                                  stringr::str_replace_all,
+                                  .init = get(text_input)))
 
-  cli::cli_alert_info("filter ON")
-  cli::cli_text("\n\n")
+  cli::cli_progress_done()
 
-}
+  #--- LOWER, DEPUNCT AND TOKENIZE ----------------------------------------------------------------------------
 
-data_exclus_uf <-
-data |>
-  dplyr::filter(stringr::str_detect(!!exclus_uf_code$var, !!exclus_uf_code$code) |
-                stringr::str_detect(!!exclus_uf_libelle$var, !!exclus_uf_libelle$libelle)) |>
-  dplyr::count(code_uf_entree, libelle_uf_entree, sort = TRUE) |>
-  dplyr::mutate(prop = round(n/nrow(data), 3))
+  cli::cli_progress_step("{.strong step 2:} lower, depunct & tokenize")
 
-data <-
-data |>
-  dplyr::filter(!stringr::str_detect(!!exclus_uf_code$var, !!exclus_uf_code$code)) |>
-  dplyr::filter(!stringr::str_detect(!!exclus_uf_libelle$var, !!exclus_uf_libelle$libelle))
+  data_clean <-
+  data_split |>
+    dplyr::mutate(!!text_input :=
+                    iconv(get(text_input),
+                          from = "UTF-8",
+                          to = "ASCII//TRANSLIT"))
 
-n_uf <- NA
+  .ngrams <-
+  ngrams |>
+    purrr::map(~ data_clean |>
+                 tidytext::unnest_tokens(output = !!text_input,
+                                         input = !!text_input,
+                                         token = "ngrams",
+                                         n = .) |>
+                 dplyr::distinct())
 
-if (exclus_uf_code$var != "" & exclus_uf_libelle$var == "") {
+  if (!is.list(str)) str <- as.list(c("<concept>" = str))
 
-  n_uf <- dplyr::n_distinct(data[[exclus_uf_code$var]])
+  lim <- \(start, end) glue::glue("{start}({str_u(str)}){end}")
 
-}
+  switch(limits,
+         "start" = .cpts_str <- lim("^", ""),
+         "end" = .cpts_str <- lim("", "$"),
+         "both" = .cpts_str <- lim("^", "$"))
 
-if (exclus_uf_code$var == "" & exclus_uf_libelle$var != "") {
+  .cpts_names <- stringr::str_c(names(str), collapse = ", ")
 
-  n_uf <- dplyr::n_distinct(data[[exclus_uf_libelle$var]])
+  .split <-
+  seq_along(ngrams) |>
+    purrr::map(~ .ngrams[[.]] |>
+          dplyr::filter(stringr::str_detect(get(text_input), .cpts_str)) |>
+          dplyr::count(!!.cpts_names := get(text_input), sort = TRUE))
 
-}
+  .match <-
+  purrr::map2(.x = seq_along(ngrams),
+       .y = ngrams,
+       ~ .ngrams[[.x]][c(group_by, join_by, text_input)] |>
+          dplyr::mutate(ngrams = .y) |>
+          dplyr::filter(get(text_input) %in% c(.split[[.]][[!!.cpts_names]])))
 
-if (exclus_uf_code$var != "" & exclus_uf_libelle$var != "") {
+  data_match <- dplyr::bind_rows(.match)
 
-  n_uf <- dplyr::n_distinct(data[[exclus_uf_code$var]])
+  if (nrow(data_match) == 0) cli::cli_abort("No results")
 
-}
+  cli::cli_progress_done()
 
-if (!is.null(llm)) {
+  #--- LIST EXCLUSIONS ------------------------------------------------------------------------------------------
 
-  llm_filter <-
-  readr::read_csv(glue::glue(llm$filename)) |>
-    dplyr::filter(!!llm$filter) |>
-    dplyr::pull(!!llm$select)
+  cli::cli_progress_step("{.strong step 3:} set exclusion lists")
 
-  data <- data |> dplyr::filter(!!llm$select %in% llm_filter)
+  str_exclus <-
+  data_match[text_input] |>
+    dplyr::filter(!stringr::str_detect(text, glue::glue("^({str_u(exclus_auto_except)})$"))) |>
+    dplyr::distinct() |>
+    dplyr::pull()
 
-}
+  str_exclus_bb <- glue::glue("\\b{str_exclus}\\b")
+  str_exclus_.sb <- glue::glue(".\\s{str_exclus}\\b")
 
-#--- SPLIT -------------------------------------------------------------------------------------
+  data_exclus <-
+  data_match |>
+    dplyr::select(dplyr::all_of(text_input), ngrams) |>
+    dplyr::distinct()
 
-cli::cli_progress_step("{.strong step 1:} split & replace")
+  exclus_auto_start <-
+  purrr::map2_df(.x = str_exclus_bb,
+                 .y = str_exclus,
+                 ~ data_exclus |>
+                   dplyr::filter(stringr::str_starts(get(text_input), .x) &
+                                 !stringr::str_ends(get(text_input), .x)) |>
+                   dplyr::mutate(start_match = .y))
 
-data_split <-
-data |>
-  tidytext::unnest_tokens(output = !!text_input,
-                          input = !!text_input,
-                          token = stringr::str_split,
-                          pattern = str_u(with(config_str, eval(rlang::enexpr(split)))),
-                          to_lower = FALSE) |>
-  dplyr::mutate(!!text_input :=
-                  purrr::reduce(with(config_str, !!rlang::enexpr(replace)),
-                                stringr::str_replace_all,
-                                .init = get(text_input)))
+  exclus_auto_end <-
+  purrr::map2_df(.x = str_exclus_bb,
+                 .y = str_exclus,
+                 ~ data_exclus |>
+                   dplyr::filter(!stringr::str_starts(get(text_input), .x) &
+                                 stringr::str_ends(get(text_input), .x)) |>
+                   dplyr::mutate(end_match = .y))
 
-cli::cli_progress_done()
-
-#--- LOWER, DEPUNCT AND TOKENIZE ----------------------------------------------------------------------------
-
-cli::cli_progress_step("{.strong step 2:} lower, depunct & tokenize")
-
-data_clean <-
-data_split |>
-  dplyr::mutate(!!text_input :=
-                  iconv(get(text_input),
-                        from = "UTF-8",
-                        to = "ASCII//TRANSLIT"))
-
-.ngrams <-
-ngrams |>
-  purrr::map(~ data_clean |>
-               tidytext::unnest_tokens(output = !!text_input,
-                                       input = !!text_input,
-                                       token = "ngrams",
-                                       n = .) |>
-               dplyr::distinct())
-
-if (!is.list(str)) str <- as.list(c("<concept>" = str))
-
-lim <- \(start, end) glue::glue("{start}({str_u(str)}){end}")
-
-switch(limits,
-       "start" = .cpts_str <- lim("^", ""),
-       "end" = .cpts_str <- lim("", "$"),
-       "both" = .cpts_str <- lim("^", "$"))
-
-.cpts_names <- stringr::str_c(names(str), collapse = ", ")
-
-.split <-
-seq_along(ngrams) |>
-  purrr::map(~ .ngrams[[.]] |>
-        dplyr::filter(stringr::str_detect(get(text_input), .cpts_str)) |>
-        dplyr::count(!!.cpts_names := get(text_input), sort = TRUE))
-
-.match <-
-purrr::map2(.x = seq_along(ngrams),
-     .y = ngrams,
-     ~ .ngrams[[.x]][c(group_by, join_by, text_input)] |>
-        dplyr::mutate(ngrams = .y) |>
-        dplyr::filter(get(text_input) %in% c(.split[[.]][[!!.cpts_names]])))
-
-data_match <- dplyr::bind_rows(.match)
-
-if (nrow(data_match) == 0) cli::cli_abort("No results")
-
-cli::cli_progress_done()
-
-#--- LIST EXCLUSIONS ------------------------------------------------------------------------------------------
-
-cli::cli_progress_step("{.strong step 3:} set exclusion lists")
-
-str_exclus <-
-data_match[text_input] |>
-  dplyr::filter(!stringr::str_detect(text, glue::glue("^({str_u(exclus_auto_except)})$"))) |>
-  dplyr::distinct() |>
-  dplyr::pull()
-
-str_exclus_bb <- glue::glue("\\b{str_exclus}\\b")
-str_exclus_.sb <- glue::glue(".\\s{str_exclus}\\b")
-
-data_exclus <-
-data_match |>
-  dplyr::select(dplyr::all_of(text_input), ngrams) |>
-  dplyr::distinct()
-
-exclus_auto_start <-
-purrr::map2_df(.x = str_exclus_bb,
-               .y = str_exclus,
-               ~ data_exclus |>
-                 dplyr::filter(stringr::str_starts(get(text_input), .x) &
-                               !stringr::str_ends(get(text_input), .x)) |>
-                 dplyr::mutate(start_match = .y))
-
-exclus_auto_end <-
-purrr::map2_df(.x = str_exclus_bb,
-               .y = str_exclus,
-               ~ data_exclus |>
-                 dplyr::filter(!stringr::str_starts(get(text_input), .x) &
-                               stringr::str_ends(get(text_input), .x)) |>
-                 dplyr::mutate(end_match = .y))
-
-exclus_auto_both <-
-purrr::pmap_df(list(str_exclus_bb,
-                    str_exclus_.sb,
-                    str_exclus),
-               ~ data_exclus |>
-                 dplyr::filter(stringr::str_starts(get(text_input), ..1) &
-                               stringr::str_ends(get(text_input), ..2)) |>
-                 dplyr::mutate(both_match = ..3))
-
-data_exclus_auto <-
-exclus_auto_start |>
-  dplyr::full_join(exclus_auto_end,
-                   by = c(text_input, "ngrams"),
-                   relationship = "many-to-many") |>
-  dplyr::full_join(exclus_auto_both,
-                   by = c(text_input, "ngrams"),
-                   relationship = "many-to-many")
-
-if (nrow(data_exclus_auto) > 0) {
+  exclus_auto_both <-
+  purrr::pmap_df(list(str_exclus_bb,
+                      str_exclus_.sb,
+                      str_exclus),
+                 ~ data_exclus |>
+                   dplyr::filter(stringr::str_starts(get(text_input), ..1) &
+                                 stringr::str_ends(get(text_input), ..2)) |>
+                   dplyr::mutate(both_match = ..3))
 
   data_exclus_auto <-
-  data_exclus_auto |>
-    dplyr::filter(!stringr::str_detect(end_match, str_u(data_exclus_auto[[text_input]])) |
-                  is.na(end_match)) |>
-    dplyr::filter(!stringr::str_detect(start_match, str_u(data_exclus_auto[[text_input]])) |
-                  is.na(start_match))
+  exclus_auto_start |>
+    dplyr::full_join(exclus_auto_end,
+                     by = c(text_input, "ngrams"),
+                     relationship = "many-to-many") |>
+    dplyr::full_join(exclus_auto_both,
+                     by = c(text_input, "ngrams"),
+                     relationship = "many-to-many")
 
-}
+  if (nrow(data_exclus_auto) > 0) {
 
-data_match_final <-
-data_match |>
-  dplyr::anti_join(data_exclus_auto[text_input],
-                   by = text_input)
+    data_exclus_auto <-
+    data_exclus_auto |>
+      dplyr::filter(!stringr::str_detect(end_match, str_u(data_exclus_auto[[text_input]])) |
+                    is.na(end_match)) |>
+      dplyr::filter(!stringr::str_detect(start_match, str_u(data_exclus_auto[[text_input]])) |
+                    is.na(start_match))
 
-data_exclus_man <-
-data_match_final |>
-  dplyr::filter(stringr::str_detect(get(text_input), str_u(exclus_man)))
+  }
 
-data_match_final <-
-data_match_final |>
-  dplyr::anti_join(data_exclus_man[text_input],
-                   by = text_input)
+  data_match_final <-
+  data_match |>
+    dplyr::anti_join(data_exclus_auto[text_input],
+                     by = text_input)
 
-cli::cli_progress_done()
+  data_exclus_man <-
+  data_match_final |>
+    dplyr::filter(stringr::str_detect(get(text_input), str_u(exclus_man)))
 
-#--- EXTRACT --------------------------------------------------------------------------------------------------
+  data_match_final <-
+  data_match_final |>
+    dplyr::anti_join(data_exclus_man[text_input],
+                     by = text_input)
 
-cli::cli_progress_step("{.strong step 4:} extract")
+  cli::cli_progress_done()
 
-data_id <-
-names(str) |>
-  purrr::map(~ data_match_final |>
-               dplyr::mutate(concept =
-                               ifelse(stringr::str_starts(get(text_input), str_u(str[[.]])), ., NA))) |>
-  dplyr::bind_rows() |>
-  tidyr::drop_na()
+### EXTRACT --------------------------------------------------------------------------------
 
-data_count <-
-data_id |>
-  dplyr::count(!!text_input := get(text_input), concept, ngrams,
-               sort = TRUE)
+  cli::cli_progress_step("{.strong step 4:} extract")
 
-data_extract <-
-data_count[[text_input]] |>
-  stringr::str_replace_all(glue::glue("\\b{upper_only}\\b"),
-                           glue::glue("(?-i){toupper(upper_only)}"))
+  data_id <-
+  names(str) |>
+    purrr::map(~ data_match_final |>
+                 dplyr::mutate(concept =
+                                 ifelse(stringr::str_starts(get(text_input),
+                                                            str_u(str[[.]])), ., NA))) |>
+    dplyr::bind_rows() |>
+    tidyr::drop_na()
 
-data_extract <-
-stringr::str_c("(?i)\\b",
-      stringr::str_c(data_extract, collapse = "\\b|(?i)\\b"),
-      "\\b") |>
-  stringr::str_replace_all("e|(?<=m(a|i)cro)\\s", ".") |>
-  stringr::str_replace_all("\\sa\\s", " . ")
+  data_count <-
+  data_id |>
+    dplyr::count(!!text_input := get(text_input), concept, ngrams,
+                 sort = TRUE)
 
-.cpts_label <- stringr::str_unique(data_id$concept)
+  data_extract <-
+  data_count[[text_input]] |>
+    stringr::str_replace_all(glue::glue("\\b{upper_only}\\b"),
+                             glue::glue("(?-i){toupper(upper_only)}"))
 
-.rows <-
-list(str = data_extract,
-     str_suppl = str_suppl) |>
-  purrr::map(~ data_clean[[text_input]] |>
-               stringr::str_detect(.) |>
-               which())
+  data_extract <- stringr::str_c(data_extract, collapse = "\\b|(?i)\\b")
+  data_extract <- glue::glue("(?i)\\b{data_extract}\\b")
 
-data_str_br_db <-
-data_split[sort(c(.rows$str_suppl, .rows$str)), ] |>
-  dplyr::inner_join(data_id[names(data_id) != text_input],
-                    by = c(join_by, group_by),
-                    relationship = "many-to-many") |>
-  dplyr::select(dplyr::all_of(c(join_by,
-                                group_by,
-                                extra_cols,
-                                text_input)),
-                concept) |>
-  dplyr::distinct() |>
-  tidyr::pivot_wider(names_from = concept,
-                     values_from = concept) |>
-  dplyr::mutate(dplyr::across(dplyr::any_of(.cpts_label),
-                              ~ ifelse(!is.na(.), 1, NA))) |>
-  dplyr::group_by(!!join_by := get(join_by)) |>
-  dplyr::mutate(n_row = seq_along(text_input)) |>
-  tidyr::fill(dplyr::starts_with(.cpts_label),
-              .direction = "updown") |>
-  dplyr::mutate(!!text_input :=
-                  get(text_input) |>
-                    stringr::str_flatten("<br><br>"),
-                dplyr::across(dplyr::starts_with(.cpts_label),
-                              ~ tidyr::replace_na(., 0)),
-                nchar = nchar(get(text_input))) |>
-  dplyr::ungroup() |>
-  dplyr::select(-n_row) |>
-  dplyr::filter(!is.na(get(group_by))) |>
-  dplyr::distinct()
+  data_extract_replace <-
+  c("e|(?<=m(a|i)cro)\\s" = ".",
+    "\\sa\\s" = " . ")
 
-data_exclus_nchar <-
-data_str_br_db[c("text", "nchar")] |>
-  dplyr::filter(nchar > nchar_max)
+  data_extract <-
+  purrr::reduce(list(data_extract_replace),
+                stringr::str_replace_all,
+                .init = data_extract)
 
-data_str_br <-
-data_str_br_db |>
-  dplyr::group_by(!!group_by := get(group_by),
-           !!text_input := get(text_input)) |>
-  dplyr::filter(!duplicated(get(text_input)),
-         nchar <= nchar_max) |>
-  dplyr::ungroup()
+  .cpts_label <- stringr::str_unique(data_id$concept)
 
-data_str_cat <-
-data_str_br |>
-  dplyr::mutate(!!text_input := stringr::str_replace_all(get(text_input), "<br><br>", " "))
+  .rows <-
+  list(str = data_extract,
+       str_suppl = str_suppl) |>
+    purrr::map(~ data_clean[[text_input]] |>
+                 stringr::str_detect(.) |>
+                 which())
 
-data_str_split <-
-data_str_cat |>
-  tidyr::separate_rows(dplyr::all_of(text_input), sep = "(?<=\\.)\\s")
+  data_str_br_db <-
+  data_split[sort(c(.rows$str_suppl, .rows$str)), ] |>
+    dplyr::inner_join(data_id[names(data_id) != text_input],
+                      by = c(join_by, group_by),
+                      relationship = "many-to-many") |>
+    dplyr::select(dplyr::all_of(c(join_by,
+                                  group_by,
+                                  extra_cols,
+                                  text_input)),
+                  concept) |>
+    dplyr::distinct() |>
+    tidyr::pivot_wider(names_from = concept,
+                       values_from = concept) |>
+    dplyr::mutate(dplyr::across(dplyr::any_of(.cpts_label),
+                                ~ ifelse(!is.na(.), 1, NA))) |>
+    dplyr::group_by(!!join_by := get(join_by)) |>
+    dplyr::mutate(n_row = seq_along(text_input)) |>
+    tidyr::fill(dplyr::starts_with(.cpts_label),
+                .direction = "updown") |>
+    dplyr::mutate(!!text_input :=
+                    get(text_input) |>
+                      stringr::str_flatten("<br><br>"),
+                  dplyr::across(dplyr::starts_with(.cpts_label),
+                                ~ tidyr::replace_na(., 0)),
+                  nchar = nchar(get(text_input))) |>
+    dplyr::ungroup() |>
+    dplyr::select(-n_row) |>
+    dplyr::filter(!is.na(get(group_by))) |>
+    dplyr::distinct()
 
-cli::cli_progress_done()
+  data_exclus_nchar <-
+  data_str_br_db[c("text", "nchar")] |>
+    dplyr::filter(nchar > nchar_max)
 
-#--- SUMMARIZE AND SET FINAL LIST ------------------------------------------------------------------------
+  data_str_br <-
+  data_str_br_db |>
+    dplyr::group_by(!!group_by := get(group_by),
+                    !!text_input := get(text_input)) |>
+    dplyr::filter(!duplicated(get(text_input)),
+           nchar <= nchar_max) |>
+    dplyr::ungroup()
 
-cli::cli_progress_step("{.strong step 5:} summarize & set final list")
+  data_str_cat <-
+  data_str_br |>
+    dplyr::mutate(!!text_input :=
+                    stringr::str_replace_all(get(text_input), "<br><br>", " "))
 
-summary_cols <-
-list(match = data_match,
-     exclus_auto = data_exclus_auto,
-     exclus_man = data_exclus_man,
-     retenu = data_id,
-     distinct = data_count)
+  data_str_split <-
+  data_str_cat |>
+    tidyr::separate_rows(dplyr::all_of(text_input), sep = "(?<=\\.)\\s")
 
-data_summary <-
-purrr::map2(.x = summary_cols,
-            .y = names(summary_cols),
-            ~ .x |>
-              dplyr::group_by(ngrams) |>
-              dplyr::count(name = .y))
+  cli::cli_progress_done()
 
-data_summary <-
-seq(summary_cols) |>
-  purrr::map_df(~ tibble::tibble(ngrams = ngrams) |>
-           dplyr::left_join(data_summary[[.]], by = "ngrams")) |>
-  dplyr::group_by(ngrams) |>
-  tidyr::fill(names(summary_cols), .direction = "updown") |>
-  dplyr::distinct()
+  #--- SUMMARIZE AND SET FINAL LIST -----------------------------------------------------------
 
-data_match_list <-
-list(data = data,
-     split = data_split,
-     match = data_match,
-     id = data_id,
-     count = data_count,
-     extract = data_extract,
-     str = list(br = data_str_br,
-                cat = data_str_cat,
-                split = data_str_split),
-     exclusions = list(auto = data_exclus_auto,
-                       man = data_exclus_man,
-                       uf = data_exclus_uf,
-                       nchar = data_exclus_nchar),
-     summary = data_summary)
+  cli::cli_progress_step("{.strong step 5:} summarize & set final list")
 
-assign(glue::glue(save_files),
-       data_match_list,
-       envir = .GlobalEnv)
+  summary_cols <-
+  list(match = data_match,
+       exclus_auto = data_exclus_auto,
+       exclus_man = data_exclus_man,
+       retenu = data_id,
+       distinct = data_count)
 
-cli::cli_progress_done()
+  data_summary <-
+  purrr::map2(.x = summary_cols,
+              .y = names(summary_cols),
+              ~ .x |>
+                dplyr::group_by(ngrams) |>
+                dplyr::count(name = .y))
 
-#--- PRINT -------------------------------------------------------------------------------------------------
+  data_summary <-
+  seq(summary_cols) |>
+    purrr::map_df(~ tibble::tibble(ngrams = ngrams) |>
+             dplyr::left_join(data_summary[[.]], by = "ngrams")) |>
+    dplyr::group_by(ngrams) |>
+    tidyr::fill(names(summary_cols), .direction = "updown") |>
+    dplyr::distinct()
 
-print_query <-
-purrr::map2(.x = names(str),
-            .y = seq(str),
-            ~ rlang::list2(!!.x := glue::glue("^({str_u(str[.y])})$"))) |>
-  unlist()
+  data_match_list <-
+  list(data = data,
+       split = data_split,
+       match = data_match,
+       id = data_id,
+       count = data_count,
+       extract = data_extract,
+       str = list(br = data_str_br,
+                  cat = data_str_cat,
+                  split = data_str_split),
+       exclusions = list(auto = data_exclus_auto,
+                         man = data_exclus_man,
+                         uf = data_exclus_uf,
+                         nchar = data_exclus_nchar),
+       summary = data_summary)
 
-print_concept <-
-list(data_id, data_count) |>
-  purrr::map(~ . |>
-        dplyr::group_by(concept) |>
-        dplyr::count() |>
-        dplyr::ungroup())
+  assign(glue::glue(save_files),
+         data_match_list,
+         envir = .GlobalEnv)
 
-print_group <-
-data_id |>
-  dplyr::group_by(concept) |>
-  dplyr::mutate(!!group_by := dplyr::n_distinct(get(group_by))) |>
-  dplyr::ungroup() |>
-  dplyr::distinct(concept, !!group_by := get(group_by))
+  cli::cli_progress_done()
 
-print_concept <-
-dplyr::inner_join(print_concept[[1]] |> dplyr::rename(match = n),
-                  print_concept[[2]] |> dplyr::rename(distinct = n),
-                  by = "concept") |>
-  dplyr::inner_join(print_group, by = "concept")
+  #--- PRINT ------------------------------------------------------------------------------------
 
-print(list(ngram = .split,
-           query = print_query,
-           str = print_concept,
-           exclus_auto = data_exclus_auto,
-           exclus_man = data_exclus_man,
-           exclus_uf = data_exclus_uf,
-           summary = data_summary))
+  print_query <-
+  purrr::map2(.x = names(str),
+              .y = seq(str),
+              ~ rlang::list2(!!.x := glue::glue("^({str_u(str[.y])})$"))) |>
+    unlist()
 
-message(glue::glue(
-"n total: {n <- nrow(data_total)} obs.
-n sample: {sample} obs. ({round(sample/n*100, 1)}% total)
-UF exclues: {nrow(data_exclus_uf)}/{n_uf} ({sum(data_exclus_uf$n)} obs., {sum(data_exclus_uf$prop)*100}% sample)
-soit n base: {nt <- nrow(data)} obs. ({round(nt/sample*100, 1)}% sample, {round(nt/n*100, 1)}% total)
+  print_concept <-
+  list(data_id, data_count) |>
+    purrr::map(~ . |>
+          dplyr::group_by(concept) |>
+          dplyr::count() |>
+          dplyr::ungroup())
 
-{nrow(data_match)} matchs pour {nm <- dplyr::n_distinct(data_match[[v <- join_by]])} {v} ({round(nm/nt*100, 1)}% total)
-{dplyr::n_distinct(data_match[[text_input]])} expressions distinctes
-{nrow(data_exclus_auto)} exclusions auto
-{nrow(data_exclus_man)} exclusions manuelles
-{db <- nrow(data_str_br_db) - nrow(data_str_br)} doublons ({round(db/nrow(data_str_br_db)*100, 1)}% base)
-{nrow(data_exclus_nchar)} extraits > {nchar_max} chr
+  print_group <-
+  data_id |>
+    dplyr::group_by(concept) |>
+    dplyr::mutate(!!group_by := dplyr::n_distinct(get(group_by))) |>
+    dplyr::ungroup() |>
+    dplyr::distinct(concept, !!group_by := get(group_by))
 
-soit:
-{nrow(data_id)} matchs pour {ni <- dplyr::n_distinct(data_str_br[[v]])} {v} ({round(ni/nt*100, 1)}% base)
-{nrow(data_count)} expressions distinctes pour {dplyr::n_distinct(data_count$concept)} concepts
-{dplyr::n_distinct(data_str_br[[group_by]])} {group_by}\n\n"
-))
+  print_concept <-
+  dplyr::inner_join(print_concept[[1]] |> dplyr::rename(match = n),
+                    print_concept[[2]] |> dplyr::rename(distinct = n),
+                    by = "concept") |>
+    dplyr::inner_join(print_group, by = "concept")
 
-if (length(unique(data_count$ngrams)) > 1) {
+  print(list(ngram = .split,
+             query = print_query,
+             str = print_concept,
+             exclus_auto = data_exclus_auto,
+             exclus_man = data_exclus_man,
+             exclus_uf = data_exclus_uf,
+             summary = data_summary))
 
-  print(data_count |>
-          ggplot2::ggplot() +
-          ggplot2::aes(x = ngrams, y = n) +
-          ggplot2::geom_col(ggplot2::aes(fill = concept)) +
-          ggplot2::labs(title = "nb matchs apres exclusion"))
+  message(glue::glue(
+  "n total: {n <- nrow(data_total)} obs.
+  n sample: {sample} obs. ({round(sample/n*100, 1)}% total)
+  UF exclues: {nrow(data_exclus_uf)}/{n_uf} ({sum(data_exclus_uf$n)} obs., {sum(data_exclus_uf$prop)*100}% sample)
+  soit n base: {nt <- nrow(data)} obs. ({round(nt/sample*100, 1)}% sample, {round(nt/n*100, 1)}% total)
 
-}
+  {nrow(data_match)} matchs pour {nm <- dplyr::n_distinct(data_match[[v <- join_by]])} {v} ({round(nm/nt*100, 1)}% total)
+  {dplyr::n_distinct(data_match[[text_input]])} expressions distinctes
+  {nrow(data_exclus_auto)} exclusions auto
+  {nrow(data_exclus_man)} exclusions manuelles
+  {db <- nrow(data_str_br_db) - nrow(data_str_br)} doublons ({round(db/nrow(data_str_br_db)*100, 1)}% base)
+  {nrow(data_exclus_nchar)} extraits > {nchar_max} chr
 
-#--- OUTPUT -------------------------------------------------------------------------------------------------
+  soit:
+  {nrow(data_id)} matchs pour {ni <- dplyr::n_distinct(data_str_br[[v]])} {v} ({round(ni/nt*100, 1)}% base)
+  {nrow(data_count)} expressions distinctes pour {dplyr::n_distinct(data_count$concept)} concepts
+  {dplyr::n_distinct(data_str_br[[group_by]])} {group_by}\n\n"
+  ))
 
-cli::cli_progress_step("{.strong step 6:} output")
+  if (dplyr::n_distinct(data_count$ngrams) > 1) {
 
-h_color <- glue::glue("color:{highlight_color}")
-h_bg <- glue::glue("background-color:{highlight_bg}")
+    data_plot <-
+    data_count |>
+      ggplot2::ggplot() +
+      ggplot2::aes(x = ngrams, y = n) +
+      ggplot2::geom_col(ggplot2::aes(fill = concept)) +
+      ggplot2::labs(title = "nb matchs apres exclusion")
 
-data_text <-
-data_str_br |>
-  dplyr::mutate(!!text_input :=
-           get(text_input) |>
-             stringr::str_replace_all(glue::glue("(?={data_extract})"), glue::glue("<span style='{h_color};{h_bg}'> ")) |>
-             stringr::str_replace_all(glue::glue("(?<={data_extract})"), "</span></span>")) |>
-  dplyr::select(-nchar)
+    print(data_plot)
 
-rt_common <-
-list(args = list(height = "100%",
-                 defaultColDef = reactable::colDef(vAlign = "center",
-                                                   align = "center"),
-                 showSortable = TRUE,
-                 striped = TRUE,
-                 searchable = TRUE,
-                 filterable = TRUE),
-     theme = list(style = list(fontFamily = "Segoe UI",
-                               fontSize = "11px"),
-                  borderColor = "#dfe2e5",
-                  stripedColor = "#e1f6ff",
-                  searchInputStyle = list(width = "100%")))
+  }
 
-data_text <-
-data_text |>
-  reactable::reactable(!!!rt_common$args,
-            selection = "multiple",
-            columns = list(.selection = reactable::colDef(sticky = "left"),
-                           .rownames = reactable::colDef(name = "no",
-                                                         width = 40,
-                                                         sticky = "left"),
-                           libelle_uf_entree = reactable::colDef(minWidth = 150),
-                           text = reactable::colDef(html = TRUE,
-                                                    minWidth = 500,
-                                                    maxWidth = 500,
-                                                    style = list(textAlign = "justify"))),
-            rownames = TRUE,
-            highlight = TRUE,
-            showPageSizeOptions = TRUE,
-            pageSizeOptions = c(10, 25, 50, 100, 200, 500, 1000),
-            defaultPageSize = 100,
-            theme = reactable::reactableTheme(!!!rt_common$theme,
-                                              rowSelectedStyle = list(backgroundColor = "skyblue"))) |> rlang::inject()
+  #--- OUTPUT ------------------------------------------------------------------------------------
 
-data_cpts <-
-data_count |>
-  dplyr::select(-ngrams) |>
-  reactable::reactable(!!!rt_common$args,
-            columns = list(text = reactable::colDef(name = "expression",
-                                                    style = list(color = highlight_color)),
-                           concept = reactable::colDef(maxWidth = 200),
-                           n = reactable::colDef(maxWidth = 75)),
-            defaultPageSize = 1000,
-            theme = reactable::reactableTheme(!!!rt_common$theme)) |> rlang::inject()
+  cli::cli_progress_step("{.strong step 6:} output")
 
-data_exclus_uf <-
-data_exclus_uf |>
-  reactable::reactable(!!!rt_common$args,
-            columns = list(code_uf_entree = reactable::colDef(maxWidth = 100),
-                           n = reactable::colDef(maxWidth = 75),
-                           prop = reactable::colDef(maxWidth = 75)),
-            defaultPageSize = 1000,
-            theme = reactable::reactableTheme(!!!rt_common$theme)) |> rlang::inject()
+  h_color <- glue::glue("color:{highlight_color}")
+  h_bg <- glue::glue("background-color:{highlight_bg}")
 
-data_to_output <- \(name, data) {
+  data_text <-
+  data_str_br |>
+    dplyr::mutate(!!text_input :=
+             get(text_input) |>
+               stringr::str_replace_all(glue::glue("(?={data_extract})"),
+                                        glue::glue("<span style='{h_color};{h_bg}'> ")) |>
+               stringr::str_replace_all(glue::glue("(?<={data_extract})"),
+                                        "</span></span>")) |>
+    dplyr::select(-nchar)
 
-  output <- glue::glue("{.save_extract}_{name}.html")
-  htmltools::save_html(data, output)
-  utils::browseURL(output)
+  rt_common <-
+  list(args = list(height = "100%",
+                   defaultColDef = reactable::colDef(vAlign = "center",
+                                                     align = "center"),
+                   showSortable = TRUE,
+                   striped = TRUE,
+                   searchable = TRUE,
+                   filterable = TRUE),
+       theme = list(style = list(fontFamily = "Segoe UI",
+                                 fontSize = "11px"),
+                    borderColor = "#dfe2e5",
+                    stripedColor = "#e1f6ff",
+                    searchInputStyle = list(width = "100%")))
 
-}
+  data_text <-
+  data_text |>
+    reactable::reactable(!!!rt_common$args,
+              selection = "multiple",
+              columns = list(.selection = reactable::colDef(sticky = "left"),
+                             .rownames = reactable::colDef(name = "no",
+                                                           width = 40,
+                                                           sticky = "left"),
+                             libelle_uf_entree = reactable::colDef(minWidth = 150),
+                             text = reactable::colDef(html = TRUE,
+                                                      minWidth = 500,
+                                                      maxWidth = 500,
+                                                      style = list(textAlign = "justify"))),
+              rownames = TRUE,
+              highlight = TRUE,
+              showPageSizeOptions = TRUE,
+              pageSizeOptions = c(10, 25, 50, 100, 200, 500, 1000),
+              defaultPageSize = 100,
+              theme = reactable::reactableTheme(!!!rt_common$theme,
+                                                rowSelectedStyle = list(backgroundColor = "skyblue"))) |> rlang::inject()
 
-data_to_output("cpts", data_cpts)
-data_to_output("text", data_text)
+  data_cpts <-
+  data_count |>
+    dplyr::select(-ngrams) |>
+    reactable::reactable(!!!rt_common$args,
+              columns = list(text = reactable::colDef(name = "expression",
+                                                      style = list(color = highlight_color)),
+                             concept = reactable::colDef(maxWidth = 200),
+                             n = reactable::colDef(maxWidth = 75)),
+              defaultPageSize = 1000,
+              theme = reactable::reactableTheme(!!!rt_common$theme)) |> rlang::inject()
 
-if (exclus_uf_code$var != "" | exclus_uf_libelle$var != "") {
+  data_exclus_uf <-
+  data_exclus_uf |>
+    reactable::reactable(!!!rt_common$args,
+              columns = list(code_uf_entree = reactable::colDef(maxWidth = 100),
+                             n = reactable::colDef(maxWidth = 75),
+                             prop = reactable::colDef(maxWidth = 75)),
+              defaultPageSize = 1000,
+              theme = reactable::reactableTheme(!!!rt_common$theme)) |> rlang::inject()
 
-  data_to_output("exclus_uf", data_exclus_uf)
+  data_to_output <- \(name, data) {
 
-}
+    output <- glue::glue("{.save_extract}_{name}.html")
+    htmltools::save_html(data, output)
+    utils::browseURL(output)
 
-data_match_list <-
-append(data_match_list,
-       list(output = list(cpts = data_cpts,
-                          text = data_text,
-                          exclus_uf = data_exclus_uf)))
+  }
 
-cli::cli_progress_done()
+  data_to_output("cpts", data_cpts)
+  data_to_output("text", data_text)
 
-#--- SAVE -------------------------------------------------------------------------------------------------
+  if (exclus_uf_code$var != "" | exclus_uf_libelle$var != "") {
 
-cli::cli_progress_step("{.strong step 7:} save")
+    data_to_output("exclus_uf", data_exclus_uf)
 
-assign(glue::glue(save_files), data_match_list, envir = .GlobalEnv)
+  }
 
-save(list = glue::glue(save_files), file = glue::glue("{.save_extract}.RData"))
+  data_match_list <-
+  append(data_match_list,
+         list(output = list(cpts = data_cpts,
+                            text = data_text,
+                            exclus_uf = data_exclus_uf)))
 
-readr::write_excel_csv(data_str_cat, file = glue::glue("{.save_extract}_text.csv"))
+  cli::cli_progress_done()
 
-#data_match_list[c("id", "count", "exclusions", "summary")] |>
-#  list_flatten() |>
-#  write_xlsx(path = glue::glue(.save_extract, ".xlsx"))
+  #--- SAVE -------------------------------------------------------------------------------------------------
 
-cli::cli_progress_done()
-cli::cli_text("\n\n")
-cli::cli_alert_success("files saved to {.path {save_dir}}")
-cli::cli_text("\n\n")
-cli::cli_rule()
+  cli::cli_progress_step("{.strong step 7:} save")
+
+  assign(glue::glue(save_files),
+         data_match_list,
+         envir = .GlobalEnv)
+
+  save(list = glue::glue(save_files),
+       file = glue::glue("{.save_extract}.RData"))
+
+  readr::write_excel_csv(data_str_cat,
+                         file = glue::glue("{.save_extract}_text.csv"))
+
+  #data_match_list[c("id", "count", "exclusions", "summary")] |>
+  #  list_flatten() |>
+  #  write_xlsx(path = glue::glue(.save_extract, ".xlsx"))
+
+  cli::cli_progress_done()
+  cli::cli_text("\n\n")
+  cli::cli_alert_success("files saved to {.path {save_dir}}")
+  cli::cli_text("\n\n")
+  cli::cli_rule()
 
 }

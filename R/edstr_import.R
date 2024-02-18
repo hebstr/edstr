@@ -19,114 +19,97 @@ edstr_import <- \(query,
                   load = FALSE,
                   config = get(.config_name)) {
 
-if (!exists(".config_name")) {
+  error_config()
 
-  cli::cli_abort(c("Configuration file doesn't exists!",
-                   "i" = "Please create it first with {.fn edstr_config}"))
+  if (is.character(config)) config <- get(config)
 
-}
+  config_dir <- with(config, dir)
+  config_file <- glue::glue("{with(config, file)}_import")
+  config_save <- glue::glue("{config_dir}/{config_file}.RData")
 
-if (is.character(config)) config <- get(config)
+  query <- glue::glue(query)
 
-config_dir <- with(config, dir)
-config_file <- glue::glue("{with(config, file)}_import")
-config_save <- glue::glue("{config_dir}/{config_file}.RData")
+  cli::cli_h1("edstr_import")
+  cli::cli_text("\n\n")
 
-query <- glue::glue(query)
-
-cli::cli_h1("edstr_import")
-cli::cli_text("\n\n")
-
-if (!load) {
+  if (!load) {
 
 ### CONNECT -------------------------------------------------------------------------------
 
-  Sys.setenv(JAVA_HOME = glue::glue("{connect_dir}/jdk1.8.0_261"))
+    Sys.setenv(JAVA_HOME = glue::glue("{connect_dir}/jdk1.8.0_261"))
 
-  tns <- utils::read.table(glue::glue("{connect_dir}/tns.txt"))
+    tns <- utils::read.table(glue::glue("{connect_dir}/tns.txt"))
 
-  .con <-
-  dbConnect(drv = JDBC(driverClass = "oracle.jdbc.OracleDriver",
-                       classPath = glue::glue("{connect_dir}/ojdbc6.jar")),
-            url = glue::glue("jdbc:oracle:thin:@//{tns}"),
-            user = user,
-            password = getPass::getPass())
+    .con <-
+    dbConnect(drv = JDBC(driverClass = "oracle.jdbc.OracleDriver",
+                         classPath = glue::glue("{connect_dir}/ojdbc6.jar")),
+              url = glue::glue("jdbc:oracle:thin:@//{tns}"),
+              user = user,
+              password = getPass::getPass())
 
-  assign(".con", .con, envir = .GlobalEnv)
+    assign(".con", .con, envir = .GlobalEnv)
 
 ### QUERY -------------------------------------------------------------------------------
 
-  cli::cli_progress_step("import from db (user: {.strong {user}})")
+    cli::cli_progress_step("import from db (user: {.strong {user}})")
 
-  if (!stringr::str_starts(query, "(?i)\\s*SELECT")) {
+    if (!stringr::str_starts(query, "(?i)\\s*SELECT")) {
 
-    query_flatten <- \(replace) {
+      query_flatten <- \(replace) {
 
-      query |>
-        readr::read_lines() |>
-        stringr::str_replace_all(c("$" = replace)) |>
-        stringr::str_flatten()
+        query |>
+          readr::read_lines() |>
+          stringr::str_replace_all(c("$" = replace)) |>
+          stringr::str_flatten()
+
+      }
+
+      query_flatten("\n") |>
+        stringr::str_view() |>
+        print()
+
+      query <- query_flatten(" ")
 
     }
 
-    query_flatten("\n") |>
-      stringr::str_view() |>
-      print()
+    if (!is.null(head)) {
 
-    query <- query_flatten(" ")
+      query <- glue::glue("{query} FETCH FIRST {head} ROWS ONLY")
 
-  }
+    }
 
-  if (!is.null(head)) {
+    data_import <-
+    .con |>
+      tbl(sql(query)) |>
+      collect() |>
+      rlang::set_names(tolower)
 
-    query <- glue::glue("{query} FETCH FIRST {head} ROWS ONLY")
+### SAVE ---------------------------------------------------------------------------------
 
-  }
+    cli::cli_progress_step("Saving {.strong {config_file}}")
 
-  data_import <-
-  .con |>
-    tbl(sql(query)) |>
-    collect() |>
-    rlang::set_names(tolower)
+    assign(config_file, data_import, envir = .GlobalEnv)
 
-  assign(config_file, data_import, envir = .GlobalEnv)
+    save(list = config_file, file = config_save)
 
-  cli::cli_progress_step("save {.strong {config_file}}")
+    cli::cli_progress_done()
 
-  save(list = config_file, file = config_save)
+### CLI ---------------------------------------------------------------------------------
 
-  cli::cli_progress_done()
+    cli::cli_alert_success("{.strong {config_file}} saved to {.path {config_save}}")
+    cli::cli_text("\n\n")
+    cli::cli_alert_info("{.strong Dimensions}")
+    cli::cli_ul()
+      cli::cli_li("{nrow(data_import)} observations")
+      cli::cli_li("{ncol(data_import)} variables")
+      cli::cli_end()
+    cli::cli_text("\n\n")
+    cli::cli_rule()
 
-  cli::cli_alert_success("{.strong {config_file}} saved to {.path {config_save}}")
-  cli::cli_text("\n\n")
-  cli::cli_alert_info("{.strong dimensions}")
-  cli::cli_ul()
-    cli::cli_li("{nrow(data_import)} observations")
-    cli::cli_li("{ncol(data_import)} variables")
-  cli::cli_end()
-  cli::cli_text("\n\n")
-  cli::cli_rule()
+  } else {
 
-} else {
-
-  if (!file.exists(config_save)) {
-
-    cli::cli_abort(c("{.strong {config_file}} not found in {.path {config_dir}}",
-                     "i" = "Please create {.strong {config_file}} first with {.field load = FALSE}
-                           or change directory in {.fn edstr_config}"))
+    eval(cli_load())
 
   }
-
-  cli::cli_progress_step("Loading {.strong {config_file}}")
-
-  load(config_save, envir = .GlobalEnv)
-
-  cli::cli_progress_done()
-
-  cli::cli_alert_success("{.strong {config_file}} loaded from {.path {config_save}}")
-  cli::cli_text("\n\n")
-  cli::cli_rule()
-
-}
 
 }
