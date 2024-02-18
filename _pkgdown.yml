@@ -6,8 +6,9 @@ reference:
 - title: Main functions
   contents:
   - edstr_config
+  - edstr_import
 
 - title: Helpers
   contents:
-  - easy_replace
   - str_u
+  - easy_replace

@@ -17,6 +17,7 @@ edstr_config <- \(dest_dir,
                   dest_filename,
                   str,
                   concepts,
+                  text,
                   config_name = ".config") {
 
 dest_dir <- glue::glue(dest_dir)
@@ -30,9 +31,9 @@ load(concepts, envir = .GlobalEnv)
 if (!file.exists(dest_dir)) {
 
   dir.create(path = dest_dir)
-  dir_status <- "new"
+  dir_status <- "New"
 
-} else dir_status <- "existing"
+} else dir_status <- "Existing"
 
 parent_dir <- stringr::str_remove(getwd(), "[^/]+/?$")
 dest_dir <- stringr::str_replace(dest_dir, "^(\\.\\./)", parent_dir)
@@ -42,9 +43,9 @@ dest_dir <- stringr::str_replace(dest_dir, "^(\\.\\./)", parent_dir)
 assign(config_name,
        dplyr::lst(dir = stringr::str_remove(dest_dir, "/+$"),
                   file = dest_filename,
-                  save = glue::glue("{dir}/{file}"),
                   str = .str,
-                  concepts = .concepts),
+                  concepts = .concepts,
+                  text = text),
               envir = .GlobalEnv)
 
 assign(".config_name",
@@ -57,18 +58,26 @@ dir_status <- cli::style_underline(dir_status)
 dirname <- with(get(config_name), dir)
 filename <- cli::col_red(with(get(config_name), file))
 config_name <- cli::col_green(config_name)
+str <- cli::col_green("str")
+concepts <- cli::col_green("concepts")
+text <- cli::col_green(text)
 
 cli::cli_h1("edstr_config")
 cli::cli_text("\n\n")
-cli::cli_alert_info("{.strong working directory:} {getwd()}")
+cli::cli_alert_info("{.strong Working directory:} {.path {getwd()}}")
 cli::cli_text("\n\n")
-cli::cli_alert_info("{.strong destination}")
+cli::cli_alert_info("{.strong Destination}")
 cli::cli_ul()
   cli::cli_li("{dir_status} directory: {.path {dirname}}")
-  cli::cli_li("filename: {filename}")
+  cli::cli_li("Filename: {filename}")
 cli::cli_end()
 cli::cli_text("\n\n")
-cli::cli_alert_info("{.strong configuration file:} {config_name}")
+cli::cli_alert_info("{.strong Configuration list:} {.strong {config_name}}")
+cli::cli_ul()
+  cli::cli_li("Replacement list: {str}")
+  cli::cli_li("Concepts list: {concepts}")
+  cli::cli_li("Text input: {.code {text}}")
+  cli::cli_end()
 cli::cli_text("\n\n")
 cli::cli_rule()
 

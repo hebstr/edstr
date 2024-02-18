@@ -24,17 +24,21 @@ devtools::install_git("https://codeberg.org/hebstr/edstr")
 edstr_config(dest_dir = "~/Documents/pro/data/fracture2",
              dest_filename = "urgtest",
              str = "~/Documents/pro/~des/$eds/config/str.RData",
-             concepts = "~/Documents/pro/~des/$eds/config/concepts.RData")
+             concepts = "~/Documents/pro/~des/$eds/config/concepts.RData",
+             text = "text")
 #> 
 #> ── edstr_config ────────────────────────────────────────────────────────────────
 #> 
-#> ℹ working directory: /home/julien/Documents/pro/~r_pkg/edstr
+#> ℹ Working directory: '/home/julien/Documents/pro/~r_pkg/edstr'
 #> 
-#> ℹ destination
-#> • existing directory: '~/Documents/pro/data/fracture2'
-#> • filename: urgtest
+#> ℹ Destination
+#> • Existing directory: '~/Documents/pro/data/fracture2'
+#> • Filename: urgtest
 #> 
-#> ℹ configuration file: .config
+#> ℹ Configuration list: .config
+#>   • Replacement list: str
+#>   • Concepts list: concepts
+#>   • Text input: `text`
 #> 
 #> ────────────────────────────────────────────────────────────────────────────────
 ```

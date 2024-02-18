@@ -4,7 +4,14 @@
 \alias{edstr_config}
 \title{Generate a configuration file}
 \usage{
-edstr_config(dest_dir, dest_filename, str, concepts, config_name = ".config")
+edstr_config(
+  dest_dir,
+  dest_filename,
+  str,
+  concepts,
+  text,
+  config_name = ".config"
+)
 }
 \arguments{
 \item{dest_dir}{Path to the destination directory.

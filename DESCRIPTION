@@ -11,7 +11,16 @@ RoxygenNote: 7.3.1
 Imports: 
     cli,
     dplyr,
+    getPass,
+    ggplot2,
     glue,
+    htmltools,
     purrr,
+    reactable,
+    readr,
     rlang,
-    stringr
+    scales,
+    stringr,
+    tibble,
+    tidyr,
+    tidytext
