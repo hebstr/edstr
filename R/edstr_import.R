@@ -41,11 +41,11 @@ edstr_import <- \(query,
     tns <- utils::read.table(glue::glue("{connect_dir}/tns.txt"))
 
     .con <-
-    dbConnect(drv = JDBC(driverClass = "oracle.jdbc.OracleDriver",
-                         classPath = glue::glue("{connect_dir}/ojdbc6.jar")),
-              url = glue::glue("jdbc:oracle:thin:@//{tns}"),
-              user = user,
-              password = getPass::getPass())
+    RJDBC::dbConnect(drv = RJDBC::JDBC(driverClass = "oracle.jdbc.OracleDriver",
+                                       classPath = glue::glue("{connect_dir}/ojdbc6.jar")),
+                     url = glue::glue("jdbc:oracle:thin:@//{tns}"),
+                     user = user,
+                     password = getPass::getPass())
 
     assign(".con", .con, envir = .GlobalEnv)
 
@@ -80,8 +80,8 @@ edstr_import <- \(query,
 
     data_import <-
     .con |>
-      tbl(sql(query)) |>
-      collect() |>
+      dplyr::tbl(dplyr::sql(query)) |>
+      dplyr::collect() |>
       rlang::set_names(tolower)
 
 ### SAVE ---------------------------------------------------------------------------------
