@@ -40,7 +40,7 @@ edstr_clean <- \(data = glue::glue("{with(config, file)}_import"),
 
 ### INPUT ---------------------------------------------------------------------------------
 
-    if (!exists(file_import)) {
+    if (identical(data, file_import) & !exists(file_import)) {
 
       cli::cli_abort(c("{.strong {file_import}} doesn't exists!",
                        "i" = "Please create {.strong {file_import}} first with {.fn edstr_import}"))

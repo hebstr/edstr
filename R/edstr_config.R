@@ -30,7 +30,7 @@ load(concepts, envir = .GlobalEnv)
 
 if (!file.exists(dest_dir)) {
 
-  dir.create(path = dest_dir)
+  dir.create(path = dest_dir, recursive = TRUE)
   dir_status <- "New"
 
 } else dir_status <- "Existing"
@@ -76,7 +76,7 @@ cli::cli_alert_info("{.strong Configuration list:} {.strong {config_name}}")
 cli::cli_ul()
   cli::cli_li("Replacement list: {str}")
   cli::cli_li("Concepts list: {concepts}")
-  cli::cli_li("Text input: {.code {text}}")
+  cli::cli_li("Text input: {text}")
   cli::cli_end()
 cli::cli_text("\n\n")
 cli::cli_rule()

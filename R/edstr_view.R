@@ -60,14 +60,14 @@ edstr_view <- \(data,
 
   if (!is.null(replace)) {
 
-  if (!is.list(replace)) replace <- list(replace)
+    if (!is.list(replace)) replace <- list(replace)
 
-  data <-
-  data |>
-    dplyr::mutate(!!text_input :=
-                    purrr::reduce(replace,
-                                  stringr::str_replace_all,
-                                  .init = get(text_input)))
+    data <-
+    data |>
+      dplyr::mutate(!!text_input :=
+                      purrr::reduce(replace,
+                                    stringr::str_replace_all,
+                                    .init = get(text_input)))
 
   }
 
