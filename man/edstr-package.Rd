@@ -6,7 +6,7 @@
 \alias{edstr-package}
 \title{edstr: Manage a non-structured text input}
 \description{
-A set of functions to import, clean up and extract non-structured text from a database.
+Un ensemble de fonctions pour importer, nettoyer et extraire du texte non-structuré depuis texte_affichage.
 }
 \author{
 \strong{Maintainer}: pas chatGPT \email{ju.diez@protonmail.com}

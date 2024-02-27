@@ -55,8 +55,8 @@ edstr_import <- \(query,
 
     if (!stringr::str_starts(query, "(?i)\\s*SELECT")) {
 
-      query <- read_lines(query)
-      query <- query[!str_starts(query, "--")]
+      query <- readr::read_lines(query)
+      query <- query[!stringr::str_starts(query, "--")]
 
       query_flatten <- \(replace) {
 
