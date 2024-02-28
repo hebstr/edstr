@@ -12,12 +12,16 @@
 #'
 #' @examples
 #'
-edstr_split <- \(data,
+edstr_split <- \(data = glue::glue("{with(config, file)}_clean"),
                  split,
                  split_br,
                  replace,
                  n_min,
-                 filter) {
+                 filter,
+                 config = get(.config_name)) {
+
+  if (is.character(data)) data <- get(data)
+  if (is.character(config)) config <- get(config)
 
   cli::cli_progress_step("step 1: extract")
 
@@ -25,10 +29,12 @@ edstr_split <- \(data,
              str = split,
              id = "id_sej")
 
+  config_view <- get(glue::glue("{with(config, file)}_view"))
+
   cli::cli_progress_step("step 2: filter")
 
   .split <-
-  test_view |>
+  config_view |>
     purrr::pluck("all_matches") |>
     dplyr::mutate(match = match |> stringr::str_replace_all(replace))
 

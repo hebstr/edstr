@@ -4,7 +4,15 @@
 \alias{edstr_split}
 \title{Title}
 \usage{
-edstr_split(data, split, split_br, replace, n_min, filter)
+edstr_split(
+  data = glue::glue("{with(config, file)}_clean"),
+  split,
+  split_br,
+  replace,
+  n_min,
+  filter,
+  config = get(.config_name)
+)
 }
 \arguments{
 \item{filter}{}
