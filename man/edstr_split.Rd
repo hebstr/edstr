@@ -6,7 +6,7 @@
 \usage{
 edstr_split(
   data = glue::glue("{with(config, file)}_clean"),
-  split,
+  pattern,
   word_max = 2,
   count_min = 100,
   id,
@@ -15,7 +15,7 @@ edstr_split(
 )
 }
 \arguments{
-\item{text_input}{}
+\item{word_max}{}
 }
 \description{
 Title

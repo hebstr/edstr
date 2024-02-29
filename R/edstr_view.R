@@ -117,8 +117,8 @@ edstr_view <- \(data,
   data_match |>
     dplyr::count(match,
                  nchar,
-                 get(q_right),
-                 get(over_q_right)) |>
+                 !!q_right := get(q_right),
+                 !!over_q_right := get(over_q_right)) |>
     dplyr::arrange(dplyr::desc(nchar)) |>
     dplyr::mutate(n = factor(n))
 

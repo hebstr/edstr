@@ -1,11 +1,12 @@
 #' Title
 #'
 #' @param data
-#' @param split
 #' @param count_min
 #' @param id
 #' @param config
 #' @param text_input
+#' @param pattern
+#' @param word_max
 #'
 #' @return
 #' @export
@@ -13,7 +14,7 @@
 #' @examples
 #'
 edstr_split <- \(data = glue::glue("{with(config, file)}_clean"),
-                 split,
+                 pattern,
                  word_max = 2,
                  count_min = 100,
                  id,
@@ -29,24 +30,26 @@ edstr_split <- \(data = glue::glue("{with(config, file)}_clean"),
   config_file <- glue::glue("{with(config, file)}_split")
   config_save <- glue::glue("{config_dir}/{config_file}.RData")
 
-  split_fun <- \(.split, .id) {
+### SPLIT_FUN -----------------------------------------------------------------------------
 
-    if (!is.null(names(.split))) {
+  split_fun <- \(.pattern, .id) {
 
-      split_name <- glue::glue("_{names(.split)}")
-      split_mode <- names(.split)
+    if (!is.null(names(.pattern))) {
+
+      split_name <- glue::glue("_{names(.pattern)}")
+      split_mode <- names(.pattern)
 
     } else {
 
       split_name <- ""
-      split_mode <- .split
+      split_mode <- .pattern
 
     }
 
     config_input <- glue::glue("{with(config, file)}_view{split_name}")
 
     edstr_view(data = data,
-               str = .split,
+               str = .pattern,
                id = .id,
                text_input = text_input)
 
@@ -70,14 +73,16 @@ edstr_split <- \(data = glue::glue("{with(config, file)}_clean"),
   }
 
   .split_data <-
-  list(split_fun(.split = split[1], .id = id),
-       split_fun(.split = split[2], .id = id))
+  list(split_fun(.pattern = pattern[1], .id = id),
+       split_fun(.pattern = pattern[2], .id = id))
 
-  if (!is.null(names(split))) {
+### BIND ROWS ---------------------------------------------------------------------------------
 
-   split_name_flatten <- stringr::str_flatten(names(split), " and ")
+  if (!is.null(names(pattern))) {
 
-  } else split_name_flatten <- stringr::str_flatten(split, " and ")
+   split_name_flatten <- stringr::str_flatten(names(pattern), " and ")
+
+  } else split_name_flatten <- stringr::str_flatten(pattern, " and ")
 
   cli::cli_h1("edstr_split")
   cli::cli_text("\n\n")
@@ -110,7 +115,7 @@ edstr_split <- \(data = glue::glue("{with(config, file)}_clean"),
               str = .split_str),
          envir = .GlobalEnv)
 
-  save(config_file, file = config_save)
+  save(list = config_file, file = config_save)
 
   cli::cli_progress_done()
 
