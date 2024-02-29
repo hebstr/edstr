@@ -7,15 +7,15 @@
 edstr_split(
   data = glue::glue("{with(config, file)}_clean"),
   split,
-  split_br,
-  replace,
-  n_min,
-  filter,
-  config = get(.config_name)
+  word_max = 2,
+  count_min = 100,
+  id,
+  config = get(.config_name),
+  text_input = with(config, text)
 )
 }
 \arguments{
-\item{filter}{}
+\item{text_input}{}
 }
 \description{
 Title

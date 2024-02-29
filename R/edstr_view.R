@@ -40,7 +40,14 @@ edstr_view <- \(data,
   if (is.character(data)) data <- get(data)
   if (is.character(config)) config <- get(config)
 
-  config_file <- glue::glue("{with(config, file)}_view")
+  if (!is.null(names(str))) {
+
+    str_name <- glue::glue("_{names(str)}")
+
+  } else str_name <- ""
+
+  config_file <- glue::glue("{with(config, file)}_view{str_name}")
+
   filter <- rlang::enexpr(filter)
   mode <- rlang::arg_match(mode)
 

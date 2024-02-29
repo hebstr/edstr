@@ -2,10 +2,10 @@
 #'
 #' @param data
 #' @param split
-#' @param split_br
-#' @param replace
-#' @param n_min
-#' @param filter
+#' @param count_min
+#' @param id
+#' @param config
+#' @param text_input
 #'
 #' @return
 #' @export
@@ -14,46 +14,111 @@
 #'
 edstr_split <- \(data = glue::glue("{with(config, file)}_clean"),
                  split,
-                 split_br,
-                 replace,
-                 n_min,
-                 filter,
-                 config = get(.config_name)) {
+                 word_max = 2,
+                 count_min = 100,
+                 id,
+                 config = get(.config_name),
+                 text_input = with(config, text)) {
+
+  cli_error_config()
 
   if (is.character(data)) data <- get(data)
   if (is.character(config)) config <- get(config)
 
-  cli::cli_progress_step("step 1: extract")
+  config_dir <- with(config, dir)
+  config_file <- glue::glue("{with(config, file)}_split")
+  config_save <- glue::glue("{config_dir}/{config_file}.RData")
 
-  edstr_view(data = data,
-             str = split,
-             id = "id_sej")
+  split_fun <- \(.split, .id) {
 
-  config_view <- get(glue::glue("{with(config, file)}_view"))
+    if (!is.null(names(.split))) {
 
-  cli::cli_progress_step("step 2: filter")
+      split_name <- glue::glue("_{names(.split)}")
+      split_mode <- names(.split)
 
-  .split <-
-  config_view |>
-    purrr::pluck("all_matches") |>
-    dplyr::mutate(match = match |> stringr::str_replace_all(replace))
+    } else {
 
-  if (split_br) {
+      split_name <- ""
+      split_mode <- .split
 
-    .split <- .split |> tidyr::separate_rows(match, sep = "<br/>|(?<=:)\\s*")
+    }
+
+    config_input <- glue::glue("{with(config, file)}_view{split_name}")
+
+    edstr_view(data = data,
+               str = .split,
+               id = .id,
+               text_input = text_input)
+
+    split_data <-
+    get(config_input) |>
+      purrr::pluck("all_matches") |>
+      dplyr::select(.id, match) |>
+      dplyr::arrange(get(.id))
+
+    cli::cli_text("\n\n")
+    cli::cli_alert_info(glue::glue("split mode: {split_mode}"))
+    cli::cli_text("\n\n")
+    cli::cli_alert_success("{.strong {config_input}} created")
+    cli::cli_text("\n\n")
+    cli::cli_rule()
+
+    assign(glue::glue(config_input),
+           split_data,
+           envir = .GlobalEnv)
 
   }
 
-  .split <-
-  .split |>
+  .split_data <-
+  list(split_fun(.split = split[1], .id = id),
+       split_fun(.split = split[2], .id = id))
+
+  if (!is.null(names(split))) {
+
+   split_name_flatten <- stringr::str_flatten(names(split), " and ")
+
+  } else split_name_flatten <- stringr::str_flatten(split, " and ")
+
+  cli::cli_h1("edstr_split")
+  cli::cli_text("\n\n")
+  cli::cli_progress_step("Binding {split_name_flatten} rows")
+
+  .split_bind <-
+  .split_data |>
+    dplyr::bind_rows() |>
+    dplyr::mutate(match =
+                    match |>
+                      stringr::str_extract(glue::glue("\\S+(\\s+\\S+){{0,{word_max-1}}}")) |>
+                      stringr::str_replace_all(c("^\\s+|\\s*\\W+\\s*$" = "",
+                                                 "\\d+" = "\\\\d+",
+                                                 "(?=(\\(|\\)|\\*|\\.|\\?))" = "\\\\"))) |>
     dplyr::count(match, sort = TRUE) |>
-    dplyr::filter(n > n_min,
-                  stringr::str_detect(match, filter[1]),
-                  !stringr::str_detect(match, filter[2]),
-                  !duplicated(match))
+    dplyr::filter(stringr::str_starts(match, "[:upper:]"),
+                  !stringr::str_detect(match, "^[:upper:]+$"),
+                  !stringr::str_detect(match, "^M(\\.|(?i)(onsi|ada|r|me|lle|e))"),
+                  n >= count_min)
+
+  .split_bind_str <- stringr::str_c(.split_bind$match, collapse = "|")
+  .split_str <- glue::glue("(?<=>)(\\s*|\\d(\\.|\\)|/)\\s*)?(?=({.split_bind_str}))")
+
+### SAVE ---------------------------------------------------------------------------------
+
+  cli::cli_progress_step("Saving {.strong {config_file}}")
+
+  assign(config_file,
+         list(bind = .split_bind,
+              str = .split_str),
+         envir = .GlobalEnv)
+
+  save(config_file, file = config_save)
 
   cli::cli_progress_done()
 
-  assign(".split", .split, envir = .GlobalEnv)
+### CLI ---------------------------------------------------------------------------------
+
+  cli::cli_text("\n\n")
+  cli::cli_alert_success("{.strong {config_file}} saved to {.path {config_save}}")
+  cli::cli_text("\n\n")
+  cli::cli_rule()
 
 }

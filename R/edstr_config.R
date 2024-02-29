@@ -6,6 +6,7 @@
 #' @param str Path to a RData file containing string for further text management.
 #'    A character vector.
 #' @param concepts Path to a RData file containing a list of concepts to use with [edstr_extract()].
+#' @param text
 #' @param config_name Configuration filename. A character vector. Default is ".config".
 #'
 #' @return Two hidden objects
