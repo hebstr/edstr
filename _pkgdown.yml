@@ -3,13 +3,13 @@ template:
   bootstrap: 5
 
 reference:
-- title: Processing functions
+- title: Process
   contents:
   - edstr_config
   - edstr_import
   - edstr_clean
   - edstr_extract
 
-- title: Explorating functions
+- title: Exploration
   contents:
   - edstr_view
