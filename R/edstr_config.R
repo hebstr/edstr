@@ -1,13 +1,15 @@
-#' Generate a configuration file
+#' Générer une configuration initale
 #'
-#' @param dest_dir Path to the destination directory.
-#'    A character vector.
-#' @param dest_filename Base name of files to create, located in destination directory.
-#' @param str Path to a RData file containing string for further text management.
-#'    A character vector.
-#' @param concepts Path to a RData file containing a list of concepts to use with [edstr_extract()].
+#' @param dest_dir Chemin vers le répertoire de destination. Un vecteur de caractères.
+#' @param dest_filename Base name of files to create, located in destination
+#'   directory.
+#' @param str Path to a RData file containing string for further text
+#'   management. Un vecteur de caractères.
+#' @param concepts Path to a RData file containing a list of concepts to use
+#'   with [edstr_extract()].
 #' @param text
-#' @param config_name Configuration filename. A character vector. Default is ".config".
+#' @param config_name Nom du fichier de configuration. Un vecteur de caractères. Nommé
+#'   ".config" par défaut.
 #' @param split
 #'
 #' @return Two hidden objects

@@ -2,7 +2,7 @@
 % Please edit documentation in R/edstr_clean.R
 \name{edstr_clean}
 \alias{edstr_clean}
-\title{Clean a text input with patterns to replace}
+\title{Nettoyer des chaines de caractères par remplacement de patterns}
 \usage{
 edstr_clean(
   data = glue::glue("{with(config, file)}_import"),
@@ -19,5 +19,5 @@ edstr_clean(
 \item{text_input}{}
 }
 \description{
-Clean a text input with patterns to replace
+Nettoyer des chaines de caractères par remplacement de patterns
 }

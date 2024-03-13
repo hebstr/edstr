@@ -2,7 +2,7 @@
 % Please edit documentation in R/edstr_config.R
 \name{edstr_config}
 \alias{edstr_config}
-\title{Generate a configuration file}
+\title{Générer une configuration initale}
 \usage{
 edstr_config(
   dest_dir,
@@ -15,23 +15,25 @@ edstr_config(
 )
 }
 \arguments{
-\item{dest_dir}{Path to the destination directory.
-A character vector.}
+\item{dest_dir}{Chemin vers le répertoire de destination. Un vecteur de caractères.}
 
-\item{dest_filename}{Base name of files to create, located in destination directory.}
+\item{dest_filename}{Base name of files to create, located in destination
+directory.}
 
-\item{str}{Path to a RData file containing string for further text management.
-A character vector.}
+\item{str}{Path to a RData file containing string for further text
+management. Un vecteur de caractères.}
 
-\item{concepts}{Path to a RData file containing a list of concepts to use with \code{\link[=edstr_extract]{edstr_extract()}}.}
+\item{concepts}{Path to a RData file containing a list of concepts to use
+with \code{\link[=edstr_extract]{edstr_extract()}}.}
 
 \item{split}{}
 
-\item{config_name}{Configuration filename. A character vector. Default is ".config".}
+\item{config_name}{Nom du fichier de configuration. Un vecteur de caractères. Nommé
+".config" par défaut.}
 }
 \value{
 Two hidden objects
 }
 \description{
-Generate a configuration file
+Générer une configuration initale
 }

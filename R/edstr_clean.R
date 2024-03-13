@@ -1,4 +1,4 @@
-#' Clean a text input with patterns to replace
+#' Nettoyer des chaines de caractères par remplacement de patterns
 #'
 #' @param data
 #' @param sample

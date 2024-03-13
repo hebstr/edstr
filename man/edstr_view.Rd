@@ -2,7 +2,7 @@
 % Please edit documentation in R/edstr_view.R
 \name{edstr_view}
 \alias{edstr_view}
-\title{Title}
+\title{Explorer}
 \usage{
 edstr_view(
   data,
@@ -26,5 +26,5 @@ edstr_view(
 \item{...}{}
 }
 \description{
-Title
+Explorer
 }

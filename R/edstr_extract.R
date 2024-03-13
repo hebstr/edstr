@@ -1,4 +1,4 @@
-#' Title
+#' Extraire des chaines de caractères contenant des mots/expressions clés
 #'
 #' @param config
 #' @param config_str

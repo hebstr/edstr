@@ -2,7 +2,7 @@
 % Please edit documentation in R/edstr_import.R
 \name{edstr_import}
 \alias{edstr_import}
-\title{Import text input}
+\title{Importer des caractéristiques depuis une base de données}
 \usage{
 edstr_import(
   query,
@@ -20,5 +20,5 @@ edstr_import(
 A tibble
 }
 \description{
-Import text input
+Importer des caractéristiques depuis une base de données
 }

@@ -1,4 +1,4 @@
-#' Title
+#' Explorer
 #'
 #' @param data
 #' @param text_input

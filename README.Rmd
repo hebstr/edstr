@@ -24,7 +24,7 @@ The goal of edstr is to ...
 
 ## Installation
 
-You can install the development version of edstr from [Codeberg](https://codeberg.org/hebstr/edstr) like so:
+You can install the development version of edstr from Codeberg like so:
 
 ``` r
 # install.packages("devtools")

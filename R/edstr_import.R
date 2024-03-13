@@ -1,4 +1,4 @@
-#' Import text input
+#' Importer des caractéristiques depuis une base de données
 #'
 #' @param config
 #' @param query
