@@ -27,5 +27,8 @@ Imports:
     tidyr,
     tidytext
 Suggests:
-    hebstr
+    hebstr,
+    knitr,
+    rmarkdown
 Additional_repositories: https://codeberg.org/hebstr
+VignetteBuilder: knitr

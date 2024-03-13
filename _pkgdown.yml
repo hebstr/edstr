@@ -1,6 +1,22 @@
 url: ~
 template:
   bootstrap: 5
+  bootswatch: cerulean
+  bslib:
+    primary: "#0099DD"
+
+repo:
+  url:
+    source: https://codeberg.org/hebstr/edstr/src/branch/main/
+
+navbar:
+  structure:
+    right: git
+  components:
+    git:
+      icon: fa-git
+      href: https://codeberg.org/hebstr/edstr
+      aria-label: Git
 
 reference:
 - title: Process
@@ -13,3 +29,7 @@ reference:
 - title: Exploration
   contents:
   - edstr_view
+
+- title: Annexe
+  contents:
+  - edstr_split
