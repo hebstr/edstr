@@ -2,14 +2,12 @@
 % Please edit documentation in R/edstr_extract.R
 \name{edstr_extract}
 \alias{edstr_extract}
-\title{Extraire des chaines de caractères contenant des mots/expressions clés}
+\title{Title}
 \usage{
 edstr_extract(
   data = glue::glue("{with(config, file)}_clean"),
   sample = NULL,
   filter = NULL,
-  exclus_uf_code = list(var = "", code = "\\\\t"),
-  exclus_uf_libelle = list(var = "", libelle = "\\\\t"),
   llm = NULL,
   split,
   replace = NULL,
@@ -35,8 +33,8 @@ edstr_extract(
 )
 }
 \arguments{
-\item{filename_suffix}{}
+\item{text_input}{}
 }
 \description{
-Extraire des chaines de caractères contenant des mots/expressions clés
+Title
 }

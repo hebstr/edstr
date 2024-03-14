@@ -51,7 +51,7 @@ edstr_import <- \(query,
 
 ### QUERY -------------------------------------------------------------------------------
 
-    cli::cli_progress_step("import from db (user: {.strong {user}})")
+    cli::cli_progress_step("Import from db (user: {.strong {user}})")
 
     if (!stringr::str_starts(query, "(?i)\\s*SELECT")) {
 

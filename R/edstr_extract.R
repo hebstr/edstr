@@ -1,14 +1,9 @@
-#' Extraire des chaines de caractères contenant des mots/expressions clés
+#' Title
 #'
-#' @param config
-#' @param config_str
 #' @param data
 #' @param sample
 #' @param filter
-#' @param exclus_uf_code
-#' @param exclus_uf_libelle
 #' @param llm
-#' @param text_input
 #' @param split
 #' @param replace
 #' @param join_by
@@ -26,6 +21,10 @@
 #' @param highlight_color
 #' @param dir_suffix
 #' @param filename_suffix
+#' @param config
+#' @param config_str
+#' @param config_concepts
+#' @param text_input
 #'
 #' @return
 #' @export
@@ -35,8 +34,6 @@
 edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
                    sample = NULL,
                    filter = NULL,
-                   exclus_uf_code = list(var = "", code = "\\t"),
-                   exclus_uf_libelle = list(var = "", libelle = "\\t"),
                    llm = NULL,
                    split,
                    replace = NULL,
@@ -66,8 +63,6 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
   if (is.character(config)) config <- get(config)
 
   filter <- rlang::enexpr(filter)
-  exclus_uf_code <- rlang::enexpr(exclus_uf_code)
-  exclus_uf_libelle <- rlang::enexpr(exclus_uf_libelle)
   llm <- rlang::enexpr(llm)
   str <- with(config_concepts, eval(rlang::enexpr(str)))
 
@@ -111,38 +106,6 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
 
     cli::cli_alert_info("filter ON")
     cli::cli_text("\n\n")
-
-  }
-
-  data_exclus_uf <-
-  data |>
-    dplyr::filter(stringr::str_detect(!!exclus_uf_code$var, !!exclus_uf_code$code) |
-                  stringr::str_detect(!!exclus_uf_libelle$var, !!exclus_uf_libelle$libelle)) |>
-    dplyr::count(code_uf_entree, libelle_uf_entree, sort = TRUE) |>
-    dplyr::mutate(prop = round(n/nrow(data), 3))
-
-  data <-
-  data |>
-    dplyr::filter(!stringr::str_detect(!!exclus_uf_code$var, !!exclus_uf_code$code)) |>
-    dplyr::filter(!stringr::str_detect(!!exclus_uf_libelle$var, !!exclus_uf_libelle$libelle))
-
-  n_uf <- NA
-
-  if (exclus_uf_code$var != "" & exclus_uf_libelle$var == "") {
-
-    n_uf <- dplyr::n_distinct(data[[exclus_uf_code$var]])
-
-  }
-
-  if (exclus_uf_code$var == "" & exclus_uf_libelle$var != "") {
-
-    n_uf <- dplyr::n_distinct(data[[exclus_uf_libelle$var]])
-
-  }
-
-  if (exclus_uf_code$var != "" & exclus_uf_libelle$var != "") {
-
-    n_uf <- dplyr::n_distinct(data[[exclus_uf_code$var]])
 
   }
 
@@ -231,7 +194,7 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
 
   str_exclus <-
   data_match[text_input] |>
-    dplyr::filter(!stringr::str_detect(text, glue::glue("^({hebstr::str_u(exclus_auto_except)})$"))) |>
+    dplyr::filter(!stringr::str_detect(!!text_input, glue::glue("^({hebstr::str_u(exclus_auto_except)})$"))) |>
     dplyr::distinct() |>
     dplyr::pull()
 
@@ -379,7 +342,7 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
     dplyr::distinct()
 
   data_exclus_nchar <-
-  data_str_br_db[c("text", "nchar")] |>
+  data_str_br_db[c(text_input, "nchar")] |>
     dplyr::filter(nchar > nchar_max)
 
   data_str_br <-
@@ -422,7 +385,7 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
   data_summary <-
   seq(summary_cols) |>
     purrr::map_df(~ tibble::tibble(ngrams = ngrams) |>
-             dplyr::left_join(data_summary[[.]], by = "ngrams")) |>
+                    dplyr::left_join(data_summary[[.]], by = "ngrams")) |>
     dplyr::group_by(ngrams) |>
     tidyr::fill(names(summary_cols), .direction = "updown") |>
     dplyr::distinct()
@@ -439,7 +402,6 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
                   split = data_str_split),
        exclusions = list(auto = data_exclus_auto,
                          man = data_exclus_man,
-                         uf = data_exclus_uf,
                          nchar = data_exclus_nchar),
        summary = data_summary)
 
@@ -449,73 +411,19 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
 
   cli::cli_progress_done()
 
-  #--- PRINT ------------------------------------------------------------------------------------
+  ### PRINT ------------------------------------------------------------------------------------
 
-  print_query <-
-  purrr::map2(.x = names(str),
-              .y = seq(str),
-              ~ rlang::list2(!!.x := glue::glue("^({hebstr::str_u(str[.y])})$"))) |>
-    unlist()
+  print(list(ngrams = .split))
 
-  print_concept <-
-  list(data_id, data_count) |>
-    purrr::map(~ . |>
-          dplyr::group_by(concept) |>
-          dplyr::count() |>
-          dplyr::ungroup())
+  .extract_print(str,
+                 data_id,
+                 data_count,
+                 concept,
+                 group_by)
 
-  print_group <-
-  data_id |>
-    dplyr::group_by(concept) |>
-    dplyr::mutate(!!group_by := dplyr::n_distinct(get(group_by))) |>
-    dplyr::ungroup() |>
-    dplyr::distinct(concept, !!group_by := get(group_by))
-
-  print_concept <-
-  dplyr::inner_join(print_concept[[1]] |> dplyr::rename(match = n),
-                    print_concept[[2]] |> dplyr::rename(distinct = n),
-                    by = "concept") |>
-    dplyr::inner_join(print_group, by = "concept")
-
-  print(list(ngram = .split,
-             query = print_query,
-             str = print_concept,
-             exclus_auto = data_exclus_auto,
+  print(list(exclus_auto = data_exclus_auto,
              exclus_man = data_exclus_man,
-             exclus_uf = data_exclus_uf,
              summary = data_summary))
-
-  message(glue::glue(
-  "n total: {n <- nrow(data_total)} obs.
-  n sample: {sample} obs. ({round(sample/n*100, 1)}% total)
-  UF exclues: {nrow(data_exclus_uf)}/{n_uf} ({sum(data_exclus_uf$n)} obs., {sum(data_exclus_uf$prop)*100}% sample)
-  soit n base: {nt <- nrow(data)} obs. ({round(nt/sample*100, 1)}% sample, {round(nt/n*100, 1)}% total)
-
-  {nrow(data_match)} matchs pour {nm <- dplyr::n_distinct(data_match[[v <- join_by]])} {v} ({round(nm/nt*100, 1)}% total)
-  {dplyr::n_distinct(data_match[[text_input]])} expressions distinctes
-  {nrow(data_exclus_auto)} exclusions auto
-  {nrow(data_exclus_man)} exclusions manuelles
-  {db <- nrow(data_str_br_db) - nrow(data_str_br)} doublons ({round(db/nrow(data_str_br_db)*100, 1)}% base)
-  {nrow(data_exclus_nchar)} extraits > {nchar_max} chr
-
-  soit:
-  {nrow(data_id)} matchs pour {ni <- dplyr::n_distinct(data_str_br[[v]])} {v} ({round(ni/nt*100, 1)}% base)
-  {nrow(data_count)} expressions distinctes pour {dplyr::n_distinct(data_count$concept)} concepts
-  {dplyr::n_distinct(data_str_br[[group_by]])} {group_by}\n\n"
-  ))
-
-  if (dplyr::n_distinct(data_count$ngrams) > 1) {
-
-    data_plot <-
-    data_count |>
-      ggplot2::ggplot() +
-      ggplot2::aes(x = ngrams, y = n) +
-      ggplot2::geom_col(ggplot2::aes(fill = concept)) +
-      ggplot2::labs(title = "nb matchs apres exclusion")
-
-    print(data_plot)
-
-  }
 
   #--- OUTPUT ------------------------------------------------------------------------------------
 
@@ -523,16 +431,6 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
 
   h_color <- glue::glue("color:{highlight_color}")
   h_bg <- glue::glue("background-color:{highlight_bg}")
-
-  data_text <-
-  data_str_br |>
-    dplyr::mutate(!!text_input :=
-             get(text_input) |>
-               stringr::str_replace_all(glue::glue("(?={data_extract})"),
-                                        glue::glue("<span style='{h_color};{h_bg}'> ")) |>
-               stringr::str_replace_all(glue::glue("(?<={data_extract})"),
-                                        "</span></span>")) |>
-    dplyr::select(-nchar)
 
   rt_common <-
   list(args = list(height = "100%",
@@ -549,45 +447,42 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
                     searchInputStyle = list(width = "100%")))
 
   data_text <-
-  data_text |>
+  data_str_br |>
+    dplyr::mutate(!!text_input :=
+                    get(text_input) |>
+                      stringr::str_replace_all(glue::glue("(?={data_extract})"),
+                                               glue::glue("<span style='{h_color};{h_bg}'> ")) |>
+                      stringr::str_replace_all(glue::glue("(?<={data_extract})"),
+                                               "</span></span>")) |>
+    dplyr::select(-nchar) |>
     reactable::reactable(!!!rt_common$args,
-              selection = "multiple",
-              columns = list(.selection = reactable::colDef(sticky = "left"),
-                             .rownames = reactable::colDef(name = "no",
-                                                           width = 40,
-                                                           sticky = "left"),
-                             libelle_uf_entree = reactable::colDef(minWidth = 150),
-                             text = reactable::colDef(html = TRUE,
-                                                      minWidth = 500,
-                                                      maxWidth = 500,
-                                                      style = list(textAlign = "justify"))),
-              rownames = TRUE,
-              highlight = TRUE,
-              showPageSizeOptions = TRUE,
-              pageSizeOptions = c(10, 25, 50, 100, 200, 500, 1000),
-              defaultPageSize = 100,
-              theme = reactable::reactableTheme(!!!rt_common$theme,
-                                                rowSelectedStyle = list(backgroundColor = "skyblue"))) |> rlang::inject()
+                         selection = "multiple",
+                         columns = rlang::list2(.selection = reactable::colDef(sticky = "left"),
+                                                .rownames = reactable::colDef(name = "no",
+                                                                              width = 40,
+                                                                              sticky = "left"),
+                                                !!text_input := reactable::colDef(html = TRUE,
+                                                                                  minWidth = 500,
+                                                                                  maxWidth = 500,
+                                                                                  style = list(textAlign = "justify"))),
+                         rownames = TRUE,
+                         highlight = TRUE,
+                         showPageSizeOptions = TRUE,
+                         pageSizeOptions = c(10, 25, 50, 100, 200, 500, 1000),
+                         defaultPageSize = 100,
+                         theme = reactable::reactableTheme(!!!rt_common$theme,
+                                                           rowSelectedStyle = list(backgroundColor = "skyblue"))) |> rlang::inject()
 
   data_cpts <-
   data_count |>
     dplyr::select(-ngrams) |>
     reactable::reactable(!!!rt_common$args,
-              columns = list(text = reactable::colDef(name = "expression",
-                                                      style = list(color = highlight_color)),
-                             concept = reactable::colDef(maxWidth = 200),
-                             n = reactable::colDef(maxWidth = 75)),
-              defaultPageSize = 1000,
-              theme = reactable::reactableTheme(!!!rt_common$theme)) |> rlang::inject()
-
-  data_exclus_uf <-
-  data_exclus_uf |>
-    reactable::reactable(!!!rt_common$args,
-              columns = list(code_uf_entree = reactable::colDef(maxWidth = 100),
-                             n = reactable::colDef(maxWidth = 75),
-                             prop = reactable::colDef(maxWidth = 75)),
-              defaultPageSize = 1000,
-              theme = reactable::reactableTheme(!!!rt_common$theme)) |> rlang::inject()
+                         columns = rlang::list2(!!text_input := reactable::colDef(name = "expression",
+                                                                           style = list(color = highlight_color)),
+                                                concept = reactable::colDef(maxWidth = 200),
+                                                n = reactable::colDef(maxWidth = 75)),
+                         defaultPageSize = 1000,
+                         theme = reactable::reactableTheme(!!!rt_common$theme)) |> rlang::inject()
 
   data_to_output <- \(name, data) {
 
@@ -600,17 +495,10 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
   data_to_output("cpts", data_cpts)
   data_to_output("text", data_text)
 
-  if (exclus_uf_code$var != "" | exclus_uf_libelle$var != "") {
-
-    data_to_output("exclus_uf", data_exclus_uf)
-
-  }
-
   data_match_list <-
   append(data_match_list,
          list(output = list(cpts = data_cpts,
-                            text = data_text,
-                            exclus_uf = data_exclus_uf)))
+                            text = data_text)))
 
   cli::cli_progress_done()
 
@@ -633,6 +521,8 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
   #  write_xlsx(path = glue::glue(.save_extract, ".xlsx"))
 
   cli::cli_progress_done()
+
+
   cli::cli_text("\n\n")
   cli::cli_alert_success("files saved to {.path {save_dir}}")
   cli::cli_text("\n\n")
