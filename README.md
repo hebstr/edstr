@@ -4,25 +4,31 @@
 # edstr
 
 <!-- badges: start -->
+
+[![Lifecycle:
+experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 <!-- badges: end -->
 
-The goal of edstr is to …
+Ensemble de fonctions ayant pour but de faciliter le process
+d’importation, de nettoyage, puis d’extraction de données textuelles de
+routine sur la base d’une recherche de mots ou expressions clés.
 
 ## Installation
 
-You can install the development version of edstr from Codeberg like so:
+Le package en développement peut être installé depuis Codeberg comme
+suit :
 
 ``` r
 # install.packages("devtools")
 devtools::install_git("https://codeberg.org/hebstr/edstr")
 ```
 
-## Example
+## Vue d’ensemble
 
 ``` r
-edstr_config(dest_dir = "../data/fracture",
-             dest_filename = "gs",
-             str = "config/str.RData",
-             concepts = "config/concepts.RData",
-             text = "text")
+library(edstr)
 ```
+
+test `edstr_clean()`
+
+Le process est détaillé `vignette("start")`.

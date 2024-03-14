@@ -1,0 +1,19 @@
+---
+title: "article2"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{article2}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(edstr)
+```

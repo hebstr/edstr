@@ -15,6 +15,7 @@ Imports:
     ggplot2,
     glue,
     htmltools,
+    lifecycle,
     purrr,
     reactable,
     readr,
