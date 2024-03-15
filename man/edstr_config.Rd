@@ -7,10 +7,10 @@
 edstr_config(
   dest_dir,
   dest_filename,
-  str,
-  concepts,
+  str = NULL,
+  concepts = NULL,
   split = NULL,
-  text,
+  text = NULL,
   config_name = ".config"
 )
 }

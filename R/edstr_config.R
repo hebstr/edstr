@@ -19,17 +19,28 @@
 #'
 edstr_config <- \(dest_dir,
                   dest_filename,
-                  str,
-                  concepts,
+                  str = NULL,
+                  concepts = NULL,
                   split = NULL,
-                  text,
+                  text = NULL,
                   config_name = ".config") {
 
   dest_dir <- glue::glue(dest_dir)
   dest_filename <- glue::glue(dest_filename)
 
-  str <- load(str)
-  concepts <- load(concepts)
+  if (!is.null(str)) {
+
+    str <- load(str)
+    str_data <- get(str)
+
+  } else str_data <- NULL
+
+  if (!is.null(concepts)) {
+
+    concepts <- load(concepts)
+    concepts_data <- get(concepts)
+
+  } else concepts_data <- NULL
 
   ### MANAGE DIRECTORY --------------------------------------------------------------------
 
@@ -55,15 +66,15 @@ edstr_config <- \(dest_dir,
                           list(sect = hebstr::str_u("(?<=:)\\s*(?=(<br/>\\s*)*</p>)",
                                                     with(get(split), str))))
 
-  } else str_data <- get(str)
+  }
 
   assign(config_name,
          dplyr::lst(dir = stringr::str_remove(dest_dir, "/+$"),
                     file = dest_filename,
                     str = str_data,
-                    concepts = get(concepts),
+                    concepts = concepts_data,
                     text = text),
-                envir = .GlobalEnv)
+         envir = .GlobalEnv)
 
   assign(".config_name",
          config_name,
@@ -71,7 +82,6 @@ edstr_config <- \(dest_dir,
 
   ### CLI ---------------------------------------------------------------------------------
 
-  dir_status <- cli::style_underline(dir_status)
   dirname <- with(get(config_name), dir)
   filename <- cli::col_red(with(get(config_name), file))
   config_name <- cli::col_green(config_name)

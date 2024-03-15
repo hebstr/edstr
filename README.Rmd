@@ -63,7 +63,6 @@ Chaque étape est détaillée dans `vignette("start")`.
 La fonction `edstr_view()`
 
 Elle ne fait pas partie du circuit et n'a donc pas de dépendance au fichier de configuration généré par `edstr_config()`.
-
 Elle peut prendre comme input n'importe quelle table, du moment que celle-ci contient a minima une colonne identifiant et une colonne texte.
 
 Plus de détail dans `vignette("start")`.
