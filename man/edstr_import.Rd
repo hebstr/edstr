@@ -5,9 +5,9 @@
 \title{Importer des caractéristiques depuis une base de données}
 \usage{
 edstr_import(
-  query,
-  connect_dir,
-  user,
+  query = NULL,
+  connect_dir = NULL,
+  user = NULL,
   head = NULL,
   load = FALSE,
   config = get(.config_name)

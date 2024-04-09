@@ -12,9 +12,9 @@
 #'
 #' @examples
 #'
-edstr_import <- \(query,
-                  connect_dir,
-                  user,
+edstr_import <- \(query = NULL,
+                  connect_dir = NULL,
+                  user = NULL,
                   head = NULL,
                   load = FALSE,
                   config = get(.config_name)) {
