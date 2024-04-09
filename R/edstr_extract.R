@@ -104,7 +104,7 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
 
     data <- data |> dplyr::filter(!!filter)
 
-    cli::cli_alert_info("filter ON")
+    cli::cli_alert_info("filter on")
     cli::cli_text("\n\n")
 
   }
@@ -522,6 +522,51 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
 
   cli::cli_progress_done()
 
+  cli_n_total <- nrow(data_total)
+  cli_n_final <- nrow(data)
+  cli_p_final <- scales::percent(cli_n_final / cli_n_total, accuracy = 0.1)
+  cli_n_join <- dplyr::n_distinct(data_match[[join_by]])
+  cli_p_join <- scales::percent(cli_n_join / cli_n_final, accuracy = 0.1)
+  cli_n_distinct_match <- dplyr::n_distinct(data_match[[text_input]])
+  cli_n_dupl <- nrow(data_str_br_db) - nrow(data_str_br)
+  cli_n_extract <- dplyr::n_distinct(data_str_br[[join_by]])
+  cli_p_extract <- scales::percent(cli_n_extract / cli_n_final, accuracy = 0.1)
+  cli_n_concept <- dplyr::n_distinct(data_count$concept)
+  cli_n_group <- dplyr::n_distinct(data_str_br[[group_by]])
+
+  cli::cli_text("\n\n")
+  cli::cli_rule()
+  cli::cli_text("\n\n")
+  cli::cli_alert_info("{.strong Observations}")
+  cli::cli_ul()
+    cli::cli_li("Total: {cli_n_total}")
+    cli::cli_li("Final: {cli_n_final} ({cli_p_final})")
+    cli::cli_end()
+  cli::cli_text("\n\n")
+  cli::cli_alert_info("{.strong Matching}")
+  cli::cli_ul()
+    cli::cli_li("Total: {nrow(data_match)} from {cli_n_join} {join_by} ({cli_p_join} final obs.)")
+    cli::cli_li("Distinct: {cli_n_distinct_match}")
+    cli::cli_end()
+  cli::cli_text("\n\n")
+  cli::cli_alert_info("{.strong Exclusions}")
+  cli::cli_ul()
+    cli::cli_li("Auto: {nrow(data_exclus_auto)}")
+    cli::cli_li("Manual: {nrow(data_exclus_man)}")
+    cli::cli_li("Duplicates: {cli_n_dupl}")
+    cli::cli_li("Over {nchar_max} chr.: {nrow(data_exclus_nchar)}")
+    cli::cli_end()
+
+  cli::cli_text("\n\n")
+  cli::cli_rule()
+  cli::cli_text("\n\n")
+  cli::cli_alert_success("{nrow(data_id)} matchs from:")
+  cli::cli_ul()
+    cli::cli_li("{cli_n_extract} {join_by} ({cli_p_extract} final obs.)")
+    cli::cli_li("{cli_n_group} {group_by}")
+    cli::cli_end()
+  cli::cli_text("\n\n")
+  cli::cli_alert_success("{nrow(data_count)} distinct expressions from {cli_n_concept} concepts")
 
   cli::cli_text("\n\n")
   cli::cli_alert_success("files saved to {.path {save_dir}}")
@@ -529,3 +574,26 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
   cli::cli_rule()
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
