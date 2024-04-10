@@ -26,6 +26,7 @@
 #' @param config_concepts
 #' @param text_input
 #' @param print
+#' @param output
 #'
 #' @return
 #' @export
@@ -52,6 +53,7 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
                    highlight_bg = "#ffffff",
                    highlight_color = "red",
                    print = TRUE,
+                   output = TRUE,
                    dir_suffix = sample,
                    filename_suffix = sample,
                    config = get(.config_name),
