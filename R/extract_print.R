@@ -4,6 +4,8 @@
                     concept,
                     group_by) {
 
+  ngrams_max <- dplyr::n_distinct(data_count$ngrams)
+
   print_query <-
   purrr::map2(.x = names(str),
               .y = seq(str),
@@ -30,13 +32,16 @@
                     by = "concept") |>
     dplyr::inner_join(print_group, by = "concept")
 
-  if (dplyr::n_distinct(data_count$ngrams) > 1) {
+
+
+  if (ngrams_max > 1) {
 
     data_plot <-
     data_count |>
       ggplot2::ggplot(ggplot2::aes(x = ngrams, y = n)) +
       ggplot2::geom_col(ggplot2::aes(fill = concept)) +
-      ggplot2::labs(title = "nb matchs apres exclusion")
+      ggplot2::labs(y = "n matchs") +
+      ggplot2::scale_x_continuous(n.breaks = ngrams_max)
 
     print(data_plot)
 

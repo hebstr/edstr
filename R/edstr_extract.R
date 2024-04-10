@@ -25,6 +25,7 @@
 #' @param config_str
 #' @param config_concepts
 #' @param text_input
+#' @param print
 #'
 #' @return
 #' @export
@@ -50,6 +51,7 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
                    exclus_auto_except = NA,
                    highlight_bg = "#ffffff",
                    highlight_color = "red",
+                   print = TRUE,
                    dir_suffix = sample,
                    filename_suffix = sample,
                    config = get(.config_name),
@@ -294,7 +296,8 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
   data_extract <- glue::glue("(?i)\\b{data_extract}\\b")
 
   data_extract_replace <-
-  c("e|(?<=m(a|i)cro)\\s" = ".",
+  c("(?<=per|p(e|é)ri|so?us|inter)\\s+" = "\\\\s?(-|\\\\+)?\\\\s?",
+    "e|(?<=m(a|i)cro)\\s" = ".",
     "\\sa\\s" = " . ")
 
   data_extract <-
@@ -372,7 +375,7 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
   list(match = data_match,
        exclus_auto = data_exclus_auto,
        exclus_man = data_exclus_man,
-       retenu = data_id,
+       keep = data_id,
        distinct = data_count)
 
   data_summary <-
@@ -413,19 +416,25 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
 
   ### PRINT ------------------------------------------------------------------------------------
 
-  print(list(ngrams = .split))
+  if (print) {
 
-  .extract_print(str,
-                 data_id,
-                 data_count,
-                 concept,
-                 group_by)
+    print(list(ngrams = .split))
 
-  print(list(exclus_auto = data_exclus_auto,
-             exclus_man = data_exclus_man,
-             summary = data_summary))
+    .extract_print(str,
+                   data_id,
+                   data_count,
+                   concept,
+                   group_by)
+
+    print(list(exclus_auto = data_exclus_auto,
+               exclus_man = data_exclus_man,
+               summary = data_summary))
+
+  }
 
   #--- OUTPUT ------------------------------------------------------------------------------------
+
+  if (output) {
 
   cli::cli_progress_step("{.strong step 6:} output")
 
@@ -501,6 +510,8 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
                             text = data_text)))
 
   cli::cli_progress_done()
+
+  }
 
   #--- SAVE -------------------------------------------------------------------------------------------------
 

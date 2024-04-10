@@ -24,6 +24,7 @@ edstr_extract(
   exclus_auto_except = NA,
   highlight_bg = "#ffffff",
   highlight_color = "red",
+  print = TRUE,
   dir_suffix = sample,
   filename_suffix = sample,
   config = get(.config_name),
@@ -33,7 +34,7 @@ edstr_extract(
 )
 }
 \arguments{
-\item{text_input}{}
+\item{print}{}
 }
 \description{
 Title
