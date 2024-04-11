@@ -1,4 +1,4 @@
-#' Générer une configuration initale
+#' Définir une configuration initale
 #'
 #' @param dest_dir Chemin vers le répertoire de destination. Un vecteur de caractères.
 #' @param dest_filename Base name of files to create, located in destination

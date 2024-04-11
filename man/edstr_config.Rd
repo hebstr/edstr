@@ -2,7 +2,7 @@
 % Please edit documentation in R/edstr_config.R
 \name{edstr_config}
 \alias{edstr_config}
-\title{Générer une configuration initale}
+\title{Définir une configuration initale}
 \usage{
 edstr_config(
   dest_dir,
@@ -35,5 +35,5 @@ with \code{\link[=edstr_extract]{edstr_extract()}}.}
 Two hidden objects
 }
 \description{
-Générer une configuration initale
+Définir une configuration initale
 }

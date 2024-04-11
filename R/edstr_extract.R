@@ -15,18 +15,19 @@
 #' @param upper_only
 #' @param str_suppl
 #' @param limits
+#' @param union
 #' @param exclus_man
 #' @param exclus_auto_except
 #' @param highlight_bg
 #' @param highlight_color
+#' @param print
+#' @param html_output
 #' @param dir_suffix
 #' @param filename_suffix
 #' @param config
 #' @param config_str
 #' @param config_concepts
 #' @param text_input
-#' @param print
-#' @param output
 #'
 #' @return
 #' @export
@@ -48,12 +49,13 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
                    upper_only = NA,
                    str_suppl = "\\t",
                    limits = "both",
+                   union = "\\t\\t",
                    exclus_man = "\\t",
                    exclus_auto_except = NA,
                    highlight_bg = "#ffffff",
                    highlight_color = "red",
                    print = TRUE,
-                   output = TRUE,
+                   html_output = FALSE,
                    dir_suffix = sample,
                    filename_suffix = sample,
                    config = get(.config_name),
@@ -73,7 +75,7 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
   cli::cli_h1("edstr_extract")
   cli::cli_text("\n\n")
 
-  #--- SAVE PARAMS ---------------------------------------------------------------------------------
+### SAVE PARAMS ------------------------------------------------------------------
 
   dir_name <- glue::glue("{with(config, file)}_extract")
   save_dir <- glue::glue("{with(config, dir)}/{dir_name}")
@@ -90,7 +92,7 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
   .lib <- glue::glue("{save_dir}/lib")
   if (exists(.lib)) unlink(.lib, recursive = TRUE)
 
-  #--- FILTERS -------------------------------------------------------------------------------------
+### FILTERS ----------------------------------------------------------------------
 
   data_total <- data
 
@@ -124,9 +126,9 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
 
   }
 
-  #--- SPLIT -------------------------------------------------------------------------------------
+### SPLIT AND REPLACE ------------------------------------------------------------
 
-  cli::cli_progress_step("{.strong step 1:} split & replace")
+  cli::cli_progress_step("{.strong Split and replace}")
 
   data_split <-
   data |>
@@ -141,10 +143,11 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
                                   .init = get(text_input)))
 
   cli::cli_progress_done()
+  cli::cli_text("\n\n")
 
-  #--- LOWER, DEPUNCT AND TOKENIZE ----------------------------------------------------------------------------
+### LOWER, REMOVE PUNCT AND TOKENIZE ---------------------------------------------
 
-  cli::cli_progress_step("{.strong step 2:} lower, depunct & tokenize")
+  cli::cli_progress_step("{.strong Lower, remove punct and tokenize}")
 
   data_clean <-
   data_split |>
@@ -191,10 +194,11 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
   if (nrow(data_match) == 0) cli::cli_abort("No results")
 
   cli::cli_progress_done()
+  cli::cli_text("\n\n")
 
-  #--- LIST EXCLUSIONS ------------------------------------------------------------------------------------------
+### SET EXCLUSION LISTS -----------------------------------------------------------
 
-  cli::cli_progress_step("{.strong step 3:} set exclusion lists")
+  cli::cli_progress_step("{.strong Set exclusion lists}")
 
   str_exclus <-
   data_match[text_input] |>
@@ -270,10 +274,11 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
                      by = text_input)
 
   cli::cli_progress_done()
+  cli::cli_text("\n\n")
 
-### EXTRACT --------------------------------------------------------------------------------
+### EXTRACT ----------------------------------------------------------------------
 
-  cli::cli_progress_step("{.strong step 4:} extract")
+  cli::cli_progress_step("{.strong Extract}")
 
   data_id <-
   names(str) |>
@@ -298,9 +303,10 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
   data_extract <- glue::glue("(?i)\\b{data_extract}\\b")
 
   data_extract_replace <-
-  c("(?<=per|p(e|é)ri|so?us|inter)\\s+" = "\\\\s?(-|\\\\+)?\\\\s?",
-    "e|(?<=m(a|i)cro)\\s" = ".",
-    "\\sa\\s" = " . ")
+  rlang::list2("(?<={union})\\s+" := "\\\\s?(-|\\\\+)?\\\\s?",
+               "e" = ".",
+               "\\sa\\s" = " . ") |>
+    unlist()
 
   data_extract <-
   purrr::reduce(list(data_extract_replace),
@@ -368,10 +374,11 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
     tidyr::separate_rows(dplyr::all_of(text_input), sep = "(?<=\\.)\\s")
 
   cli::cli_progress_done()
+  cli::cli_text("\n\n")
 
-  #--- SUMMARIZE AND SET FINAL LIST -----------------------------------------------------------
+### SUMMARIZE AND SET FINAL LIST -----------------------------------------------------------
 
-  cli::cli_progress_step("{.strong step 5:} summarize & set final list")
+  cli::cli_progress_step("{.strong Summarize and set final list}")
 
   summary_cols <-
   list(match = data_match,
@@ -415,8 +422,9 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
          envir = .GlobalEnv)
 
   cli::cli_progress_done()
+  cli::cli_text("\n\n")
 
-  ### PRINT ------------------------------------------------------------------------------------
+### PRINT ------------------------------------------------------------------------------------
 
   if (print) {
 
@@ -434,90 +442,29 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
 
   }
 
-  #--- OUTPUT ------------------------------------------------------------------------------------
+### SET OUTPUT -----------------------------------------------------------------
 
-  if (output) {
+  if (html_output) {
 
-  cli::cli_progress_step("{.strong step 6:} output")
+    .extract_output(highlight_color,
+                    highlight_bg,
+                    data_str_br,
+                    data_extract,
+                    data_count,
+                    data_match_list,
+                    text_input,
+                    .save_extract)
 
-  h_color <- glue::glue("color:{highlight_color}")
-  h_bg <- glue::glue("background-color:{highlight_bg}")
-
-  rt_common <-
-  list(args = list(height = "100%",
-                   defaultColDef = reactable::colDef(vAlign = "center",
-                                                     align = "center"),
-                   showSortable = TRUE,
-                   striped = TRUE,
-                   searchable = TRUE,
-                   filterable = TRUE),
-       theme = list(style = list(fontFamily = "Segoe UI",
-                                 fontSize = "11px"),
-                    borderColor = "#dfe2e5",
-                    stripedColor = "#e1f6ff",
-                    searchInputStyle = list(width = "100%")))
-
-  data_text <-
-  data_str_br |>
-    dplyr::mutate(!!text_input :=
-                    get(text_input) |>
-                      stringr::str_replace_all(glue::glue("(?={data_extract})"),
-                                               glue::glue("<span style='{h_color};{h_bg}'> ")) |>
-                      stringr::str_replace_all(glue::glue("(?<={data_extract})"),
-                                               "</span></span>")) |>
-    dplyr::select(-nchar) |>
-    reactable::reactable(!!!rt_common$args,
-                         selection = "multiple",
-                         columns = rlang::list2(.selection = reactable::colDef(sticky = "left"),
-                                                .rownames = reactable::colDef(name = "no",
-                                                                              width = 40,
-                                                                              sticky = "left"),
-                                                !!text_input := reactable::colDef(html = TRUE,
-                                                                                  minWidth = 500,
-                                                                                  maxWidth = 500,
-                                                                                  style = list(textAlign = "justify"))),
-                         rownames = TRUE,
-                         highlight = TRUE,
-                         showPageSizeOptions = TRUE,
-                         pageSizeOptions = c(10, 25, 50, 100, 200, 500, 1000),
-                         defaultPageSize = 100,
-                         theme = reactable::reactableTheme(!!!rt_common$theme,
-                                                           rowSelectedStyle = list(backgroundColor = "skyblue"))) |> rlang::inject()
-
-  data_cpts <-
-  data_count |>
-    dplyr::select(-ngrams) |>
-    reactable::reactable(!!!rt_common$args,
-                         columns = rlang::list2(!!text_input := reactable::colDef(name = "expression",
-                                                                           style = list(color = highlight_color)),
-                                                concept = reactable::colDef(maxWidth = 200),
-                                                n = reactable::colDef(maxWidth = 75)),
-                         defaultPageSize = 1000,
-                         theme = reactable::reactableTheme(!!!rt_common$theme)) |> rlang::inject()
-
-  data_to_output <- \(name, data) {
-
-    output <- glue::glue("{.save_extract}_{name}.html")
-    htmltools::save_html(data, output)
-    utils::browseURL(output)
+    data_match_list <-
+    append(data_match_list,
+           list(output = list(cpts = .data_cpts,
+                              text = .data_text)))
 
   }
 
-  data_to_output("cpts", data_cpts)
-  data_to_output("text", data_text)
+### SAVE -----------------------------------------------------------------------
 
-  data_match_list <-
-  append(data_match_list,
-         list(output = list(cpts = data_cpts,
-                            text = data_text)))
-
-  cli::cli_progress_done()
-
-  }
-
-  #--- SAVE -------------------------------------------------------------------------------------------------
-
-  cli::cli_progress_step("{.strong step 7:} save")
+  cli::cli_progress_step("{.strong Save}")
 
   assign(glue::glue(save_files),
          data_match_list,
@@ -535,53 +482,22 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
 
   cli::cli_progress_done()
 
-  cli_p_final <- scales::percent(nrow(data) / nrow(data_total), accuracy = 0.1)
-  cli_n_join <- dplyr::n_distinct(data_match[[join_by]])
-  cli_p_join <- scales::percent(cli_n_join / nrow(data), accuracy = 0.1)
-  cli_n_distinct_match <- dplyr::n_distinct(data_match[[text_input]])
-  cli_n_dupl <- nrow(data_str_br_db) - nrow(data_str_br)
-  cli_n_extract <- dplyr::n_distinct(data_str_br[[join_by]])
-  cli_p_extract <- scales::percent(cli_n_extract / nrow(data), accuracy = 0.1)
-  cli_n_concept <- dplyr::n_distinct(data_count$concept)
-  cli_n_group <- dplyr::n_distinct(data_str_br[[group_by]])
+### CLI -----------------------------------------------------------------------
 
-  cli::cli_text("\n\n")
-  cli::cli_rule()
-  cli::cli_text("\n\n")
-  cli::cli_alert_info("{.strong Observations}")
-  cli::cli_ul()
-    cli::cli_li("Total: {nrow(data_total)}")
-    cli::cli_li("Final: {nrow(data)} ({cli_p_final})")
-    cli::cli_end()
-  cli::cli_text("\n\n")
-  cli::cli_alert_info("{.strong Matching}")
-  cli::cli_ul()
-    cli::cli_li("Total: {nrow(data_match)} from {cli_n_join} {join_by} ({cli_p_join} final obs.)")
-    cli::cli_li("Distinct: {cli_n_distinct_match}")
-    cli::cli_end()
-  cli::cli_text("\n\n")
-  cli::cli_alert_info("{.strong Exclusions}")
-  cli::cli_ul()
-    cli::cli_li("Auto: {nrow(data_exclus_auto)}")
-    cli::cli_li("Manual: {nrow(data_exclus_man)}")
-    cli::cli_li("Duplicates: {cli_n_dupl}")
-    cli::cli_li("Over {nchar_max} chr.: {nrow(data_exclus_nchar)}")
-    cli::cli_end()
-
-  cli::cli_text("\n\n")
-  cli::cli_rule()
-  cli::cli_text("\n\n")
-  cli::cli_alert_success("{nrow(data_id)} matchs from:")
-  cli::cli_ul()
-    cli::cli_li("{cli_n_extract} {join_by} ({cli_p_extract} final obs.)")
-    cli::cli_li("{cli_n_group} {group_by}")
-    cli::cli_end()
-  cli::cli_text("\n\n")
-  cli::cli_alert_success("{nrow(data_count)} distinct expressions from {cli_n_concept} concepts")
-
-  cli::cli_text("\n\n")
-  cli::cli_alert_success("files saved to {.path {save_dir}}")
-  cli::cli_text("\n\n")
-  cli::cli_rule()
+  .extract_cli(data,
+               data_total,
+               data_match,
+               data_id,
+               data_count,
+               data_str_br,
+               data_str_br_db,
+               data_exclus_auto,
+               data_exclus_man,
+               data_exclus_nchar,
+               text_input,
+               nchar_max,
+               join_by,
+               group_by,
+               save_dir)
 
 }

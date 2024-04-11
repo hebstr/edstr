@@ -20,12 +20,13 @@ edstr_extract(
   upper_only = NA,
   str_suppl = "\\\\t",
   limits = "both",
+  union = "\\\\t\\\\t",
   exclus_man = "\\\\t",
   exclus_auto_except = NA,
   highlight_bg = "#ffffff",
   highlight_color = "red",
   print = TRUE,
-  output = TRUE,
+  html_output = FALSE,
   dir_suffix = sample,
   filename_suffix = sample,
   config = get(.config_name),
@@ -35,7 +36,7 @@ edstr_extract(
 )
 }
 \arguments{
-\item{output}{}
+\item{text_input}{}
 }
 \description{
 Title

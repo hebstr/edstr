@@ -15,9 +15,11 @@
 #'
 edstr_split <- \(data = glue::glue("{with(config, file)}_clean"),
                  pattern,
+                 start = "upper",
                  word_max = 2,
                  count_min = 100,
                  id,
+                 str,
                  config = get(.config_name),
                  text_input = with(config, text)) {
 
@@ -39,12 +41,7 @@ edstr_split <- \(data = glue::glue("{with(config, file)}_clean"),
       split_name <- glue::glue("_{names(.pattern)}")
       split_mode <- names(.pattern)
 
-    } else {
-
-      split_name <- ""
-      split_mode <- .pattern
-
-    }
+    } else cli::cli_abort("pattern argument must be named")
 
     config_input <- glue::glue("{with(config, file)}_view{split_name}")
 
@@ -73,38 +70,58 @@ edstr_split <- \(data = glue::glue("{with(config, file)}_clean"),
   }
 
   .split_data <-
-  list(split_fun(.pattern = pattern[1], .id = id),
-       split_fun(.pattern = pattern[2], .id = id))
+  purrr::map(1:length(pattern),
+             ~ split_fun(.pattern = pattern[.], .id = id))
 
 ### BIND ROWS ---------------------------------------------------------------------------------
 
-  if (!is.null(names(pattern))) {
-
-   split_name_flatten <- stringr::str_flatten(names(pattern), " and ")
-
-  } else split_name_flatten <- stringr::str_flatten(pattern, " and ")
-
   cli::cli_h1("edstr_split")
   cli::cli_text("\n\n")
-  cli::cli_progress_step("Binding {split_name_flatten} rows")
 
-  .split_bind <-
-  .split_data |>
-    dplyr::bind_rows() |>
-    dplyr::mutate(match =
-                    match |>
-                      stringr::str_extract(glue::glue("\\S+(\\s+\\S+){{0,{word_max-1}}}")) |>
-                      stringr::str_replace_all(c("^\\s+|\\s*\\W+\\s*$" = "",
-                                                 "\\d+" = "\\\\d+",
-                                                 "(?=(\\(|\\)|\\*|\\.|\\?))" = "\\\\"))) |>
-    dplyr::count(match, sort = TRUE) |>
-    dplyr::filter(stringr::str_starts(match, "[:upper:]"),
-                  !stringr::str_detect(match, "^[:upper:]+$"),
-                  !stringr::str_detect(match, "^M(\\.|(?i)(onsi|ada|r|me|lle|e))"),
-                  n >= count_min)
+
+  split_command <- \(x) {
+
+    x |>
+      dplyr::mutate(match =
+                      match |>
+                        stringr::str_extract(glue::glue("\\S+(\\s+\\S+){{0,{word_max-1}}}")) |>
+                        stringr::str_replace_all(c("^\\s+|\\s*\\W+\\s*$" = "",
+                                                   "\\d+" = "\\\\d+",
+                                                   "(?=(\\(|\\)|\\*|\\.|\\?))" = "\\\\"))) |>
+      dplyr::count(match, sort = TRUE) |>
+      dplyr::filter(stringr::str_starts(match, glue::glue("[:{start}:]")),
+                    !stringr::str_detect(match, "^[:upper:]+$"),
+                    !stringr::str_detect(match, "^M(\\.|(?i)(onsi|ada|r|me|lle|e))"),
+                    n >= count_min)
+
+  }
+
+  if (length(pattern) > 1) {
+
+    if (!is.null(names(pattern))) {
+
+      split_name_flatten <- stringr::str_flatten(names(pattern), " and ")
+
+    } else split_name_flatten <- stringr::str_flatten(pattern, " and ")
+
+    cli::cli_progress_step("Binding {split_name_flatten} rows")
+
+    .split_bind <-
+    .split_data |>
+      dplyr::bind_rows() |>
+      split_command()
+
+  } else {
+
+    .split_bind <-
+    .split_data |>
+      purrr::list_c() |>
+      split_command()
+
+  }
 
   .split_bind_str <- stringr::str_c(.split_bind$match, collapse = "|")
-  .split_str <- glue::glue("(?<=>)(\\s*|\\d(\\.|\\)|/)\\s*)?(?=({.split_bind_str}))")
+  .split_str <- glue::glue(rlang::enexpr(str))
 
 ### SAVE ---------------------------------------------------------------------------------
 

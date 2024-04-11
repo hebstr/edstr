@@ -7,9 +7,11 @@
 edstr_split(
   data = glue::glue("{with(config, file)}_clean"),
   pattern,
+  start = "upper",
   word_max = 2,
   count_min = 100,
   id,
+  str,
   config = get(.config_name),
   text_input = with(config, text)
 )
