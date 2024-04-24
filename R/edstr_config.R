@@ -63,8 +63,8 @@ edstr_config <- \(dest_dir,
     str_data <-
      purrr::list_modify(get(str),
                         extract_split =
-                          list(sect = hebstr::str_u("(?<=:)\\s*(?=(<br/>\\s*)*</p>)",
-                                                    with(get(split), str))))
+                          list(sect = str_u("(?<=:)\\s*(?=(<br/>\\s*)*</p>)",
+                                            with(get(split), str))))
 
   }
 

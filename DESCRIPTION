@@ -28,8 +28,6 @@ Imports:
     tidyr,
     tidytext
 Suggests:
-    hebstr,
     knitr,
     rmarkdown
-Additional_repositories: https://codeberg.org/hebstr
 VignetteBuilder: knitr

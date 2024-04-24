@@ -9,7 +9,7 @@
   print_query <-
   purrr::map2(.x = names(str),
               .y = seq(str),
-              ~ rlang::list2(!!.x := glue::glue("^({hebstr::str_u(str[.y])})$"))) |>
+              ~ rlang::list2(!!.x := glue::glue("^({str_u(str[.y])})$"))) |>
     unlist()
 
   print_concept <-
