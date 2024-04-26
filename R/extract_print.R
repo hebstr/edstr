@@ -1,15 +1,15 @@
-.extract_print <- \(str,
+.extract_print <- \(concepts,
                     data_id,
                     data_count,
                     concept,
-                    group_by) {
+                    group) {
 
   ngrams_max <- dplyr::n_distinct(data_count$ngrams)
 
   print_query <-
-  purrr::map2(.x = names(str),
-              .y = seq(str),
-              ~ rlang::list2(!!.x := glue::glue("^({str_u(str[.y])})$"))) |>
+  purrr::map2(.x = names(concepts),
+              .y = seq(concepts),
+              ~ rlang::list2(!!.x := glue::glue("^({str_u(concepts[.y])})$"))) |>
     unlist()
 
   print_concept <-
@@ -22,9 +22,9 @@
   print_group <-
   data_id |>
     dplyr::group_by(concept) |>
-    dplyr::mutate(!!group_by := dplyr::n_distinct(get(group_by))) |>
+    dplyr::mutate(!!group := dplyr::n_distinct(get(group))) |>
     dplyr::ungroup() |>
-    dplyr::distinct(concept, !!group_by := get(group_by))
+    dplyr::distinct(concept, !!group := get(group))
 
   print_concept <-
   dplyr::inner_join(print_concept[[1]] |> dplyr::rename(match = n),

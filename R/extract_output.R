@@ -57,8 +57,11 @@
   data_count |>
     dplyr::select(-ngrams) |>
     reactable::reactable(!!!rt_common$args,
-                         columns = rlang::list2(!!text_input := reactable::colDef(name = "expression",
-                                                                           style = list(color = highlight_color)),
+                         columns = rlang::list2(.rownames = reactable::colDef(name = "no",
+                                                                              width = 40,
+                                                                              sticky = "left"),
+                                                !!text_input := reactable::colDef(name = "expression",
+                                                                                  style = list(color = highlight_color)),
                                                 concept = reactable::colDef(maxWidth = 200),
                                                 n = reactable::colDef(maxWidth = 75)),
                          defaultPageSize = 1000,
@@ -78,7 +81,7 @@
 
   }
 
-  data_to_output(.data_cpts, name = "cpts")
+  data_to_output(.data_cpts, name = "concepts")
   data_to_output(.data_text, name = "text")
 
   cli::cli_progress_done()

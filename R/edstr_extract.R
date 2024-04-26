@@ -6,14 +6,14 @@
 #' @param llm
 #' @param split
 #' @param replace
-#' @param join_by
-#' @param group_by
+#' @param id
+#' @param group
 #' @param extra_cols
 #' @param ngrams
 #' @param nchar_max
-#' @param str
+#' @param concepts
+#' @param concepts_suppl
 #' @param upper_only
-#' @param str_suppl
 #' @param limits
 #' @param union
 #' @param exclus_man
@@ -38,16 +38,16 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
                    sample = NULL,
                    filter = NULL,
                    llm = NULL,
-                   split,
+                   split = NULL,
                    replace = NULL,
-                   join_by,
-                   group_by,
+                   id = "row_number",
+                   group = "group_number",
                    extra_cols = NULL,
                    ngrams,
                    nchar_max = 8000,
-                   str,
+                   concepts = purrr::list_c(config_concepts),
+                   concepts_suppl = "\\t",
                    upper_only = NA,
-                   str_suppl = "\\t",
                    limits = "both",
                    union = "\\t\\t",
                    exclus_man = "\\t",
@@ -70,7 +70,13 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
 
   filter <- rlang::enexpr(filter)
   llm <- rlang::enexpr(llm)
-  str <- with(config_concepts, eval(rlang::enexpr(str)))
+  concepts <- with(config_concepts, eval(rlang::enexpr(concepts)))
+
+  data <-
+  data |>
+    dplyr::mutate(row_number = dplyr::row_number(),
+                  group_number = dplyr::row_number(),
+                  .before = dplyr::everything())
 
   cli::cli_h1("edstr_extract")
   cli::cli_text("\n\n")
@@ -126,9 +132,9 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
 
   }
 
-### SPLIT AND REPLACE ------------------------------------------------------------
+### SPLIT ------------------------------------------------------------
 
-  cli::cli_progress_step("{.strong Split and replace}")
+  cli::cli_progress_step("{.strong Split}")
 
   data_split <-
   data |>
@@ -136,7 +142,17 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
                             input = !!text_input,
                             token = stringr::str_split,
                             pattern = str_u(with(config_str, eval(rlang::enexpr(split)))),
-                            to_lower = FALSE) |>
+                            to_lower = FALSE)
+
+  cli::cli_progress_done()
+  cli::cli_text("\n\n")
+
+### REPLACE ------------------------------------------------------------
+
+  cli::cli_progress_step("{.strong Replace}")
+
+  data_split <-
+  data_split |>
     dplyr::mutate(!!text_input :=
                     purrr::reduce(with(config_str, !!rlang::enexpr(replace)),
                                   stringr::str_replace_all,
@@ -165,29 +181,29 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
                                          n = .) |>
                  dplyr::distinct())
 
-  if (!is.list(str)) str <- as.list(c("<concept>" = str))
+  if (!is.list(concepts)) concepts <- as.list(c("<concept>" = concepts))
 
-  lim <- \(start, end) glue::glue("{start}({str_u(str)}){end}")
+  lim <- \(start, end) glue::glue("{start}({str_u(concepts)}){end}")
 
   switch(limits,
          "start" = .cpts_str <- lim("^", ""),
          "end" = .cpts_str <- lim("", "$"),
          "both" = .cpts_str <- lim("^", "$"))
 
-  .cpts_names <- stringr::str_c(names(str), collapse = ", ")
+  .cpts_names <- stringr::str_c(names(concepts), collapse = ", ")
 
   .split <-
   seq_along(ngrams) |>
     purrr::map(~ .ngrams[[.]] |>
-          dplyr::filter(stringr::str_detect(get(text_input), .cpts_str)) |>
-          dplyr::count(!!.cpts_names := get(text_input), sort = TRUE))
+                 dplyr::filter(stringr::str_detect(get(text_input), .cpts_str)) |>
+                 dplyr::count(!!.cpts_names := get(text_input), sort = TRUE))
 
   .match <-
   purrr::map2(.x = seq_along(ngrams),
-       .y = ngrams,
-       ~ .ngrams[[.x]][c(group_by, join_by, text_input)] |>
-          dplyr::mutate(ngrams = .y) |>
-          dplyr::filter(get(text_input) %in% c(.split[[.]][[!!.cpts_names]])))
+              .y = ngrams,
+              ~ .ngrams[[.x]][c(group, id, text_input)] |>
+                dplyr::mutate(ngrams = .y) |>
+                dplyr::filter(get(text_input) %in% c(.split[[.]][[!!.cpts_names]])))
 
   data_match <- dplyr::bind_rows(.match)
 
@@ -281,11 +297,11 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
   cli::cli_progress_step("{.strong Extract}")
 
   data_id <-
-  names(str) |>
+  names(concepts) |>
     purrr::map(~ data_match_final |>
                  dplyr::mutate(concept =
                                  ifelse(stringr::str_starts(get(text_input),
-                                                            str_u(str[[.]])), ., NA))) |>
+                                                            str_u(concepts[[.]])), ., NA))) |>
     dplyr::bind_rows() |>
     tidyr::drop_na()
 
@@ -316,19 +332,19 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
   .cpts_label <- stringr::str_unique(data_id$concept)
 
   .rows <-
-  list(str = data_extract,
-       str_suppl = str_suppl) |>
+  list(concepts = data_extract,
+       concepts_suppl = concepts_suppl) |>
     purrr::map(~ data_clean[[text_input]] |>
                  stringr::str_detect(.) |>
                  which())
 
   data_str_br_db <-
-  data_split[sort(c(.rows$str_suppl, .rows$str)), ] |>
+  data_split[sort(c(.rows$concepts_suppl, .rows$concepts)), ] |>
     dplyr::inner_join(data_id[names(data_id) != text_input],
-                      by = c(join_by, group_by),
+                      by = c(id, group),
                       relationship = "many-to-many") |>
-    dplyr::select(dplyr::all_of(c(join_by,
-                                  group_by,
+    dplyr::select(dplyr::all_of(c(id,
+                                  group,
                                   extra_cols,
                                   text_input)),
                   concept) |>
@@ -337,7 +353,7 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
                        values_from = concept) |>
     dplyr::mutate(dplyr::across(dplyr::any_of(.cpts_label),
                                 ~ ifelse(!is.na(.), 1, NA))) |>
-    dplyr::group_by(!!join_by := get(join_by)) |>
+    dplyr::group_by(!!id := get(id)) |>
     dplyr::mutate(n_row = seq_along(text_input)) |>
     tidyr::fill(dplyr::starts_with(.cpts_label),
                 .direction = "updown") |>
@@ -349,7 +365,7 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
                   nchar = nchar(get(text_input))) |>
     dplyr::ungroup() |>
     dplyr::select(-n_row) |>
-    dplyr::filter(!is.na(get(group_by))) |>
+    dplyr::filter(!is.na(get(group))) |>
     dplyr::distinct()
 
   data_exclus_nchar <-
@@ -358,11 +374,13 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
 
   data_str_br <-
   data_str_br_db |>
-    dplyr::group_by(!!group_by := get(group_by),
+    dplyr::group_by(!!group := get(group),
                     !!text_input := get(text_input)) |>
     dplyr::filter(!duplicated(get(text_input)),
            nchar <= nchar_max) |>
     dplyr::ungroup()
+
+  if (group == "group_number") data_str_br <- data_str_br |> dplyr::select(-group)
 
   data_str_cat <-
   data_str_br |>
@@ -430,11 +448,11 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
 
     print(list(ngrams = .split))
 
-    .extract_print(str,
+    .extract_print(concepts,
                    data_id,
                    data_count,
                    concept,
-                   group_by)
+                   group)
 
     print(list(exclus_auto = data_exclus_auto,
                exclus_man = data_exclus_man,
@@ -457,7 +475,7 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
 
     data_match_list <-
     append(data_match_list,
-           list(output = list(cpts = .data_cpts,
+           list(output = list(concepts = .data_cpts,
                               text = .data_text)))
 
   }
@@ -473,12 +491,8 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
   save(list = glue::glue(save_files),
        file = glue::glue("{.save_extract}.RData"))
 
-  readr::write_excel_csv(data_str_cat,
-                         file = glue::glue("{.save_extract}_text.csv"))
-
-  #data_match_list[c("id", "count", "exclusions", "summary")] |>
-  #  list_flatten() |>
-  #  write_xlsx(path = glue::glue(.save_extract, ".xlsx"))
+  readr::write_excel_csv(data_count, file = glue::glue("{.save_extract}_concepts.csv"))
+  readr::write_excel_csv(data_str_cat, file = glue::glue("{.save_extract}_text.csv"))
 
   cli::cli_progress_done()
 
@@ -496,8 +510,8 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
                data_exclus_nchar,
                text_input,
                nchar_max,
-               join_by,
-               group_by,
+               id,
+               group,
                save_dir)
 
 }
