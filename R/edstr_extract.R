@@ -45,7 +45,7 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
                    extra_cols = NULL,
                    ngrams,
                    nchar_max = 8000,
-                   concepts = purrr::list_c(config_concepts),
+                   concepts = config_concepts,
                    concepts_suppl = "\\t",
                    upper_only = NA,
                    limits = "both",
@@ -70,7 +70,11 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
 
   filter <- rlang::enexpr(filter)
   llm <- rlang::enexpr(llm)
-  concepts <- with(config_concepts, eval(rlang::enexpr(concepts)))
+
+  concepts <-
+  with(config_concepts,
+       eval(rlang::enexpr(concepts))) |>
+    concepts_reduce()
 
   data <-
   data |>

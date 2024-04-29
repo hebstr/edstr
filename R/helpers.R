@@ -24,6 +24,17 @@ easy_replace <- \(...,
 }
 
 
+concepts_reduce <- \(x) {
+
+  x |>
+    purrr::pluck_depth() |>
+    seq() |>
+    purrr::reduce(~ purrr::list_flatten(.),
+                  .init = x)
+
+}
+
+
 cli_error_config <- \() {
 
   if (!exists(".config_name")) {
