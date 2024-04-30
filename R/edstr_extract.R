@@ -21,7 +21,8 @@
 #' @param highlight_bg
 #' @param highlight_color
 #' @param print
-#' @param html_output
+#' @param html
+#' @param html_popup
 #' @param dir_suffix
 #' @param filename_suffix
 #' @param config
@@ -55,7 +56,8 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
                    highlight_bg = "#ffffff",
                    highlight_color = "red",
                    print = TRUE,
-                   html_output = FALSE,
+                   html = FALSE,
+                   html_popup = FALSE,
                    dir_suffix = sample,
                    filename_suffix = sample,
                    config = get(.config_name),
@@ -192,7 +194,8 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
   switch(limits,
          "start" = .cpts_str <- lim("^", ""),
          "end" = .cpts_str <- lim("", "$"),
-         "both" = .cpts_str <- lim("^", "$"))
+         "both" = .cpts_str <- lim("^", "$"),
+         "none" = .cpts_str <- lim("", ""))
 
   .cpts_names <- stringr::str_c(names(concepts), collapse = ", ")
 
@@ -466,7 +469,7 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
 
 ### SET OUTPUT -----------------------------------------------------------------
 
-  if (html_output) {
+  if (html) {
 
     .extract_output(highlight_color,
                     highlight_bg,
@@ -475,6 +478,7 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
                     data_count,
                     data_match_list,
                     text_input,
+                    html_popup,
                     .save_extract)
 
     data_match_list <-

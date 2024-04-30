@@ -5,6 +5,7 @@
                      data_count,
                      data_match_list,
                      text_input,
+                     html_popup,
                      .save_extract) {
 
   cli::cli_progress_step("{.strong Set output}")
@@ -75,7 +76,7 @@
 
     htmltools::save_html(x, output)
 
-    utils::browseURL(output)
+    if (html_popup) utils::browseURL(output)
 
     assign(glue::glue(y), x, envir = .GlobalEnv)
 
