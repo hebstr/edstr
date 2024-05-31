@@ -1,0 +1,71 @@
+---
+title: "Importer avec edstr_import()"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Importer avec edstr_import()}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+
+library(glue)
+```
+
+```{r setup}
+library(edstr)
+```
+
+### Prérequis
+
+La fonction `edstr_import()` dépend des paramètres définis avec `edstr_config()` : celle-ci doit alors être exécutée en amont.
+
+```{r}
+.r <- "S:/_R_/edstr_config"
+
+edstr_config(dest_dir = "S:/_FRACTURES_OSTEOPOROSE/test_urg",
+             dest_filename = "test_urg",
+             str = "{.r}/str.RData",
+             concepts = "{.r}/concepts.RData",
+             split = "{.r}/split/urg/urg_split.RData",
+             text = "text")
+```
+
+La fonction `edstr_import()` produit un dataframe portant le nom défini dans `edstr_config()` (argument `dest_filename`) suivi du suffixe `_import`. Dans cet exemple, il sera donc nommé ``r glue("{.config$file}_import")``.
+
+Il peut être produit de deux façons :
+
+  - Importation d'un dataframe depuis une base de données
+  - Chargement d'un dataframe déjà importé
+
+### Importation d'un dataframe
+
+On peut procéder à l'importation avec `edstr_import()` en précisant a minima la requête et les paramètres de connexion de la base.
+
+Le dataframe importé est automatiquement sauvegardé en .RData dans le répertoire défini avec `edstr_config()` (argument `dest_dir`).
+
+```r
+edstr_import(query = "select * from test_urg",
+             connect_dir = "S:/_R_/database_connection",
+             user = "w_etudes")
+```
+
+```{r, echo = FALSE}
+edstr_import(query = "select * from test_urg",
+             connect_dir = "S:/_R_/database_connection",
+             user = "w_etudes",
+             password = "h9$c9WnE5*")
+```
+
+
+### Chargement d'un dataframe déjà importé
+
+Si un dataframe est déjà importé dans le dossier `r .config$dir`, celui-ci peut être simplement chargé avec l'argument `load = TRUE`.
+
+```{r}
+edstr_import(load = TRUE)
+```

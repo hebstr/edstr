@@ -14,19 +14,46 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup, include = FALSE}
+```{r}
 library(edstr)
 ```
 
 ## Test
 
-```{r, eval = FALSE}
-edstr_config(dest_dir = "../data/fracture",
-             dest_filename = "gs",
-             str = "config/str.RData",
-             concepts = "config/concepts.RData",
+```{r}
+edstr_config(dest_dir = "S:/_FRACTURES_OSTEOPOROSE/test_urg",
+             dest_filename = "test_urg",
+             str = "S:/_R_/edstr_config/str.RData",
+             concepts = "S:/_R_/edstr_config/concepts.RData",
+             split = "S:/_R_/edstr_config/split/urg/urg_split.RData",
              text = "text")
 ```
 
-## Test 2
+Les arguments peuvent interpréter la syntaxe [glue](https://glue.tidyverse.org/).
+
+```{r}
+.r <- "S:/_R_/edstr_config"
+
+edstr_config(dest_dir = "S:/_FRACTURES_OSTEOPOROSE/test_urg",
+             dest_filename = "test_urg",
+             str = "{.r}/str.RData",
+             concepts = "{.r}/concepts.RData",
+             split = "{.r}/split/urg/urg_split.RData",
+             text = "text")
+```
+
+Seuls les arguments `dest_dir` et `dest_filename` sont indispensables.
+
+```{r}
+edstr_config(dest_dir = "S:/_FRACTURES_OSTEOPOROSE/test_urg",
+             dest_filename = "test_urg")
+```
+
+Les éléments non créés seront listés en prenant la valeur `NULL`.
+
+```{r}
+.config
+```
+
+
 

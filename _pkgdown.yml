@@ -33,4 +33,6 @@ articles:
   navbar: ~
   contents:
   - edstr
+  - import
+  - clean
   - explore

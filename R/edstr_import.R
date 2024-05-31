@@ -4,6 +4,7 @@
 #' @param query
 #' @param connect_dir
 #' @param user
+#' @param password
 #' @param head
 #' @param load
 #'
@@ -15,6 +16,7 @@
 edstr_import <- \(query = NULL,
                   connect_dir = NULL,
                   user = NULL,
+                  password = getPass::getPass(),
                   head = NULL,
                   load = FALSE,
                   config = get(.config_name)) {
@@ -45,13 +47,13 @@ edstr_import <- \(query = NULL,
                                        classPath = glue::glue("{connect_dir}/ojdbc6.jar")),
                      url = glue::glue("jdbc:oracle:thin:@//{tns}"),
                      user = user,
-                     password = getPass::getPass())
+                     password = password)
 
     assign(".con", .con, envir = .GlobalEnv)
 
 ### QUERY -------------------------------------------------------------------------------
 
-    cli::cli_progress_step("Import from db (user: {.strong {user}})")
+    cli::cli_progress_step("Import (user: {.strong {user}})")
 
     if (!stringr::str_starts(query, "(?i)\\s*SELECT")) {
 

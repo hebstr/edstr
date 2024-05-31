@@ -8,6 +8,7 @@ edstr_import(
   query = NULL,
   connect_dir = NULL,
   user = NULL,
+  password = getPass::getPass(),
   head = NULL,
   load = FALSE,
   config = get(.config_name)

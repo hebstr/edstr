@@ -35,7 +35,7 @@ install.packages("G:/Data/_R_/packages/edstr_0.1.0.zip", repos = NULL)
 
 img
 
-Chaque fonction est détaillée dans `vignette("edstr")`.
+Une vue d’ensemble du process est détaillée dans `vignette("edstr")`.
 
 ### Configuration initiale
 

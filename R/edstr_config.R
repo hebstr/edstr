@@ -30,17 +30,23 @@ edstr_config <- \(dest_dir,
 
   if (!is.null(str)) {
 
-    str <- load(str)
+    str <- glue::glue(str) |> load()
     str_data <- get(str)
 
   } else str_data <- NULL
 
   if (!is.null(concepts)) {
 
-    concepts <- load(concepts)
+    concepts <- glue::glue(concepts) |> load()
     concepts_data <- get(concepts)
 
   } else concepts_data <- NULL
+
+  if (!is.null(text)) {
+
+    text <- glue::glue(text)
+
+  } else text <- NULL
 
   ### MANAGE DIRECTORY --------------------------------------------------------------------
 
@@ -54,17 +60,17 @@ edstr_config <- \(dest_dir,
   parent_dir <- stringr::str_remove(getwd(), "[^/]+/?$")
   dest_dir <- stringr::str_replace(dest_dir, "^(\\.\\./)", parent_dir)
 
-  ### ASSIGNEMENT -------------------------------------------------------------------------
+  ### ASSIGNMENT -------------------------------------------------------------------------
 
   if (!is.null(split)) {
 
-    split <- load(split)
+    split <- glue::glue(split) |> load()
 
     str_data <-
-     purrr::list_modify(get(str),
-                        extract_split =
-                          list(sect = str_u("(?<=:)\\s*(?=(<br/>\\s*)*</p>)",
-                                            with(get(split), str))))
+    purrr::list_modify(get(str),
+                       extract_split =
+                         list(sect = str_u("(?<=:)\\s*(?=(<br/>\\s*)*</p>)",
+                                           with(get(split), str))))
 
   }
 
