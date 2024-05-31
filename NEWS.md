@@ -1,3 +1,3 @@
 # edstr (development version)
 
-* Initial CRAN submission.
+* Version en développement

@@ -23,19 +23,19 @@ installé comme suit :
 devtools::install_git("https://codeberg.org/hebstr/edstr")
 ```
 
-Depuis la bulle, le fichier `edstr_*.zip` situé dans
+Depuis la bulle, le fichier `edstr_0.1.0.zip` situé dans
 `G:/Data/_R_/packages` est à installer manuellement à la manière des
 autres packages.
 
 ``` r
-install.packages("G:/Data/_R_/packages/edstr_0.0.0.9000.zip", repos = NULL)
+install.packages("G:/Data/_R_/packages/edstr_0.1.0.zip", repos = NULL)
 ```
 
 ## Résumé
 
 img
 
-Chaque fonction est détaillée dans `vignette(edstr)`.
+Chaque fonction est détaillée dans `vignette("edstr")`.
 
 ### Configuration initiale
 
@@ -64,23 +64,25 @@ Chaque fonction est détaillée dans `vignette(edstr)`.
 - Produit un dataframe automatiquement sauvegardé dans un fichier .RData
   :
 
-  - Situé dans le répertoire défini avec `edstr_config` (dest_dir)
-  - Portant le nom défini dans `edstr_config` (filename) suivi du
-    suffixe `_import`.
+  - Situé dans le répertoire défini avec `edstr_config()` (argument
+    `dest_dir`)
+  - Portant le nom défini dans `edstr_config()` (argument
+    `dest_filename`) suivi du suffixe `_import`.
 
 `edstr_clean()` :
 
 - Nettoyage d’une colonne texte présent dans un dataframe.
 
 - Prend automatiquement en input le dataframe produit avec la fonction
-  `edstr_import`, par défaut nommé `[nom_du_fichier]_import`.
+  `edstr_import()`, par défaut nommé `[nom_du_fichier]_import`.
 
 - Produit un dataframe automatiquement sauvegardé dans un fichier .RData
   :
 
-  - Situé dans le répertoire défini avec `edstr_config` (dest_dir)
-  - Portant le nom défini dans `edstr_config` (filename) suivi du
-    suffixe `_clean`.
+  - Situé dans le répertoire défini avec `edstr_config()` (argument
+    `dest_dir`)
+  - Portant le nom défini dans `edstr_config()` (argument
+    `dest_filename`) suivi du suffixe `_clean`.
 
 `edstr_extract()` :
 
@@ -88,15 +90,16 @@ Chaque fonction est détaillée dans `vignette(edstr)`.
   base d’une recherche par mots-clés.
 
 - Prend automatiquement en input le dataframe nettoyé produit avec la
-  fonction `edstr_clean`, par défaut nommé `[nom_du_fichier]_clean`.
+  fonction `edstr_clean()`, par défaut nommé `[nom_du_fichier]_clean`.
 
-- Produit une liste portant le nom défini dans `edstr_config` (filename)
-  suivi du suffixe `_extract` (contenu détaillé dans
-  `vignette(extract)`)
+- Produit une liste portant le nom défini dans `edstr_config()`
+  (argument `dest_filename`) suivi du suffixe `_extract` (contenu
+  détaillé dans `vignette("extract")`)
 
 - Produit automatiquement un dossier portant le nom défini dans
-  `edstr_config` (filename) suivi du suffixe `_extract`, situé dans le
-  répertoire défini avec `edstr_config` (dest_dir) et contenant :
+  `edstr_config()` (argument `dest_filename`) suivi du suffixe
+  `_extract`, situé dans le répertoire défini avec `edstr_config()`
+  (argument `dest_dir`) et contenant :
 
   - La liste sauvegardé dans un fichier .RData
   - Le décompte des termes extraits, enregistrés aux formats .csv et
@@ -118,9 +121,10 @@ textuelles depuis la console sur la base d’une recherche par mots-clés.
 
 - Décompte des mots-clés recherchés classé par ordre de fréquence
 
-- Prduit automatiquement un dossier portant le nom défini dans
-  `edstr_config` (filename) suivi du suffixe `_view`, situé dans le
-  répertoire défini avec `edstr_config` (dest_dir) et contenant :
+- Produit automatiquement un dossier portant le nom défini dans
+  `edstr_config()` (argument `dest_filename`) suivi du suffixe `_view`,
+  situé dans le répertoire défini avec `edstr_config()` (argument
+  `dest_dir`) et contenant :
 
   - Un dataframe consitué des mots-clés recherchés avec l’identifiant
     associé (classiquement l’id_entrepot)
@@ -128,11 +132,11 @@ textuelles depuis la console sur la base d’une recherche par mots-clés.
   - Un dataframe constitué de l’échantillon de documents affichés dans
     la console (10 par défaut)
 
-Plus de détails dans `vignette(edstr)`.
+Plus de détails dans `vignette("edstr")`.
 
 ## Template
 
-Pour une utilisation de routine, un template de script est mis à
+Pour une utilisation classique, un template de script est mis à
 disposition à `G:/Data/_R_/packages/edstr_config/template.R`
 
 ``` r

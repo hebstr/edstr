@@ -1,6 +1,6 @@
 Package: edstr
 Title: edstr
-Version: 0.0.0.9000
+Version: 0.1.0
 Authors@R: 
     person("pas", "chatGPT", , "ju.diez@protonmail.com", role = c("aut", "cre"))
 Description: Un ensemble de fonctions pour importer, nettoyer et extraire des données textuelles de routine.
