@@ -14,19 +14,19 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup}
+```{r setup, include = FALSE}
 library(edstr)
 ```
 
 ## Test
 
-```{r}
-#| eval: false
-
+```{r, eval = FALSE}
 edstr_config(dest_dir = "../data/fracture",
              dest_filename = "gs",
              str = "config/str.RData",
              concepts = "config/concepts.RData",
              text = "text")
 ```
+
+## Test 2
 

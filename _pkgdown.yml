@@ -10,9 +10,12 @@ repo:
     source: https://codeberg.org/hebstr/edstr/src/branch/main/
 
 reference:
-- title: Process
+- title: Configuration initiale
   contents:
   - edstr_config
+
+- title: Production
+  contents:
   - edstr_import
   - edstr_clean
   - edstr_extract
@@ -24,3 +27,10 @@ reference:
 - title: Annexe
   contents:
   - edstr_split
+
+articles:
+- title: ~
+  navbar: ~
+  contents:
+  - edstr
+  - explore

@@ -1,8 +1,8 @@
 ---
-title: "article2"
+title: "Explorer avec edstr_view"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{article2}
+  %\VignetteIndexEntry{Explorer avec edstr_view}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -17,3 +17,5 @@ knitr::opts_chunk$set(
 ```{r setup}
 library(edstr)
 ```
+
+Test `edstr_view`

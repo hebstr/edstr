@@ -1,9 +1,9 @@
 Package: edstr
-Title: Manage a non-structured text input
+Title: edstr
 Version: 0.0.0.9000
 Authors@R: 
     person("pas", "chatGPT", , "ju.diez@protonmail.com", role = c("aut", "cre"))
-Description: Un ensemble de fonctions pour importer, nettoyer et extraire des chaînes de caractères non-structurées depuis texte_affichage.
+Description: Un ensemble de fonctions pour importer, nettoyer et extraire des données textuelles de routine.
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

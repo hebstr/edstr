@@ -4,9 +4,9 @@
 \name{edstr-package}
 \alias{edstr}
 \alias{edstr-package}
-\title{edstr: Manage a non-structured text input}
+\title{edstr: edstr}
 \description{
-Un ensemble de fonctions pour importer, nettoyer et extraire des chaînes de caractères non-structurées depuis texte_affichage.
+Un ensemble de fonctions pour importer, nettoyer et extraire des données textuelles de routine.
 }
 \author{
 \strong{Maintainer}: pas chatGPT \email{ju.diez@protonmail.com}
