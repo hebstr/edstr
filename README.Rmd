@@ -43,7 +43,7 @@ install.packages("G:/Data/_R_/packages/edstr_0.1.0.zip", repos = NULL)
 
 img
 
-Une vue d'ensemble du process est détaillée dans `vignette("edstr")`.
+Une vue d'ensemble du process est présentée dans `vignette("edstr")`.
 
 ### Configuration initiale
 
@@ -146,3 +146,7 @@ edstr_view(data = "___",
            str = "___",
            id = "___")
 ```
+
+## Origine du nom
+
+edstr est la contraction de "EDS" (Entrepôt de Données de Santé) et de "str", diminutif de string, car la finalité est le traitement de chaînes de caractères.

@@ -170,3 +170,9 @@ edstr_view(data = "___",
            str = "___",
            id = "___")
 ```
+
+## Origine du nom
+
+edstr est la contraction de “EDS” (Entrepôt de Données de Santé) et de
+“str”, diminutif de string, car la finalité est le traitement de chaînes
+de caractères.

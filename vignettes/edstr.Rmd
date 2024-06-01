@@ -14,45 +14,65 @@ knitr::opts_chunk$set(
 )
 ```
 
+Exemple de la détection des fractures de l'extrémité supérieure du fémur (FESF).
+
+Le script correspondant :
+
+```r
+script
+```
+
+Le contenu suivant explicite brièvement le résultat de chaque fonction afin de montrer le process global.
+
+Pour plus de détails sur une fonction, se référer à la page correspondante dans la partie "Articles".
+
+
+### Charger le package
+
+Le package `edstr` doit être chargé dans l'environnement.
+
 ```{r}
 library(edstr)
 ```
 
-## Test
+
+### Définir une configuration par défaut avec `edstr_config()`
+
+`edstr_config()` définit des paramètres communs aux fonctions suivantes.
 
 ```{r}
-edstr_config(dest_dir = "S:/_FRACTURES_OSTEOPOROSE/test_urg",
-             dest_filename = "test_urg",
-             str = "S:/_R_/edstr_config/str.RData",
-             concepts = "S:/_R_/edstr_config/concepts.RData",
-             split = "S:/_R_/edstr_config/split/urg/urg_split.RData",
-             text = "text")
+#edstr_config()
 ```
 
-Les arguments peuvent interpréter la syntaxe [glue](https://glue.tidyverse.org/).
+
+### Importer avec `edstr_import()`
+
+Réalise l'importation de la table [nom] depuis la base et son enregistrement selon les paramètres définis dans `edstr_config()`.
 
 ```{r}
-.r <- "S:/_R_/edstr_config"
-
-edstr_config(dest_dir = "S:/_FRACTURES_OSTEOPOROSE/test_urg",
-             dest_filename = "test_urg",
-             str = "{.r}/str.RData",
-             concepts = "{.r}/concepts.RData",
-             split = "{.r}/split/urg/urg_split.RData",
-             text = "text")
+#edstr_import()
 ```
 
-Seuls les arguments `dest_dir` et `dest_filename` sont indispensables.
+
+### Nettoyage avec `edstr_clean()`
+
+Réalise le nettoyage du texte présent dans la table importée et son enregistrement selon les paramètres définis dans `edstr_config()`.
+
+Prend automatiquement en input la table importée avec `edstr_import()`.
 
 ```{r}
-edstr_config(dest_dir = "S:/_FRACTURES_OSTEOPOROSE/test_urg",
-             dest_filename = "test_urg")
+#edstr_clean()
 ```
 
-Les éléments non créés seront listés en prenant la valeur `NULL`.
+
+### Extraction avec `edstr_extract()`
+
+Réalise une extraction à partir du texte présent dans la table nettoyée et son enregistrement selon les paramètres définis dans `edstr_config()`.
+
+Prend automatiquement en input la table nettoyée avec `edstr_clean()`.
 
 ```{r}
-.config
+#edstr_extract()
 ```
 
 
