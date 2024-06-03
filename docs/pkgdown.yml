@@ -1,4 +1,4 @@
-pandoc: 3.1.11
+pandoc: 3.1.1
 pkgdown: 2.0.9
 pkgdown_sha: ~
 articles:
@@ -6,8 +6,10 @@ articles:
   config: config.html
   edstr: edstr.html
   explore: explore.html
+  extract: extract.html
   import: import.html
-last_built: 2024-06-01T20:23Z
+  split: split.html
+last_built: 2024-06-03T15:50Z
 urls:
   reference: https://codeberg.org/hebstr/edstr/reference
   article: https://codeberg.org/hebstr/edstr/articles

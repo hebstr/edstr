@@ -1,8 +1,8 @@
 ---
-title: "Explorer avec edstr_view"
+title: "Explorer avec edstr_view()"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Explorer avec edstr_view}
+  %\VignetteIndexEntry{Explorer avec edstr_view()}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

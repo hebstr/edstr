@@ -19,7 +19,7 @@ library(edstr)
 ```
 
 ```{r}
-edstr_config(dest_dir = "S:/_FRACTURES_OSTEOPOROSE/test_urg",
+edstr_config(dest_dir = "S:/_FRACTURES_OSTEOPOROSE/data/urg",
              dest_filename = "test_urg",
              str = "S:/_R_/edstr_config/str.RData",
              concepts = "S:/_R_/edstr_config/concepts.RData",
@@ -32,7 +32,7 @@ Les arguments peuvent interpréter la syntaxe [glue](https://glue.tidyverse.org/
 ```{r}
 .r <- "S:/_R_/edstr_config"
 
-edstr_config(dest_dir = "S:/_FRACTURES_OSTEOPOROSE/test_urg",
+edstr_config(dest_dir = "S:/_FRACTURES_OSTEOPOROSE/data/urg",
              dest_filename = "test_urg",
              str = "{.r}/str.RData",
              split = "{.r}/split/urg/urg_split.RData",
@@ -63,7 +63,7 @@ Seuls deux arguments sont indispensables :
 - Le nom à donner aux fichiers qui seront produits (`dest_filename`)
 
 ```{r}
-edstr_config(dest_dir = "S:/_FRACTURES_OSTEOPOROSE/test_urg",
+edstr_config(dest_dir = "S:/_FRACTURES_OSTEOPOROSE/data/urg",
              dest_filename = "test_urg")
 ```
 

@@ -44,10 +44,12 @@
 <li class="nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
-    <a class="dropdown-item" href="articles/config.html">config</a>
+    <a class="dropdown-item" href="articles/config.html">Définir une configuration par défaut avec edstr_config()</a>
     <a class="dropdown-item" href="articles/import.html">Importer avec edstr_import()</a>
     <a class="dropdown-item" href="articles/clean.html">Nettoyer avec edstr_clean()</a>
-    <a class="dropdown-item" href="articles/explore.html">Explorer avec edstr_view</a>
+    <a class="dropdown-item" href="articles/extract.html">Extraction avec edstr_extract()</a>
+    <a class="dropdown-item" href="articles/explore.html">Explorer avec edstr_view()</a>
+    <a class="dropdown-item" href="articles/split.html">Splitage du texte</a>
   </div>
 </li>
 <li class="nav-item">
@@ -128,7 +130,7 @@
 <ul>
 <li><p>Extraction depuis une colonne texte présent dans un dataframe sur la base d’une recherche par mots-clés.</p></li>
 <li><p>Prend automatiquement en input le dataframe nettoyé produit avec la fonction <code><a href="reference/edstr_clean.html">edstr_clean()</a></code>, par défaut nommé <code>[nom_du_fichier]_clean</code>.</p></li>
-<li><p>Produit une liste portant le nom défini dans <code><a href="reference/edstr_config.html">edstr_config()</a></code> (argument <code>dest_filename</code>) suivi du suffixe <code>_extract</code> (contenu détaillé dans <code>vignette("extract")</code>)</p></li>
+<li><p>Produit une liste portant le nom défini dans <code><a href="reference/edstr_config.html">edstr_config()</a></code> (argument <code>dest_filename</code>) suivi du suffixe <code>_extract</code> (contenu détaillé dans <code><a href="articles/extract.html">vignette("extract")</a></code>)</p></li>
 <li>
 <p>Produit automatiquement un dossier portant le nom défini dans <code><a href="reference/edstr_config.html">edstr_config()</a></code> (argument <code>dest_filename</code>) suivi du suffixe <code>_extract</code>, situé dans le répertoire défini avec <code><a href="reference/edstr_config.html">edstr_config()</a></code> (argument <code>dest_dir</code>) et contenant :</p>
 <ul>
@@ -193,6 +195,11 @@
 <span><span class="fu"><a href="reference/edstr_view.html">edstr_view</a></span><span class="op">(</span>data <span class="op">=</span> <span class="st">"___"</span>,</span>
 <span>           str <span class="op">=</span> <span class="st">"___"</span>,</span>
 <span>           id <span class="op">=</span> <span class="st">"___"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="origine-du-nom">Origine du nom<a class="anchor" aria-label="anchor" href="#origine-du-nom"></a>
+</h2>
+<p>edstr est la contraction de “EDS” (Entrepôt de Données de Santé) et de “str”, diminutif de string, car la finalité est le traitement de chaînes de caractères.</p>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">

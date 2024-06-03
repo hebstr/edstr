@@ -24,7 +24,7 @@ La fonction `edstr_clean()` dépend des paramètres définis avec `edstr_config(
 ```{r}
 .r <- "S:/_R_/edstr_config"
 
-edstr_config(dest_dir = "S:/_FRACTURES_OSTEOPOROSE/test_urg",
+edstr_config(dest_dir = "S:/_FRACTURES_OSTEOPOROSE/data/urg",
              dest_filename = "test_urg",
              str = "{.r}/str.RData",
              concepts = "{.r}/concepts.RData",

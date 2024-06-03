@@ -15,7 +15,7 @@ edstr_import(
 )
 }
 \arguments{
-\item{load}{}
+\item{config}{}
 }
 \value{
 A tibble

@@ -44,9 +44,12 @@
 <li class="active nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
+    <a class="dropdown-item" href="../articles/config.html">Définir une configuration par défaut avec edstr_config()</a>
     <a class="dropdown-item" href="../articles/import.html">Importer avec edstr_import()</a>
     <a class="dropdown-item" href="../articles/clean.html">Nettoyer avec edstr_clean()</a>
-    <a class="dropdown-item" href="../articles/explore.html">Explorer avec edstr_view</a>
+    <a class="dropdown-item" href="../articles/extract.html">Extraction avec edstr_extract()</a>
+    <a class="dropdown-item" href="../articles/explore.html">Explorer avec edstr_view()</a>
+    <a class="dropdown-item" href="../articles/split.html">Splitage du texte</a>
   </div>
 </li>
 <li class="nav-item">
@@ -89,7 +92,7 @@ amont.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">.r</span> <span class="op">&lt;-</span> <span class="st">"S:/_R_/edstr_config"</span></span>
 <span></span>
-<span><span class="fu"><a href="../reference/edstr_config.html">edstr_config</a></span><span class="op">(</span>dest_dir <span class="op">=</span> <span class="st">"S:/_FRACTURES_OSTEOPOROSE/test_urg"</span>,</span>
+<span><span class="fu"><a href="../reference/edstr_config.html">edstr_config</a></span><span class="op">(</span>dest_dir <span class="op">=</span> <span class="st">"S:/_FRACTURES_OSTEOPOROSE/data/urg"</span>,</span>
 <span>             dest_filename <span class="op">=</span> <span class="st">"test_urg"</span>,</span>
 <span>             str <span class="op">=</span> <span class="st">"{.r}/str.RData"</span>,</span>
 <span>             concepts <span class="op">=</span> <span class="st">"{.r}/concepts.RData"</span>,</span>
@@ -101,7 +104,7 @@ amont.</p>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="font-weight: bold;">Working directory:</span> <span style="color: #0000BB;">C:/Users/julien.elicesdiez/Documents/~r_pkgs/edstr/vignettes</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="font-weight: bold;">Destination</span></span></span>
-<span><span class="co">#&gt; • Existing directory: <span style="color: #0000BB;">S:/_FRACTURES_OSTEOPOROSE/test_urg</span></span></span>
+<span><span class="co">#&gt; • Existing directory: <span style="color: #0000BB;">S:/_FRACTURES_OSTEOPOROSE/data/urg</span></span></span>
 <span><span class="co">#&gt; • Filename: <span style="color: #BB0000;">test_urg</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="font-weight: bold;">Configuration file:</span> <span style="color: #00BB00; font-weight: bold;">.config</span></span></span>
@@ -141,9 +144,9 @@ répertoire défini avec <code><a href="../reference/edstr_config.html">edstr_co
 <span><span class="co">#&gt; Warning: &lt;JDBCConnection&gt; uses an old dbplyr interface</span></span>
 <span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> Please install a newer version of the package or contact the maintainer</span></span>
 <span><span class="co">#&gt; <span style="color: #555555;">This warning is displayed once every 8 hours.</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Import (user: <span style="font-weight: bold;">w_etudes</span>) <span style="color: #B2B2B2;">[6.4s]</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Saving <span style="font-weight: bold;">test_urg_import</span><span style="color: #00BB00;">✔</span> Saving <span style="font-weight: bold;">test_urg_import</span> <span style="color: #B2B2B2;">[3.1s]</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="font-weight: bold;">test_urg_import</span> saved to <span style="color: #0000BB;">S:/_FRACTURES_OSTEOPOROSE/test_urg/test_urg_import.RData</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Import (user: <span style="font-weight: bold;">w_etudes</span>) <span style="color: #B2B2B2;">[5.6s]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Saving <span style="font-weight: bold;">test_urg_import</span><span style="color: #00BB00;">✔</span> Saving <span style="font-weight: bold;">test_urg_import</span> <span style="color: #B2B2B2;">[3.4s]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="font-weight: bold;">test_urg_import</span> saved to <span style="color: #0000BB;">S:/_FRACTURES_OSTEOPOROSE/data/urg/test_urg_import.RData</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="font-weight: bold;">Dimensions</span></span></span>
 <span><span class="co">#&gt; • 6179 observations</span></span>
@@ -155,15 +158,15 @@ répertoire défini avec <code><a href="../reference/edstr_config.html">edstr_co
 <h3 id="chargement-dun-dataframe-déjà-importé">Chargement d’un dataframe déjà importé<a class="anchor" aria-label="anchor" href="#chargement-dun-dataframe-d%C3%A9j%C3%A0-import%C3%A9"></a>
 </h3>
 <p>Si un dataframe est déjà importé dans le dossier
-S:/_FRACTURES_OSTEOPOROSE/test_urg, celui-ci peut être simplement chargé
+S:/_FRACTURES_OSTEOPOROSE/data/urg, celui-ci peut être simplement chargé
 avec l’argument <code>load = TRUE</code>.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/edstr_import.html">edstr_import</a></span><span class="op">(</span>load <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">edstr_import</span> <span style="color: #00BBBB;">────────────────────────────────────────────────────────────────</span></span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Loading <span style="font-weight: bold;">test_urg_import</span><span style="color: #00BB00;">✔</span> Loading <span style="font-weight: bold;">test_urg_import</span> <span style="color: #B2B2B2;">[427ms]</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="font-weight: bold;">test_urg_import</span> loaded from <span style="color: #0000BB;">S:/_FRACTURES_OSTEOPOROSE/test_urg/test_urg_import.RData</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Loading <span style="font-weight: bold;">test_urg_import</span><span style="color: #00BB00;">✔</span> Loading <span style="font-weight: bold;">test_urg_import</span> <span style="color: #B2B2B2;">[445ms]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="font-weight: bold;">test_urg_import</span> loaded from <span style="color: #0000BB;">S:/_FRACTURES_OSTEOPOROSE/data/urg/test_urg_import.RData</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ────────────────────────────────────────────────────────────────────────────────</span></span></code></pre></div>
 </div>
