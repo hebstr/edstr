@@ -1,12 +1,12 @@
 #' Importer des caractéristiques depuis une base de données
 #'
-#' @param config
 #' @param query
 #' @param connect_dir
 #' @param user
 #' @param password
 #' @param head
 #' @param load
+#' @param config
 #'
 #' @return A tibble
 #' @export
@@ -30,6 +30,7 @@ edstr_import <- \(query = NULL,
   config_save <- glue::glue("{config_dir}/{config_file}.RData")
 
   query <- glue::glue(query)
+  connect_dir <- glue::glue(connect_dir)
 
   cli::cli_h1("edstr_import")
   cli::cli_text("\n\n")
