@@ -3,6 +3,7 @@
 #' @param data
 #' @param sample
 #' @param filter
+#' @param text_input
 #' @param llm
 #' @param split
 #' @param replace
@@ -25,10 +26,6 @@
 #' @param html_popup
 #' @param dir_suffix
 #' @param filename_suffix
-#' @param config
-#' @param config_str
-#' @param config_concepts
-#' @param text_input
 #'
 #' @return
 #' @export
@@ -38,6 +35,7 @@
 edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
                    sample = NULL,
                    filter = NULL,
+                   text_input = with(config, text),
                    llm = NULL,
                    split = NULL,
                    replace = NULL,
@@ -46,7 +44,7 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
                    extra_cols = NULL,
                    ngrams,
                    nchar_max = 8000,
-                   concepts = config_concepts,
+                   concepts,
                    concepts_suppl = "\\t",
                    upper_only = NA,
                    limits = "both",
@@ -59,23 +57,24 @@ edstr_extract <- \(data = glue::glue("{with(config, file)}_clean"),
                    html = FALSE,
                    html_popup = FALSE,
                    dir_suffix = sample,
-                   filename_suffix = sample,
-                   config = get(.config_name),
-                   config_str = with(config, str),
-                   config_concepts = with(config, concepts),
-                   text_input = with(config, text)) {
+                   filename_suffix = sample) {
 
-  cli_error_config()
+  if (!exists(".config_name")) {
+
+    config <- cli_error_config()
+
+  } else config <- get(.config_name)
 
   if (is.character(data)) data <- get(data)
-  if (is.character(config)) config <- get(config)
+
+  config_str <- with(config, str)
 
   filter <- rlang::enexpr(filter)
   llm <- rlang::enexpr(llm)
 
   concepts <-
-  with(config_concepts,
-       eval(rlang::enexpr(concepts))) |>
+  config$concepts |>
+  with(eval(rlang::enexpr(concepts))) |>
     concepts_reduce()
 
   data <-

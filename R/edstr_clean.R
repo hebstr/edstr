@@ -3,11 +3,9 @@
 #' @param data
 #' @param sample
 #' @param filter
+#' @param text_input
 #' @param replace
 #' @param load
-#' @param config
-#' @param config_str
-#' @param text_input
 #'
 #' @return
 #' @export
@@ -17,16 +15,17 @@
 edstr_clean <- \(data = glue::glue("{with(config, file)}_import"),
                  sample = NULL,
                  filter = NULL,
+                 text_input = with(config, text),
                  replace,
-                 load = FALSE,
-                 config = get(.config_name),
-                 config_str = with(config, str),
-                 text_input = with(config, text)) {
+                 load = FALSE) {
 
-  cli_error_config()
+  if (!exists(".config_name")) {
 
-  if (is.character(config)) config <- get(config)
+    config <- cli_error_config()
 
+  } else config <- get(.config_name)
+
+  config_str <- with(config, str)
   config_dir <- with(config, dir)
   config_file <- glue::glue("{with(config, file)}_clean")
   config_save <- glue::glue("{config_dir}/{config_file}.RData")
@@ -98,31 +97,20 @@ edstr_clean <- \(data = glue::glue("{with(config, file)}_import"),
 
     } else prop_import <- NULL
 
-### SAVE ---------------------------------------------------------------------------------
-
-    cli::cli_progress_step("Saving {.strong {config_file}}")
-
-    assign(config_file, data_clean, envir = .GlobalEnv)
-
-    save(list = config_file, file = config_save)
-
     cli::cli_progress_done()
 
 ### CLI ---------------------------------------------------------------------------------
 
-    cli::cli_alert_success("{.strong {config_file}} saved to {.path {config_save}}")
-    cli::cli_text("\n\n")
-    cli::cli_alert_info("{.strong Dimensions}")
-    cli::cli_ul()
-      cli::cli_li("{nrow(data_clean)} observations {prop_import}")
-      cli::cli_li("{ncol(data_clean)} variables")
-      cli::cli_end()
-    cli::cli_text("\n\n")
-    cli::cli_rule()
+    cli_save(data_clean,
+             config_file,
+             config_save,
+             prop_import)
 
   } else {
 
-    eval(cli_load())
+    cli_load(config_dir,
+             config_file,
+             config_save)
 
   }
 

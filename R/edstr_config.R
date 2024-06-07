@@ -5,12 +5,12 @@
 #'   directory.
 #' @param str Path to a RData file containing string for further text
 #'   management. Un vecteur de caractères.
+#' @param split
 #' @param concepts Path to a RData file containing a list of concepts to use
 #'   with [edstr_extract()].
 #' @param text
 #' @param config_name Nom du fichier de configuration. Un vecteur de caractères. Nommé
 #'   ".config" par défaut.
-#' @param split
 #'
 #' @return Two hidden objects
 #' @export
@@ -20,8 +20,8 @@
 edstr_config <- \(dest_dir,
                   dest_filename,
                   str = NULL,
-                  concepts = NULL,
                   split = NULL,
+                  concepts = NULL,
                   text = NULL,
                   config_name = ".config") {
 

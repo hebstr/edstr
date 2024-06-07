@@ -8,6 +8,7 @@ edstr_extract(
   data = glue::glue("{with(config, file)}_clean"),
   sample = NULL,
   filter = NULL,
+  text_input = with(config, text),
   llm = NULL,
   split = NULL,
   replace = NULL,
@@ -16,7 +17,7 @@ edstr_extract(
   extra_cols = NULL,
   ngrams,
   nchar_max = 8000,
-  concepts = config_concepts,
+  concepts,
   concepts_suppl = "\\\\t",
   upper_only = NA,
   limits = "both",
@@ -29,15 +30,11 @@ edstr_extract(
   html = FALSE,
   html_popup = FALSE,
   dir_suffix = sample,
-  filename_suffix = sample,
-  config = get(.config_name),
-  config_str = with(config, str),
-  config_concepts = with(config, concepts),
-  text_input = with(config, text)
+  filename_suffix = sample
 )
 }
 \arguments{
-\item{text_input}{}
+\item{filename_suffix}{}
 }
 \description{
 Title

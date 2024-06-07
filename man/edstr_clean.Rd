@@ -8,15 +8,13 @@ edstr_clean(
   data = glue::glue("{with(config, file)}_import"),
   sample = NULL,
   filter = NULL,
+  text_input = with(config, text),
   replace,
-  load = FALSE,
-  config = get(.config_name),
-  config_str = with(config, str),
-  text_input = with(config, text)
+  load = FALSE
 )
 }
 \arguments{
-\item{text_input}{}
+\item{load}{}
 }
 \description{
 Nettoyer des chaines de caractères par remplacement de patterns

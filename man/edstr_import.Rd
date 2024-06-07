@@ -6,16 +6,19 @@
 \usage{
 edstr_import(
   query = NULL,
+  head = NULL,
+  to_lower = TRUE,
   connect_dir = NULL,
+  tns = "tns",
   user = NULL,
   password = getPass::getPass(),
-  head = NULL,
-  load = FALSE,
-  config = get(.config_name)
+  dest_dir = NULL,
+  dest_filename = NULL,
+  load = FALSE
 )
 }
 \arguments{
-\item{config}{}
+\item{load}{}
 }
 \value{
 A tibble

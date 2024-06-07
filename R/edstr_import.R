@@ -1,12 +1,15 @@
 #' Importer des caractéristiques depuis une base de données
 #'
 #' @param query
+#' @param head
+#' @param to_lower
 #' @param connect_dir
+#' @param tns
 #' @param user
 #' @param password
-#' @param head
+#' @param dest_dir
+#' @param dest_filename
 #' @param load
-#' @param config
 #'
 #' @return A tibble
 #' @export
@@ -14,16 +17,21 @@
 #' @examples
 #'
 edstr_import <- \(query = NULL,
+                  head = NULL,
+                  to_lower = TRUE,
                   connect_dir = NULL,
+                  tns = "tns",
                   user = NULL,
                   password = getPass::getPass(),
-                  head = NULL,
-                  load = FALSE,
-                  config = get(.config_name)) {
+                  dest_dir = NULL,
+                  dest_filename = NULL,
+                  load = FALSE) {
 
-  cli_error_config()
+  if (!exists(".config_name")) {
 
-  if (is.character(config)) config <- get(config)
+  config <- cli_error_config(dest_dir, dest_filename)
+
+  } else config <- get(.config_name)
 
   config_dir <- with(config, dir)
   config_file <- glue::glue("{with(config, file)}_import")
@@ -41,7 +49,7 @@ edstr_import <- \(query = NULL,
 
     Sys.setenv(JAVA_HOME = glue::glue("{connect_dir}/jdk1.8.0_261"))
 
-    tns <- utils::read.table(glue::glue("{connect_dir}/tns.txt"))
+    tns <- utils::read.table(glue::glue("{connect_dir}/{tns}.txt"))
 
     .con <-
     RJDBC::dbConnect(drv = RJDBC::JDBC(driverClass = "oracle.jdbc.OracleDriver",
@@ -53,8 +61,6 @@ edstr_import <- \(query = NULL,
     assign(".con", .con, envir = .GlobalEnv)
 
 ### QUERY -------------------------------------------------------------------------------
-
-    cli::cli_progress_step("Import (user: {.strong {user}})")
 
     if (!stringr::str_starts(query, "(?i)\\s*SELECT")) {
 
@@ -70,6 +76,7 @@ edstr_import <- \(query = NULL,
       }
 
       query_flatten("\n") |>
+        stringr::str_remove("\n$") |>
         stringr::str_view() |>
         print()
 
@@ -83,37 +90,33 @@ edstr_import <- \(query = NULL,
 
     }
 
+    cli::cli_text("\n\n")
+    cli::cli_progress_step("Import with user {.strong {user}}")
+
     data_import <-
     .con |>
       dplyr::tbl(dplyr::sql(query)) |>
-      dplyr::collect() |>
-      rlang::set_names(tolower)
+      dplyr::collect()
 
-### SAVE ---------------------------------------------------------------------------------
+    if (to_lower) {
 
-    cli::cli_progress_step("Saving {.strong {config_file}}")
+      data_import <- data_import |> rlang::set_names(tolower)
 
-    assign(config_file, data_import, envir = .GlobalEnv)
-
-    save(list = config_file, file = config_save)
+    }
 
     cli::cli_progress_done()
 
 ### CLI ---------------------------------------------------------------------------------
 
-    cli::cli_alert_success("{.strong {config_file}} saved to {.path {config_save}}")
-    cli::cli_text("\n\n")
-    cli::cli_alert_info("{.strong Dimensions}")
-    cli::cli_ul()
-      cli::cli_li("{nrow(data_import)} observations")
-      cli::cli_li("{ncol(data_import)} variables")
-      cli::cli_end()
-    cli::cli_text("\n\n")
-    cli::cli_rule()
+    cli_save(data_import,
+             config_file,
+             config_save)
 
   } else {
 
-    eval(cli_load())
+    cli_load(config_dir,
+             config_file,
+             config_save)
 
   }
 

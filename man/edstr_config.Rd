@@ -8,8 +8,8 @@ edstr_config(
   dest_dir,
   dest_filename,
   str = NULL,
-  concepts = NULL,
   split = NULL,
+  concepts = NULL,
   text = NULL,
   config_name = ".config"
 )
@@ -25,8 +25,6 @@ management. Un vecteur de caractères.}
 
 \item{concepts}{Path to a RData file containing a list of concepts to use
 with \code{\link[=edstr_extract]{edstr_extract()}}.}
-
-\item{split}{}
 
 \item{config_name}{Nom du fichier de configuration. Un vecteur de caractères. Nommé
 ".config" par défaut.}
