@@ -52,6 +52,7 @@
                       !!text_input :=
                         colDef(html = TRUE,
                                minWidth = 500,
+                               maxWidth = 700,
                                style = list(textAlign = "justify"))),
               rownames = TRUE,
               highlight = TRUE,

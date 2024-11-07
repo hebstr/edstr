@@ -133,7 +133,7 @@ check_fonts <- \(...,
         filter(!is_installed) |>
         pull(fonts)
 
-      if (.abort) cli::cli_abort("{which_font} font{?s} {?is/are} not installed")
+      if (.abort) cli_abort("{which_font} font{?s} {?is/are} not installed")
 
       return(FALSE)
 
