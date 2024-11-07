@@ -34,29 +34,29 @@ edstr_import <- \(query = NULL,
   } else config <- get(.config_name)
 
   config_dir <- with(config, dir)
-  config_file <- glue::glue("{with(config, file)}_import")
-  config_save <- glue::glue("{config_dir}/{config_file}.RData")
+  config_file <- glue("{with(config, file)}_import")
+  config_save <- glue("{config_dir}/{config_file}.RData")
 
-  query <- glue::glue(query)
-  connect_dir <- glue::glue(connect_dir)
+  query <- glue(query)
+  connect_dir <- glue(connect_dir)
 
-  cli::cli_h1("edstr_import")
-  cli::cli_text("\n\n")
+  cli_h1("edstr_import")
+  cli_text("\n\n")
 
   if (!load) {
 
 ### CONNECT -------------------------------------------------------------------------------
 
-    Sys.setenv(JAVA_HOME = glue::glue("{connect_dir}/jdk1.8.0_261"))
+    Sys.setenv(JAVA_HOME = glue("{connect_dir}/jdk1.8.0_261"))
 
-    tns <- utils::read.table(glue::glue("{connect_dir}/{tns}.txt"))
+    tns <- read.table(glue("{connect_dir}/{tns}.txt"))
 
     .con <-
-    RJDBC::dbConnect(drv = RJDBC::JDBC(driverClass = "oracle.jdbc.OracleDriver",
-                                       classPath = glue::glue("{connect_dir}/ojdbc6.jar")),
-                     url = glue::glue("jdbc:oracle:thin:@//{tns}"),
-                     user = user,
-                     password = password)
+    dbConnect(drv = JDBC(driverClass = "oracle.jdbc.OracleDriver",
+                         classPath = glue("{connect_dir}/ojdbc6.jar")),
+              url = glue("jdbc:oracle:thin:@//{tns}"),
+              user = user,
+              password = password)
 
     assign(".con", .con, envir = .GlobalEnv)
 
@@ -64,20 +64,20 @@ edstr_import <- \(query = NULL,
 
     if (!stringr::str_starts(query, "(?i)\\s*SELECT")) {
 
-      query <- readr::read_lines(query)
-      query <- query[!stringr::str_starts(query, "--")]
+      query <- read_lines(query)
+      query <- query[!str_starts(query, "--")]
 
       query_flatten <- \(replace) {
 
         query |>
-          stringr::str_replace_all(c("$" = replace)) |>
-          stringr::str_flatten()
+          str_replace_all(c("$" = replace)) |>
+          str_flatten()
 
       }
 
       query_flatten("\n") |>
-        stringr::str_remove("\n$") |>
-        stringr::str_view() |>
+        str_remove("\n$") |>
+        str_view() |>
         print()
 
       query <- query_flatten(" ")
@@ -86,25 +86,25 @@ edstr_import <- \(query = NULL,
 
     if (!is.null(head)) {
 
-      query <- glue::glue("{query} FETCH FIRST {head} ROWS ONLY")
+      query <- glue("{query} FETCH FIRST {head} ROWS ONLY")
 
     }
 
-    cli::cli_text("\n\n")
-    cli::cli_progress_step("Import with user {.strong {user}}")
+    cli_text("\n\n")
+    cli_progress_step("Import with user {.strong {user}}")
 
     data_import <-
     .con |>
-      dplyr::tbl(dplyr::sql(query)) |>
-      dplyr::collect()
+      tbl(sql(query)) |>
+      collect()
 
     if (to_lower) {
 
-      data_import <- data_import |> rlang::set_names(tolower)
+      data_import <- data_import |> set_names(tolower)
 
     }
 
-    cli::cli_progress_done()
+    cli_progress_done()
 
 ### CLI ---------------------------------------------------------------------------------
 

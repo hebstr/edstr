@@ -5,7 +5,7 @@
 \title{Nettoyer des chaines de caractères par remplacement de patterns}
 \usage{
 edstr_clean(
-  data = glue::glue("{with(config, file)}_import"),
+  data = glue("{with(config, file)}_import"),
   sample = NULL,
   filter = NULL,
   text_input = with(config, text),

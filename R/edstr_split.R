@@ -13,7 +13,7 @@
 #'
 #' @examples
 #'
-edstr_split <- \(data = glue::glue("{with(config, file)}_clean"),
+edstr_split <- \(data = glue("{with(config, file)}_clean"),
                  pattern,
                  start = "upper",
                  word_max = 2,
@@ -29,8 +29,8 @@ edstr_split <- \(data = glue::glue("{with(config, file)}_clean"),
   if (is.character(config)) config <- get(config)
 
   config_dir <- with(config, dir)
-  config_file <- glue::glue("{with(config, file)}_split")
-  config_save <- glue::glue("{config_dir}/{config_file}.RData")
+  config_file <- glue("{with(config, file)}_split")
+  config_save <- glue("{config_dir}/{config_file}.RData")
 
 ### SPLIT_FUN -----------------------------------------------------------------------------
 
@@ -38,12 +38,12 @@ edstr_split <- \(data = glue::glue("{with(config, file)}_clean"),
 
     if (!is.null(names(.pattern))) {
 
-      split_name <- glue::glue("_{names(.pattern)}")
+      split_name <- glue("_{names(.pattern)}")
       split_mode <- names(.pattern)
 
-    } else cli::cli_abort("pattern argument must be named")
+    } else cli_abort("pattern argument must be named")
 
-    config_input <- glue::glue("{with(config, file)}_view{split_name}")
+    config_input <- glue("{with(config, file)}_view{split_name}")
 
     edstr_view(data = data,
                str = .pattern,
@@ -52,47 +52,47 @@ edstr_split <- \(data = glue::glue("{with(config, file)}_clean"),
 
     split_data <-
     get(config_input) |>
-      purrr::pluck("all_matches") |>
-      dplyr::select(.id, match) |>
-      dplyr::arrange(get(.id))
+      pluck("all_matches") |>
+      select(.id, match) |>
+      arrange(get(.id))
 
-    cli::cli_text("\n\n")
-    cli::cli_alert_info(glue::glue("split mode: {split_mode}"))
-    cli::cli_text("\n\n")
-    cli::cli_alert_success("{.strong {config_input}} created")
-    cli::cli_text("\n\n")
-    cli::cli_rule()
+    cli_text("\n\n")
+    cli_alert_info(glue("split mode: {split_mode}"))
+    cli_text("\n\n")
+    cli_alert_success("{.strong {config_input}} created")
+    cli_text("\n\n")
+    cli_rule()
 
-    assign(glue::glue(config_input),
+    assign(glue(config_input),
            split_data,
            envir = .GlobalEnv)
 
   }
 
   .split_data <-
-  purrr::map(1:length(pattern),
-             ~ split_fun(.pattern = pattern[.], .id = id))
+  map(1:length(pattern),
+      ~ split_fun(.pattern = pattern[.], .id = id))
 
 ### BIND ROWS ---------------------------------------------------------------------------------
 
-  cli::cli_h1("edstr_split")
-  cli::cli_text("\n\n")
+  cli_h1("edstr_split")
+  cli_text("\n\n")
 
 
   split_command <- \(x) {
 
     x |>
-      dplyr::mutate(match =
-                      match |>
-                        stringr::str_extract(glue::glue("\\S+(\\s+\\S+){{0,{word_max-1}}}")) |>
-                        stringr::str_replace_all(c("^\\s+|\\s*\\W+\\s*$" = "",
-                                                   "\\d+" = "\\\\d+",
-                                                   "(?=(\\(|\\)|\\*|\\.|\\?))" = "\\\\"))) |>
-      dplyr::count(match, sort = TRUE) |>
-      dplyr::filter(stringr::str_starts(match, glue::glue("[:{start}:]")),
-                    !stringr::str_detect(match, "^[:upper:]+$"),
-                    !stringr::str_detect(match, "^M(\\.|(?i)(onsi|ada|r|me|lle|e))"),
-                    n >= count_min)
+      mutate(match =
+               match |>
+                 str_extract(glue("\\S+(\\s+\\S+){{0,{word_max-1}}}")) |>
+                 str_replace_all(c("^\\s+|\\s*\\W+\\s*$" = "",
+                                   "\\d+" = "\\\\d+",
+                                   "(?=(\\(|\\)|\\*|\\.|\\?))" = "\\\\"))) |>
+      count(match, sort = TRUE) |>
+      filter(str_starts(match, glue("[:{start}:]")),
+             !str_detect(match, "^[:upper:]+$"),
+             !str_detect(match, "^M(\\.|(?i)(onsi|ada|r|me|lle|e))"),
+             n >= count_min)
 
   }
 
@@ -100,32 +100,32 @@ edstr_split <- \(data = glue::glue("{with(config, file)}_clean"),
 
     if (!is.null(names(pattern))) {
 
-      split_name_flatten <- stringr::str_flatten(names(pattern), " and ")
+      split_name_flatten <- str_flatten(names(pattern), " and ")
 
-    } else split_name_flatten <- stringr::str_flatten(pattern, " and ")
+    } else split_name_flatten <- str_flatten(pattern, " and ")
 
-    cli::cli_progress_step("Binding {split_name_flatten} rows")
+    cli_progress_step("Binding {split_name_flatten} rows")
 
     .split_bind <-
     .split_data |>
-      dplyr::bind_rows() |>
+      bind_rows() |>
       split_command()
 
   } else {
 
     .split_bind <-
     .split_data |>
-      purrr::list_c() |>
+      list_c() |>
       split_command()
 
   }
 
-  .split_bind_str <- stringr::str_c(.split_bind$match, collapse = "|")
-  .split_str <- glue::glue(rlang::enexpr(str))
+  .split_bind_str <- str_c(.split_bind$match, collapse = "|")
+  .split_str <- glue(enexpr(str))
 
 ### SAVE ---------------------------------------------------------------------------------
 
-  cli::cli_progress_step("Saving {.strong {config_file}}")
+  cli_progress_step("Saving {.strong {config_file}}")
 
   assign(config_file,
          list(bind = .split_bind,
@@ -134,13 +134,13 @@ edstr_split <- \(data = glue::glue("{with(config, file)}_clean"),
 
   save(list = config_file, file = config_save)
 
-  cli::cli_progress_done()
+  cli_progress_done()
 
 ### CLI ---------------------------------------------------------------------------------
 
-  cli::cli_text("\n\n")
-  cli::cli_alert_success("{.strong {config_file}} saved to {.path {config_save}}")
-  cli::cli_text("\n\n")
-  cli::cli_rule()
+  cli_text("\n\n")
+  cli_alert_success("{.strong {config_file}} saved to {.path {config_save}}")
+  cli_text("\n\n")
+  cli_rule()
 
 }

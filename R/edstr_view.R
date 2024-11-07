@@ -42,28 +42,28 @@ edstr_view <- \(data,
 
   if (!is.null(names(str))) {
 
-    str_name <- glue::glue("_{names(str)}")
+    str_name <- glue("_{names(str)}")
 
   } else str_name <- ""
 
-  config_file <- glue::glue("{with(config, file)}_view{str_name}")
+  config_file <- glue("{with(config, file)}_view{str_name}")
 
-  filter <- rlang::enexpr(filter)
-  mode <- rlang::arg_match(mode)
+  filter <- enexpr(filter)
+  mode <- arg_match(mode)
 
-  q_right <- glue::glue("q{quantile_right*100}")
-  over_q_right <- stringr::str_c("over_", q_right)
+  q_right <- glue("q{quantile_right*100}")
+  over_q_right <- str_c("over_", q_right)
 
-  cli::cli_h1("edstr_view")
-  cli::cli_text("\n\n")
+  cli_h1("edstr_view")
+  cli_text("\n\n")
 
-  cli::cli_progress_step("Creating {.strong {config_file}}")
+  cli_progress_step("Creating {.strong {config_file}}")
 
-  if (!is.null(filter)) data <- data |> dplyr::filter(!!filter)
+  if (!is.null(filter)) data <- data |> filter(!!filter)
 
 ### REPLACE ------------------------------------------------------------------------------
 
-  replace <- with(config_str, eval(rlang::enexpr(replace)))
+  replace <- with(config_str, eval(enexpr(replace)))
 
   if (!is.null(replace)) {
 
@@ -71,21 +71,21 @@ edstr_view <- \(data,
 
     data <-
     data |>
-      dplyr::mutate(!!text_input :=
-                      purrr::reduce(replace,
-                                    stringr::str_replace_all,
-                                    .init = get(text_input)))
+      mutate(!!text_input :=
+               reduce(replace,
+                      str_replace_all,
+                      .init = get(text_input)))
 
   }
 
 ### MATCH ------------------------------------------------------------------------------
 
-  enstr <- \(x, y = x) str <- glue::glue("{x}{str}{y}")
+  enstr <- \(x, y = x) str <- glue("{x}{str}{y}")
 
   if (!is.null(ngram_max)) {
 
     str <- enstr('', '(\\w*\\s*((-|/)\\s*)?\\w+)')
-    str <- glue::glue("{str}{{1,", ngram_max - 1, "}}")
+    str <- glue("{str}{{1,", ngram_max - 1, "}}")
 
   }
 
@@ -98,29 +98,27 @@ edstr_view <- \(data,
 
   data_match <-
   data |>
-    dplyr::mutate(match = stringr::str_extract_all(data[[text_input]], str)) |>
-    tidyr::unnest(match) |>
-    dplyr::mutate(nchar = nchar(match),
-                  !!q_right :=
-                    stats::quantile(nchar, probs = quantile_right, na.rm = TRUE),
-                  !!over_q_right :=
-                    ifelse(nchar > get(q_right), 1, 0)) |>
-    dplyr::select(id, text_input, match, nchar, dplyr::matches("(over_)?q(\\d+)")) |>
-    dplyr::arrange(dplyr::desc(nchar)) |>
-    tidyr::drop_na()
+    mutate(match = str_extract_all(data[[text_input]], str)) |>
+    unnest(match) |>
+    mutate(nchar = nchar(match),
+           !!q_right := quantile(nchar, probs = quantile_right, na.rm = TRUE),
+           !!over_q_right := ifelse(nchar > get(q_right), 1, 0)) |>
+    select(id, text_input, match, nchar, matches("(over_)?q(\\d+)")) |>
+    arrange(desc(nchar)) |>
+    drop_na()
 
-  if (nrow(data_match) == 0) cli::cli_abort("No result")
+  if (nrow(data_match) == 0) cli_abort("No result")
 
 ### DISTINCT ------------------------------------------------------------------------------
 
   data_distinct <-
   data_match |>
-    dplyr::count(match,
-                 nchar,
-                 !!q_right := get(q_right),
-                 !!over_q_right := get(over_q_right)) |>
-    dplyr::arrange(dplyr::desc(nchar)) |>
-    dplyr::mutate(n = factor(n))
+    count(match,
+          nchar,
+          !!q_right := get(q_right),
+          !!over_q_right := get(over_q_right)) |>
+    arrange(desc(nchar)) |>
+    mutate(n = factor(n))
 
 ### SAMPLE ------------------------------------------------------------------------------
 
@@ -138,22 +136,22 @@ edstr_view <- \(data,
 
   data_sample <-
   data_match[sample, ] |>
-    dplyr::distinct() |>
-    tidyr::drop_na()
+    distinct() |>
+    drop_na()
 
 ### PRINT ------------------------------------------------------------------------------
 
   data_print <-
   data_match[[text_input]][sample] |>
     unique() |>
-    stringr::str_view(str, ...)
+    str_view(str, ...)
 
   if (raw & !is.null(filter)) {
 
     data_print <-
     data |>
-      dplyr::filter(!!filter) |>
-      dplyr::pull(text_input)
+      filter(!!filter) |>
+      pull(text_input)
 
   }
 
@@ -169,20 +167,19 @@ edstr_view <- \(data,
 
   median_match <-
   data_match |>
-    dplyr::count(get(id), get(text_input)) |>
-    dplyr::pull(n) |>
-    stats::median()
+    count(get(id), get(text_input)) |>
+    pull(n) |>
+    median()
 
-  if (dplyr::n_distinct(data_match$nchar) >= 50) {
+  if (n_distinct(data_match$nchar) >= 50) {
 
     data_plot <-
-    data_match |>
-      ggplot2::ggplot() +
-      ggplot2::aes(nchar) +
-      ggplot2::geom_density(color = "#0099DD",
-                            fill = "#0099DD") +
-      ggplot2::geom_vline(ggplot2::aes(xintercept = get(q_right)),
-                          color = "#BC3C33")
+    ggplot(data_match) +
+      aes(nchar) +
+      geom_density(color = "#0099DD",
+                   fill = "#0099DD") +
+      geom_vline(mapping = aes(xintercept = get(q_right)),
+                 color = "#BC3C33")
 
     print(data_plot)
 
@@ -190,25 +187,25 @@ edstr_view <- \(data,
 
 ### CLI ------------------------------------------------------------------------------
 
-  cli::cli_h1("edstr_view")
-  cli::cli_text("\n\n")
-  cli::cli_progress_done()
-  cli::cli_text("\n\n")
-  cli::cli_alert_info("{.strong Details}")
-  cli::cli_ul()
-    if (!is.null(filter)) cli::cli_li("filter ON")
-    cli::cli_li("sample: {nrow(data_sample)} {sample_max}")
-    cli::cli_li("all matches: {nrow(data_match)} (~ {median_match} par {id})")
-    cli::cli_li("distinct matches: {nrow(data_distinct)}")
-    cli::cli_end()
-  cli::cli_text("\n\n")
+  cli_h1("edstr_view")
+  cli_text("\n\n")
+  cli_progress_done()
+  cli_text("\n\n")
+  cli_alert_info("{.strong Details}")
+  cli_ul()
+    if (!is.null(filter)) cli_li("filter ON")
+    cli_li("sample: {nrow(data_sample)} {sample_max}")
+    cli_li("all matches: {nrow(data_match)} (~ {median_match} par {id})")
+    cli_li("distinct matches: {nrow(data_distinct)}")
+    cli_end()
+  cli_text("\n\n")
 
   data_distinct |>
-    dplyr::select(distinct_matches = match, nchar, n) |>
-    dplyr::arrange(dplyr::desc(n)) |>
+    select(distinct_matches = match, nchar, n) |>
+    arrange(desc(n)) |>
     print()
 
-  cli::cli_text("\n\n")
-  cli::cli_rule()
+  cli_text("\n\n")
+  cli_rule()
 
 }

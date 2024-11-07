@@ -7,7 +7,7 @@ Description: Un ensemble de fonctions pour importer, nettoyer et extraire des do
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2
 Imports: 
     cli,
     dplyr,
@@ -23,10 +23,12 @@ Imports:
     RJDBC,
     rlang,
     scales,
+    stats,
     stringr,
     tibble,
     tidyr,
-    tidytext
+    tidytext,
+    utils
 Suggests:
     knitr,
     rmarkdown

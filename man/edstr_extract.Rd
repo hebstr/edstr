@@ -5,7 +5,7 @@
 \title{Title}
 \usage{
 edstr_extract(
-  data = glue::glue("{with(config, file)}_clean"),
+  data = glue("{with(config, file)}_clean"),
   sample = NULL,
   filter = NULL,
   text_input = with(config, text),
@@ -24,10 +24,11 @@ edstr_extract(
   union = "\\\\t\\\\t",
   exclus_man = "\\\\t",
   exclus_auto_except = NA,
-  highlight_bg = "#ffffff",
+  highlight_weight = "bold",
   highlight_color = "red",
+  highlight_bg = "#ffffff",
   print = TRUE,
-  html = FALSE,
+  html_save = FALSE,
   html_popup = FALSE,
   dir_suffix = sample,
   filename_suffix = sample
