@@ -69,8 +69,7 @@ edstr_config <- \(dest_dir,
     str_data <-
     list_modify(get(str),
                 extract_split =
-                  list(sect = str_u("(?<=:)\\s*(?=(<br/>\\s*)*</p>)",
-                                    with(get(split), str))))
+                  list(sect = with(get(split), str)))
 
   }
 

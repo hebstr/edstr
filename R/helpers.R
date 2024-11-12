@@ -37,7 +37,7 @@ concepts_reduce <- \(x) {
 cli_error_config <- \(dest_dir = NULL,
                       dest_filename = NULL) {
 
-  if (!is.null(dest_dir) & !is.null(dest_filename)) {
+  if (!is.null(dest_dir) && !is.null(dest_filename)) {
 
     if (!file.exists(dest_dir)) dir.create(path = dest_dir, recursive = TRUE)
 

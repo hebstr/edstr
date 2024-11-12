@@ -29,7 +29,7 @@ edstr_import <- \(query = NULL,
 
   if (!exists(".config_name")) {
 
-  config <- cli_error_config(dest_dir, dest_filename)
+    config <- cli_error_config(dest_dir, dest_filename)
 
   } else config <- get(.config_name)
 
@@ -62,7 +62,7 @@ edstr_import <- \(query = NULL,
 
 ### QUERY -------------------------------------------------------------------------------
 
-    if (!stringr::str_starts(query, "(?i)\\s*SELECT")) {
+    if (!str_starts(query, "(?i)\\s*SELECT")) {
 
       query <- read_lines(query)
       query <- query[!str_starts(query, "--")]

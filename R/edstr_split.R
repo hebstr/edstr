@@ -13,7 +13,7 @@
 #'
 #' @examples
 #'
-edstr_split <- \(data = glue("{with(config, file)}_clean"),
+edstr_split <- \(data,
                  pattern,
                  start = "upper",
                  word_max = 2,
@@ -23,7 +23,11 @@ edstr_split <- \(data = glue("{with(config, file)}_clean"),
                  config = get(.config_name),
                  text_input = with(config, text)) {
 
-  cli_error_config()
+  if (!exists(".config_name")) {
+
+    config <- cli_error_config()
+
+  } else config <- get(.config_name)
 
   if (is.character(data)) data <- get(data)
   if (is.character(config)) config <- get(config)
@@ -100,9 +104,9 @@ edstr_split <- \(data = glue("{with(config, file)}_clean"),
 
     if (!is.null(names(pattern))) {
 
-      split_name_flatten <- str_flatten(names(pattern), " and ")
+      split_name_flatten <- str_flatten_comma(names(pattern), " and ")
 
-    } else split_name_flatten <- str_flatten(pattern, " and ")
+    } else split_name_flatten <- str_flatten_comma(pattern, " and ")
 
     cli_progress_step("Binding {split_name_flatten} rows")
 
