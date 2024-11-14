@@ -45,14 +45,14 @@ edstr_import <- \(query = NULL,
 
   if (!load) {
 
-### CONNECT -------------------------------------------------------------------------------
+### CONNECT --------------------------------------------------------------------
 
     Sys.setenv(JAVA_HOME = glue("{connect_dir}/jdk1.8.0_261"))
 
     tns <- read.table(glue("{connect_dir}/{tns}.txt"))
 
     .con <-
-    dbConnect(drv = JDBC(driverClass = "oracle.jdbc.OracleDriver",
+    RJDBC::dbConnect(drv = RJDBC::JDBC(driverClass = "oracle.jdbc.OracleDriver",
                          classPath = glue("{connect_dir}/ojdbc6.jar")),
               url = glue("jdbc:oracle:thin:@//{tns}"),
               user = user,
@@ -60,7 +60,7 @@ edstr_import <- \(query = NULL,
 
     assign(".con", .con, envir = .GlobalEnv)
 
-### QUERY -------------------------------------------------------------------------------
+### QUERY ----------------------------------------------------------------------
 
     if (!str_starts(query, "(?i)\\s*SELECT")) {
 
@@ -106,7 +106,7 @@ edstr_import <- \(query = NULL,
 
     cli_progress_done()
 
-### CLI ---------------------------------------------------------------------------------
+### CLI ------------------------------------------------------------------------
 
     cli_save(data_import,
              config_file,

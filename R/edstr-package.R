@@ -70,8 +70,6 @@
 #' @importFrom readr read_csv
 #' @importFrom readr read_lines
 #' @importFrom readr write_excel_csv
-#' @importFrom RJDBC dbConnect
-#' @importFrom RJDBC JDBC
 #' @importFrom rlang :=
 #' @importFrom rlang arg_match
 #' @importFrom rlang check_dots_empty
@@ -107,7 +105,3 @@
 #' @importFrom utils read.table
 ## usethis namespace: end
 NULL
-
-ignore_unused_imports <- function() {
-  rJava::javaImport()
-}

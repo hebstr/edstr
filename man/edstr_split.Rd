@@ -5,7 +5,7 @@
 \title{Title}
 \usage{
 edstr_split(
-  data = glue("{with(config, file)}_clean"),
+  data,
   pattern,
   start = "upper",
   word_max = 2,

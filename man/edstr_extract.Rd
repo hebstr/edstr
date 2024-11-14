@@ -19,6 +19,8 @@ edstr_extract(
   nchar_max = 8000,
   concepts,
   concepts_suppl = "\\\\t",
+  wrap = FALSE,
+  wrap_suppl = FALSE,
   upper_only = NA,
   limits = "both",
   union = "\\\\t\\\\t",
@@ -31,11 +33,12 @@ edstr_extract(
   html_save = FALSE,
   html_popup = FALSE,
   dir_suffix = sample,
-  filename_suffix = sample
+  filename_suffix = sample,
+  seed = NULL
 )
 }
 \arguments{
-\item{filename_suffix}{}
+\item{seed}{}
 }
 \description{
 Title
