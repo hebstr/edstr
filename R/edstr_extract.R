@@ -4,7 +4,6 @@
 #' @param sample
 #' @param filter
 #' @param text_input
-#' @param llm
 #' @param split
 #' @param replace
 #' @param id
@@ -40,7 +39,6 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                    sample = NULL,
                    filter = NULL,
                    text_input = with(config, text),
-                   llm = NULL,
                    split = NULL,
                    replace = NULL,
                    id = "row_number",
@@ -80,7 +78,6 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   config_str <- with(config, str)
 
   filter <- enexpr(filter)
-  llm <- enexpr(llm)
 
   concepts <-
   config$concepts |>
@@ -136,24 +133,13 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   }
 
-  if (!is.null(llm)) {
-
-    llm_filter <-
-    glue(llm$filename) |>
-      read_csv() |>
-      filter(!!llm$filter) |>
-      pull(!!llm$select)
-
-    data <- data |> filter(!!llm$select %in% llm_filter)
-
-  }
-
 ### SPLIT ------------------------------------------------------------
 
   cli_progress_step("{.strong Split}")
 
   data_split <-
   data |>
+    select(id, group, extra_cols, text_input) |>
     unnest_tokens(output = !!text_input,
                   input = !!text_input,
                   token = str_split,
@@ -179,14 +165,15 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
 ### LOWER, REMOVE PUNCT AND TOKENIZE ---------------------------------------------
 
-  cli_progress_step("{.strong Lower, remove punct and tokenize}")
+  cli_progress_step("{.strong Tokenize}")
 
   data_clean <-
   data_split |>
     mutate(!!text_input :=
-             iconv(get(text_input),
-                   from = "UTF-8",
-                   to = "ASCII//TRANSLIT"))
+             get(text_input) |>
+               iconv(from = "UTF-8",
+                     to = "ASCII//TRANSLIT") |>
+               str_replace_all("'", " "))
 
   .ngrams <-
   ngrams |>
@@ -231,7 +218,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
 ### SET EXCLUSION LISTS -----------------------------------------------------------
 
-  cli_progress_step("{.strong Set exclusion lists}")
+  cli_progress_step("{.strong Exclusions}")
 
   str_exclus <-
   data_match[text_input] |>
@@ -415,7 +402,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
 ### SUMMARIZE AND SET FINAL LIST -----------------------------------------------------------
 
-  cli_progress_step("{.strong Summarize and set final list}")
+  cli_progress_step("{.strong Summarize}")
 
   summary_cols <-
   list(match = data_match,
