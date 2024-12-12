@@ -2,6 +2,7 @@
 #'
 #' @param data
 #' @param sample
+#' @param seed
 #' @param filter
 #' @param text_input
 #' @param split
@@ -28,7 +29,6 @@
 #' @param html_popup
 #' @param dir_suffix
 #' @param filename_suffix
-#' @param seed
 #'
 #' @return
 #' @export
@@ -79,21 +79,21 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   filter <- enexpr(filter)
 
+  if (!is.list(concepts)) concepts <- list("<concept>" = concepts)
+
   concepts <-
   config$concepts |>
-  with(eval(enexpr(concepts))) |>
+    with(eval(enexpr(concepts))) |>
     concepts_reduce()
 
   data <-
-  data |>
-    mutate(row_number = row_number(),
-           group_number = row_number(),
-           .before = everything())
+  c("group_number", "row_number") |>
+    reduce(rownames_to_column, .init = data)
 
   cli_h1("edstr_extract")
   cli_text("\n\n")
 
-### SAVE PARAMS ------------------------------------------------------------------
+### SAVE PARAMS ----------------------------------------------------------------
 
   dir_name <- glue("{with(config, file)}_extract")
   save_dir <- glue("{with(config, dir)}/{dir_name}")
@@ -110,7 +110,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   .lib <- glue("{save_dir}/lib")
   if (exists(.lib)) unlink(.lib, recursive = TRUE)
 
-### FILTERS ----------------------------------------------------------------------
+### FILTERS --------------------------------------------------------------------
 
   data_total <- data
 
@@ -133,7 +133,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   }
 
-### SPLIT ------------------------------------------------------------
+### SPLIT ----------------------------------------------------------------------
 
   cli_progress_step("{.strong Split}")
 
@@ -149,7 +149,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   cli_progress_done()
   cli_text("\n\n")
 
-### REPLACE ------------------------------------------------------------
+### REPLACE --------------------------------------------------------------------
 
   cli_progress_step("{.strong Replace}")
 
@@ -163,7 +163,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   cli_progress_done()
   cli_text("\n\n")
 
-### LOWER, REMOVE PUNCT AND TOKENIZE ---------------------------------------------
+### TOKENIZE -------------------------------------------------------------------
 
   cli_progress_step("{.strong Tokenize}")
 
@@ -175,18 +175,15 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                      to = "ASCII//TRANSLIT") |>
                str_replace_all("'", " "))
 
-  .ngrams <-
+  data_ngrams <-
   ngrams |>
     map(~ data_clean |>
           unnest_tokens(output = !!text_input,
                         input = !!text_input,
                         token = "ngrams",
-                        n = .) |>
-          distinct())
+                        n = .))
 
-  if (!is.list(concepts)) concepts <- as.list(c("<concept>" = concepts))
-
-  lim <- \(start, end) glue("{start}({str_u(concepts)}){end}")
+  lim <- \(x, y) glue("{x}({str_u(concepts)}){y}")
 
   switch(limits,
          "start" = .cpts_str <- lim("^", ""),
@@ -194,36 +191,35 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
          "both" = .cpts_str <- lim("^", "$"),
          "none" = .cpts_str <- lim("", ""))
 
-  .cpts_names <- str_c(names(concepts), collapse = ", ")
-
   .split <-
-  seq_along(ngrams) |>
-    map(~ .ngrams[[.]] |>
-          filter(str_detect(get(text_input), .cpts_str)) |>
-          count(!!.cpts_names := get(text_input), sort = TRUE))
+  ngrams |>
+    imap(~ data_ngrams[[.y]] |>
+           filter(str_detect(get(text_input), .cpts_str)) |>
+           count(!!text_input := get(text_input), sort = TRUE))
 
-  .match <-
-  map2(.x = seq_along(ngrams),
-       .y = ngrams,
-       ~ .ngrams[[.x]][c(group, id, text_input)] |>
-         mutate(ngrams = .y) |>
-         filter(get(text_input) %in% c(.split[[.]][[!!.cpts_names]])))
-
-  data_match <- bind_rows(.match)
+  data_match <-
+  ngrams |>
+    imap(~ data_ngrams[[.y]] |>
+          select(group, id, text_input) |>
+          mutate(ngrams = .x) |>
+          filter(get(text_input) %in% pull(.split[[.y]], text_input))) |>
+    bind_rows()
 
   if (nrow(data_match) == 0) cli_abort("No results")
 
   cli_progress_done()
   cli_text("\n\n")
 
-### SET EXCLUSION LISTS -----------------------------------------------------------
+### EXCLUSIONS -----------------------------------------------------------------
 
   cli_progress_step("{.strong Exclusions}")
 
+  .exclus_auto_except <- glue("^({str_u(exclus_auto_except)})$")
+
   str_exclus <-
-  data_match[text_input] |>
-    filter(!str_detect(!!text_input, glue("^({str_u(exclus_auto_except)})$"))) |>
-    distinct() |>
+  data_match |>
+    filter(!str_detect(get(text_input), .exclus_auto_except)) |>
+    distinct(text) |>
     pull()
 
   str_exclus_bb <- glue("\\b{str_exclus}\\b")
@@ -296,7 +292,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   cli_progress_done()
   cli_text("\n\n")
 
-### EXTRACT ----------------------------------------------------------------------
+### EXTRACT --------------------------------------------------------------------
 
   cli_progress_step("{.strong Extract}")
 
@@ -400,32 +396,18 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   cli_progress_done()
   cli_text("\n\n")
 
-### SUMMARIZE AND SET FINAL LIST -----------------------------------------------------------
+### SUMMARIZE ------------------------------------------------------------------
 
   cli_progress_step("{.strong Summarize}")
 
-  summary_cols <-
+  data_summary <-
   list(match = data_match,
        exclus_auto = data_exclus_auto,
        exclus_man = data_exclus_man,
        keep = data_id,
-       distinct = data_count)
-
-  data_summary <-
-  map2(.x = summary_cols,
-       .y = names(summary_cols),
-       ~ .x |>
-         group_by(ngrams) |>
-         count(name = .y))
-
-  data_summary <-
-  seq(summary_cols) |>
-    purrr::map_df(~ tibble(ngrams = ngrams) |>
-                    left_join(data_summary[[.]],
-                              by = "ngrams")) |>
-    group_by(ngrams) |>
-    fill(names(summary_cols), .direction = "updown") |>
-    distinct()
+       distinct = data_count) |>
+    imap(~ .x |> count(ngrams, name = .y)) |>
+    reduce(left_join, by = "ngrams")
 
   data_match_list <-
   list(data = data,
@@ -433,7 +415,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
        match = data_match,
        id = data_id,
        count = data_count,
-       extract = data_extract,
+       regex = data_extract,
        str = list(br = data_str_br,
                   cat = data_str_cat,
                   split = data_str_split),

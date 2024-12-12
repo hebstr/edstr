@@ -74,7 +74,7 @@
                                minWidth = 700,
                                style = list(color = highlight_color)),
                       concept = colDef(minWidth = 300),
-                      n = colDef(maxWidth = 75)),
+                      n = colDef(maxWidth = 80)),
               defaultPageSize = 1000,
               theme = reactableTheme(!!!rt_common$theme)) |>
     inject()

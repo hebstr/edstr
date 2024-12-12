@@ -9,7 +9,6 @@ edstr_extract(
   sample = NULL,
   filter = NULL,
   text_input = with(config, text),
-  llm = NULL,
   split = NULL,
   replace = NULL,
   id = "row_number",
@@ -38,7 +37,7 @@ edstr_extract(
 )
 }
 \arguments{
-\item{seed}{}
+\item{filename_suffix}{}
 }
 \description{
 Title

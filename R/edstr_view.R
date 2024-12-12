@@ -27,7 +27,7 @@ edstr_view <- \(data,
                 replace = NULL,
                 str = NULL,
                 case_sensitive = FALSE,
-                mode = c("raw", "start_word", "all_word", "sentence"),
+                mode = c("raw", "start_word", "full_word", "sentence"),
                 ngram_max = NULL,
                 id = NULL,
                 quantile_right = .99,
@@ -93,7 +93,7 @@ edstr_view <- \(data,
 
   switch(mode,
          "start_word" = str <- enstr("", "\\w*"),
-         "all_word" = str <- enstr("\\w*"),
+         "full_word" = str <- enstr("\\w*"),
          "sentence" = str <- enstr(".*"))
 
   data_match <-
@@ -116,9 +116,8 @@ edstr_view <- \(data,
     count(match,
           nchar,
           !!q_right := get(q_right),
-          !!over_q_right := get(over_q_right)) |>
-    arrange(desc(nchar)) |>
-    mutate(n = factor(n))
+          !!over_q_right := get(over_q_right),
+          sort = TRUE)
 
 ### SAMPLE ------------------------------------------------------------------------------
 
@@ -160,32 +159,33 @@ edstr_view <- \(data,
 ### OUTPUT ------------------------------------------------------------------------------
 
   assign(config_file,
-         list(all_matches = data_match,
-              distinct_matches = data_distinct,
+         list(match = data_match,
+              distinct = data_distinct,
               sample = data_sample),
          envir = .GlobalEnv)
-
-  median_match <-
-  data_match |>
-    count(get(id), get(text_input)) |>
-    pull(n) |>
-    median()
 
   if (n_distinct(data_match$nchar) >= 50) {
 
     data_plot <-
     ggplot(data_match) +
       aes(nchar) +
-      geom_density(color = "#0099DD",
-                   fill = "#0099DD") +
+      geom_density(color = "darkcyan",
+                   fill = "darkcyan") +
       geom_vline(mapping = aes(xintercept = get(q_right)),
-                 color = "#BC3C33")
+                 color = "darkred")
 
     print(data_plot)
 
   }
 
 ### CLI ------------------------------------------------------------------------------
+
+  median_match <-
+  data_match |>
+    count(get(id), get(text_input)) |>
+    pull(n) |>
+    median() |>
+    round(1)
 
   cli_h1("edstr_view")
   cli_text("\n\n")
@@ -195,13 +195,13 @@ edstr_view <- \(data,
   cli_ul()
     if (!is.null(filter)) cli_li("filter ON")
     cli_li("sample: {nrow(data_sample)} {sample_max}")
-    cli_li("all matches: {nrow(data_match)} (~ {median_match} par {id})")
-    cli_li("distinct matches: {nrow(data_distinct)}")
+    cli_li("total matching: {nrow(data_match)} (median: {median_match} by {id})")
+    cli_li("distinct matching: {nrow(data_distinct)}")
     cli_end()
   cli_text("\n\n")
 
   data_distinct |>
-    select(distinct_matches = match, nchar, n) |>
+    select(distinct = match, nchar, n) |>
     arrange(desc(n)) |>
     print()
 

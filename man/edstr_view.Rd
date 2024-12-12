@@ -11,7 +11,7 @@ edstr_view(
   replace = NULL,
   str = NULL,
   case_sensitive = FALSE,
-  mode = c("raw", "start_word", "all_word", "sentence"),
+  mode = c("raw", "start_word", "full_word", "sentence"),
   ngram_max = NULL,
   id = NULL,
   quantile_right = 0.99,
