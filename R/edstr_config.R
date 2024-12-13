@@ -68,8 +68,7 @@ edstr_config <- \(dest_dir,
 
     str_data <-
     list_modify(get(str),
-                extract_split =
-                  list(sect = with(get(split), str)))
+                split = list(sect = with(get(split), str)))
 
   }
 

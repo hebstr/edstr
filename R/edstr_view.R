@@ -48,7 +48,6 @@ edstr_view <- \(data,
 
   config_file <- glue("{with(config, file)}_view{str_name}")
 
-  filter <- enexpr(filter)
   mode <- arg_match(mode)
 
   q_right <- glue("q{quantile_right*100}")
@@ -59,11 +58,11 @@ edstr_view <- \(data,
 
   cli_progress_step("Creating {.strong {config_file}}")
 
-  if (!is.null(filter)) data <- data |> filter(!!filter)
+  filter <- enexpr(filter)
+
+  if (!is.null(filter)) data <- filter(data, !!filter)
 
 ### REPLACE ------------------------------------------------------------------------------
-
-  replace <- with(config_str, eval(enexpr(replace)))
 
   if (!is.null(replace)) {
 
@@ -107,7 +106,7 @@ edstr_view <- \(data,
     arrange(desc(nchar)) |>
     drop_na()
 
-  if (nrow(data_match) == 0) cli_abort("No result")
+  if (nrow(data_match) == 0) cli_abort("{.strong No match}")
 
 ### DISTINCT ------------------------------------------------------------------------------
 
@@ -193,7 +192,6 @@ edstr_view <- \(data,
   cli_text("\n\n")
   cli_alert_info("{.strong Details}")
   cli_ul()
-    if (!is.null(filter)) cli_li("filter ON")
     cli_li("sample: {nrow(data_sample)} {sample_max}")
     cli_li("total matching: {nrow(data_match)} (median: {median_match} by {id})")
     cli_li("distinct matching: {nrow(data_distinct)}")

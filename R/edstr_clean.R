@@ -4,7 +4,7 @@
 #' @param sample
 #' @param filter
 #' @param text_input
-#' @param replace
+#' @param clean
 #' @param load
 #'
 #' @return
@@ -16,7 +16,7 @@ edstr_clean <- \(data = glue("{with(config, file)}_import"),
                  sample = NULL,
                  filter = NULL,
                  text_input = with(config, text),
-                 replace,
+                 clean = with(config_str, clean),
                  load = FALSE) {
 
   if (!exists(".config_name")) {
@@ -37,7 +37,7 @@ edstr_clean <- \(data = glue("{with(config, file)}_import"),
 
   if (!load) {
 
-### INPUT ---------------------------------------------------------------------------------
+### INPUT ----------------------------------------------------------------------
 
     if (identical(data, file_import) & !exists(file_import)) {
 
@@ -50,41 +50,24 @@ edstr_clean <- \(data = glue("{with(config, file)}_import"),
 
     data_total <- data
 
-### FILTERS ---------------------------------------------------------------------------------
+### FILTERS --------------------------------------------------------------------
+
+    if (!is.null(sample)) data <- data[sample(nrow(data), sample), ]
 
     filter <- enexpr(filter)
 
-    if (!is.null(sample)) {
+    if (!is.null(filter)) data <- filter(data, !!filter)
 
-      data <- data[sample(nrow(data), sample), ]
-
-      cli_alert_info("sample: {sample}")
-
-      if (is.null(filter)) cli_text("\n\n")
-
-    }
-
-    if (!is.null(filter)) {
-
-      data <- data |> filter(!!filter)
-
-      cli_alert_info("filter ON")
-      cli_text("\n\n")
-
-    }
-
-### REPLACE ---------------------------------------------------------------------------------
+### CLEAN ----------------------------------------------------------------------
 
     cli_progress_step("Cleaning {.strong {file_import}}")
 
-    replace <- with(config_str, eval(enexpr(replace)))
-
-    if (!is.list(replace)) replace <- list(replace)
+    if (!is.list(clean)) clean <- list(clean)
 
     data_clean <-
     data |>
       mutate(!!text_input :=
-               reduce(replace,
+               reduce(clean,
                       str_replace_all,
                       .init = get(text_input)))
 
@@ -92,14 +75,14 @@ edstr_clean <- \(data = glue("{with(config, file)}_import"),
 
     if (prop_import < 1) {
 
-      prop_import <- scales::percent(prop_import, accuracy = 0.1)
+      prop_import <- label_percent(0.1)(prop_import)
       prop_import <- glue("({prop_import} of {file_import})")
 
     } else prop_import <- NULL
 
     cli_progress_done()
 
-### CLI ---------------------------------------------------------------------------------
+### CLI ------------------------------------------------------------------------
 
     cli_save(data_clean,
              config_file,
