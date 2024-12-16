@@ -13,13 +13,11 @@
 #' @param ngrams
 #' @param nchar_max
 #' @param concepts
-#' @param concepts_suppl
 #' @param wrap
-#' @param wrap_suppl
 #' @param limits
-#' @param union
 #' @param exclus_manual
 #' @param exclus_auto_except
+#' @param regex_replace
 #' @param highlight_weight
 #' @param highlight_color
 #' @param highlight_bg
@@ -47,9 +45,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                    ngrams,
                    nchar_max = 8000,
                    concepts,
-                   concepts_suppl = "\\t",
                    wrap = FALSE,
-                   wrap_suppl = FALSE,
                    limits = "both",
                    exclus_manual = NULL,
                    exclus_auto_except = NULL,
@@ -293,70 +289,49 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
            glue("(?i)\\b{data_count[[text_input]]}\\b") |>
              paste(collapse = "|"))
 
-  .cpts_label <- str_unique(data_id$concept)
+  .cpts_label <- unique(data_id$concept)
 
-  .wrap <- \(x, n) {
+  .wrap <- \(x) if (wrap) c(x - 1, x, x + 1) else x
 
-    c(x - as.integer(n), x, x + as.integer(n))
-
-  }
-
-  .rows <-
-  list(concepts = data_regex,
-       concepts_suppl = concepts_suppl) |>
-    map(~ data_clean[[text_input]] |>
-          str_detect(.) |>
-          which())
-
-  .rows <-
-  c(.wrap(.rows$concepts_suppl, wrap_suppl),
-    .wrap(.rows$concepts, wrap))
+  .which_rows <-
+  data_clean[[text_input]] |>
+    str_detect(data_regex) |>
+    which() |>
+    .wrap() |>
+    sort()
 
   data_str_br_db <-
-  data_split[sort(.rows), ] |>
-    inner_join(data_id[names(data_id) != text_input],
-               by = c(id, group),
-               relationship = "many-to-many") |>
-    select(all_of(c(id, group, extra_cols, text_input)),
-           concept) |>
+  left_join(x = data_split[.which_rows, ],
+            y = data_id |> select(-text_input),
+            by = c(id, group),
+            relationship = "many-to-many") |>
+    select(any_of(c(id, group, extra_cols, text_input)), concept) |>
     distinct() |>
     pivot_wider(names_from = concept,
                 values_from = concept) |>
-    mutate(across(any_of(.cpts_label), ~ ifelse(!is.na(.), 1, NA))) |>
-    group_by(!!id := get(id)) |>
-    mutate(n_row = seq_along(text_input)) |>
-    fill(starts_with(.cpts_label),
-         .direction = "updown") |>
-    mutate(!!text_input := get(text_input) |> str_flatten("<br><br>"),
-           across(starts_with(.cpts_label), ~ replace_na(., 0)),
+    mutate(across(any_of(.cpts_label), ~ ifelse(!is.na(.), 1, 0)),
            nchar = nchar(get(text_input))) |>
-    ungroup() |>
-    select(-n_row) |>
+      ungroup() |>
     filter(!is.na(get(group))) |>
     distinct()
 
-  data_exclus_nchar <-
-  data_str_br_db[c(text_input, "nchar")] |>
-    filter(nchar > nchar_max)
+  data_exclus_nchar <- data_str_br_db |> filter(nchar > nchar_max)
 
-  data_str_br <-
-  data_str_br_db |>
-    group_by(!!group := get(group),
-             !!text_input := get(text_input)) |>
-    filter(!duplicated(get(text_input)),
-           nchar <= nchar_max) |>
-    ungroup()
+  data_str_br_db <- data_str_br_db |> filter(nchar <= nchar_max)
 
-  if (group == "group_number") data_str_br <- data_str_br |> select(-group)
+  if (group == "group_number") data_str_br_db <- data_str_br_db |> select(-group)
 
-  data_str_cat <-
-  data_str_br |>
-    mutate(!!text_input :=
-             str_replace_all(get(text_input), "<br><br>", " "))
+  data_str <-
+  c(br = "<br><br>", cat = " ; ") |>
+    map(~ data_str_br_db |>
+          select(-nchar) |>
+          mutate(!!text_input := str_flatten(get(text_input), .),
+                 .by = id) |>
+          distinct())
 
-  data_str_split <-
-  data_str_cat |>
-    separate_rows(all_of(text_input), sep = "(?<=\\.)\\s")
+  data_str_br <- data_str$br
+  data_str_cat <- data_str$cat
+  data_str_split <- data_str_br_db
 
   cli_progress_done()
   cli_text("\n\n")
