@@ -39,6 +39,7 @@
 #' @importFrom dplyr n_distinct
 #' @importFrom dplyr pick
 #' @importFrom dplyr pull
+#' @importFrom dplyr relocate
 #' @importFrom dplyr rename
 #' @importFrom dplyr row_number
 #' @importFrom dplyr select

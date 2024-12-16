@@ -4,8 +4,7 @@
                   data_id,
                   data_count,
                   data_str_br,
-                  data_str_br_db,
-                  data_count_exclus,
+                  data_match_exclus,
                   data_exclus_nchar,
                   text_input,
                   nchar_max,
@@ -17,7 +16,6 @@
   cli_n_join <- n_distinct(data_match[[id]])
   cli_p_join <- label_percent(0.1)(cli_n_join / nrow(data))
   cli_n_distinct_match <- n_distinct(data_match[[text_input]])
-  cli_n_dupl <- nrow(data_str_br_db) - nrow(data_str_br)
   cli_n_extract <- n_distinct(data_str_br[[id]])
   cli_p_extract <- label_percent(0.1)(cli_n_extract / nrow(data))
   cli_n_concept <- n_distinct(data_count$concept)
@@ -44,9 +42,8 @@
   cli_text("\n\n")
   cli_alert_info("{.strong Exclusions}")
   cli_ul()
-    cli_li("Auto: {nrow(data_exclus_auto)}")
-    cli_li("Manual: {nrow(data_exclus_man)}")
-    cli_li("Duplicated: {cli_n_dupl}")
+    cli_li("Auto: {nrow(data_match_exclus$auto)}")
+    cli_li("Manual: {nrow(data_match_exclus$manual)}")
     cli_li("Over character limit (n={nchar_max}): {nrow(data_exclus_nchar)}")
     cli_end()
 

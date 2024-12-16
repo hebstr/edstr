@@ -223,38 +223,40 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   }
 
-  list_exclus_auto <- \(regex, name) {
+  set_exclus_auto <- \(regex, name) {
 
     data_match[[text_input]] |>
       unique() |>
       map(~ data_match |>
-            distinct(ngrams, concept, pick(text_input)) |>
             filter(str_detect(get(text_input), glue(regex))) |>
-            mutate(mode = "auto",
-                   !!name := .)) |>
+            mutate(!!name := .)) |>
       list_rbind()
 
   }
 
-  data_exclus <-
+  data_match_exclus <-
   list(auto =
          list(start = "^{.}\\s",
               end = "\\s{.}$",
               start_end = "{.}.+{.}$") |>
-           imap(list_exclus_auto) |>
-           reduce(full_join, by = c("ngrams", "concept", text_input, "mode")),
+         imap(set_exclus_auto) |>
+         reduce(full_join, by = names(data_match)),
        manual =
          data_match |>
-           distinct(ngrams, concept, pick(text_input)) |>
-           filter(str_detect(get(text_input), exclus_manual %||% NA_character_)) |>
-           mutate(mode = "manual")) |>
-    list_rbind()
+           filter(str_detect(get(text_input), exclus_manual %||% NA_character_))) |>
+    imap(~ .x |>
+           mutate(mode = .y, .before = everything()))
+
+  .concept_exclus <-
+  data_match_exclus |>
+    list_rbind() |>
+    pull(text_input) |>
+    unique()
 
   data_match_final <-
   base::split(data_match,
-              ~ if_else(get(text_input) %in% data_exclus[[text_input]],
-                        true = "drop",
-                        false = "keep"))
+              ~ if_else(get(text_input) %in% .concept_exclus,
+                        true = "drop", false = "keep"))
 
   data_count <-
   data_match_final |>
@@ -268,9 +270,13 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
           reduce(left_join, by = c("concept", text_input, "ngrams")))
 
   data_count_exclus <-
-  left_join(data_exclus,
-            data_count$drop,
-            by = c("ngrams", "concept", text_input))
+  data_match_exclus |>
+    map(~ . |> select(-id, -group)) |>
+    list_rbind() |>
+    distinct() |>
+    relocate(ngrams, .before = concept) |>
+    left_join(data_count$drop,
+              by = c("ngrams", "concept", text_input))
 
   data_id <- data_match_final$keep
   data_count <- data_count$keep
@@ -340,13 +346,21 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   cli_progress_step("{.strong Summarize}")
 
+  set_data_summary <- \(var) {
+
+    list(total = data_match,
+         exclus_auto = data_match_exclus$auto,
+         exclus_manual = data_match_exclus$manual,
+         final = data_id,
+         distinct = data_count) |>
+      set_names(~ glue("match_{.}")) |>
+      imap(~ .x |> count(pick(all_of(var)), name = .y)) |>
+      reduce(full_join, by = var)
+  }
+
   data_summary <-
-  list(match = data_match,
-       exclus = data_count_exclus,
-       keep = data_id,
-       distinct = data_count) |>
-    imap(~ .x |> count(ngrams, name = .y)) |>
-    reduce(full_join, by = "ngrams")
+  set_names(c("ngrams", "concept")) |>
+    map(set_data_summary)
 
   data_match_list <-
   list(data = data,
@@ -360,13 +374,14 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
               cat = data_str_cat,
               split = data_str_split),
        exclus =
-         list(concept = data_count_exclus,
+         list(match = data_match_exclus,
+              count = data_count_exclus,
               nchar = data_exclus_nchar),
        summary = data_summary)
 
-  assign(glue(save_files),
-         data_match_list,
-         envir = .GlobalEnv)
+  # assign(glue(save_files),
+  #        data_match_list,
+  #        envir = .GlobalEnv)
 
   cli_progress_done()
   cli_text("\n\n")
@@ -383,7 +398,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                    concept,
                    group)
 
-    print(list(exclus = data_exclus,
+    print(list(exclus = data_count_exclus,
                summary = data_summary,
                count = data_count))
 
@@ -437,8 +452,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                data_id,
                data_count,
                data_str_br,
-               data_str_br_db,
-               data_count_exclus,
+               data_match_exclus,
                data_exclus_nchar,
                text_input,
                nchar_max,
