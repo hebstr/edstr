@@ -49,7 +49,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                    limits = "both",
                    exclus_manual = NULL,
                    exclus_auto_except = NULL,
-                   regex_replace = c("[aeo]|\\s" = "."),
+                   regex_replace = c("[aeo]" = "\\\\w", "\\s" = "."),
                    highlight_weight = "bold",
                    highlight_color = "red",
                    highlight_bg = "#ffffff",
@@ -176,7 +176,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   cli_progress_step("{.strong Match}")
 
-  lim <- \(x, y) glue("{x}({str_u(concepts)}){y}")
+  lim <- \(start, end) glue("{start}({str_u(concepts)}){end}")
 
   switch(limits,
          "start" = .cpts_str <- lim("^", ""),
@@ -188,7 +188,9 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   ngrams |>
     imap(~ data_ngrams[[.y]] |>
            filter(str_detect(get(text_input), .cpts_str)) |>
-           count(pick(text_input), sort = TRUE)) |>
+           count(pick(text_input),
+                 name = "match",
+                 sort = TRUE)) |>
     set_names(ngrams)
 
   data_match <-
@@ -208,6 +210,12 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
     list_rbind()
 
   if (nrow(data_match) == 0) cli_abort("{.strong No match}")
+
+  data_ngrams_count <-
+  data_match |>
+    count(ngrams, concept, pick(text_input),
+          name = "match",
+          sort = TRUE)
 
   cli_progress_done()
   cli_text("\n\n")
@@ -295,16 +303,13 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
            glue("(?i)\\b{data_count[[text_input]]}\\b") |>
              paste(collapse = "|"))
 
-  .cpts_label <- unique(data_id$concept)
-
-  .wrap <- \(x) if (wrap) c(x - 1, x, x + 1) else x
+  set_wrap <- \(x) if (wrap) c(x - 1, x, x + 1) else x
 
   .which_rows <-
   data_clean[[text_input]] |>
     str_detect(data_regex) |>
     which() |>
-    .wrap() |>
-    sort()
+    set_wrap()
 
   data_str_br_db <-
   left_join(x = data_split[.which_rows, ],
@@ -315,7 +320,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
     distinct() |>
     pivot_wider(names_from = concept,
                 values_from = concept) |>
-    mutate(across(any_of(.cpts_label), ~ ifelse(!is.na(.), 1, 0)),
+    mutate(across(names(concepts), ~ ifelse(!is.na(.), 1, 0)),
            nchar = nchar(get(text_input))) |>
       ungroup() |>
     filter(!is.na(get(group))) |>
@@ -344,9 +349,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
 ### SUMMARIZE ------------------------------------------------------------------
 
-  cli_progress_step("{.strong Summarize}")
-
-  set_data_summary <- \(var) {
+  set_summary <- \(var) {
 
     list(total = data_match,
          exclus_auto = data_match_exclus$auto,
@@ -354,21 +357,36 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
          final = data_id,
          distinct = data_count) |>
       set_names(~ glue("match_{.}")) |>
-      imap(~ .x |> count(pick(all_of(var)), name = .y)) |>
-      reduce(full_join, by = var)
+      imap(~ .x |> count(pick(all_of(var)), name = .y))
+
   }
 
   data_summary <-
-  set_names(c("ngrams", "concept")) |>
-    map(set_data_summary)
+  list(ngrams = set_summary("ngrams"),
+       concept =
+         list(match = set_summary("concept"),
+              id =
+                list(id, group) |>
+                  imap(~ summarise(data_id,
+                                   !!. := n_distinct(get(.)),
+                                   .by = concept))) |>
+           list_flatten()) |>
+    imap(~ reduce(., left_join, by = .y))
 
   data_match_list <-
   list(data = data,
        split = data_split,
-       match = data_match,
-       id = data_id,
-       count = data_count,
-       regex = data_regex,
+       match =
+         list(init = data_match,
+              final = data_match_final),
+       count =
+         list(init = data_ngrams_count,
+              final = data_count),
+       regex =
+         list(init =
+                tibble(concept = names(concepts),
+                       regex = map_chr(concepts, ~ glue("^({.})$"))),
+              final = data_regex),
        str =
          list(br = data_str_br,
               cat = data_str_cat,
@@ -378,31 +396,6 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
               count = data_count_exclus,
               nchar = data_exclus_nchar),
        summary = data_summary)
-
-  # assign(glue(save_files),
-  #        data_match_list,
-  #        envir = .GlobalEnv)
-
-  cli_progress_done()
-  cli_text("\n\n")
-
-### PRINT ------------------------------------------------------------------------------------
-
-  if (print) {
-
-    print(list(ngrams = data_ngrams_match))
-
-    .extract_print(concepts,
-                   data_id,
-                   data_count,
-                   concept,
-                   group)
-
-    print(list(exclus = data_count_exclus,
-               summary = data_summary,
-               count = data_count))
-
-  }
 
 ### SET OUTPUT -----------------------------------------------------------------
 
@@ -443,14 +436,52 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   write_excel_csv(data_str_cat, file = glue("{.save_extract}_text.csv"))
 
   cli_progress_done()
+  cli_text("\n\n")
+  cli_rule()
+  cli_text("\n\n")
+
+### PRINT ------------------------------------------------------------------------------------
+
+  if (print) {
+
+    ngrams_max <- n_distinct(data_count$ngrams)
+
+    if (ngrams_max > 1) {
+
+      data_plot <-
+      data_count |>
+        ggplot() +
+        geom_bar(mapping = aes(x = ngrams, fill = concept),
+                 stat = "count") +
+        scale_x_continuous(n.breaks = ngrams_max)
+
+      print(data_plot)
+
+    }
+
+    .print <-
+    list(regex =
+           tibble(concept = names(concepts),
+                  regex = map_chr(concepts, ~ glue("^({.})$"))),
+         ngrams = data_ngrams_match,
+         count =
+           list(count_total = data_ngrams_count,
+                ngrams = data_summary$ngrams,
+                concepts = data_summary$concept,
+                exclus = data_count_exclus,
+                count_final = data_count))
+
+    print(.print)
+
+  }
 
 ### CLI -----------------------------------------------------------------------
 
   .extract_cli(data,
                data_total,
                data_match,
-               data_id,
                data_count,
+               data_str_br_db,
                data_str_br,
                data_match_exclus,
                data_exclus_nchar,

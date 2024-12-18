@@ -9,7 +9,7 @@ edstr_clean(
   sample = NULL,
   filter = NULL,
   text_input = with(config, text),
-  replace,
+  clean = with(config_str, clean),
   load = FALSE
 )
 }

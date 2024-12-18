@@ -1,8 +1,8 @@
 .extract_cli <- \(data,
                   data_total,
                   data_match,
-                  data_id,
                   data_count,
+                  data_str_br_db,
                   data_str_br,
                   data_match_exclus,
                   data_exclus_nchar,
@@ -51,7 +51,7 @@
   cli_rule()
   cli_text("\n\n")
 
-  cli_alert_success("{.strong {nrow(data_id)} matchs from}")
+  cli_alert_success("{.strong {nrow(data_str_br_db)} matchs from}")
   cli_ul()
     cli_li("{cli_n_extract} {id} ({cli_p_extract} {id})")
     if (group != "group_number") cli_li("{cli_n_group} {group}")

@@ -9,7 +9,7 @@
                      html_popup,
                      .save_extract) {
 
-  cli_progress_step("{.strong Set output}")
+  cli_progress_step("{.strong HTML output}")
 
   h_weight <- glue("font-weight:{highlight_weight}")
   h_color <- glue("color:{highlight_color}")
@@ -40,7 +40,6 @@
                                glue("<span style='{h_weight};{h_color};{h_bg}'> ")) |>
                str_replace_all(glue("(?<={data_extract})"),
                                "</span></span>")) |>
-    select(-nchar) |>
     reactable(!!!rt_common$args,
               selection = "multiple",
               columns =

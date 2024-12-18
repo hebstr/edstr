@@ -7,24 +7,22 @@
 edstr_extract(
   data = glue("{with(config, file)}_clean"),
   sample = NULL,
+  seed = NULL,
   filter = NULL,
   text_input = with(config, text),
-  split = NULL,
-  replace = NULL,
+  split = with(config_str, split),
+  replace = with(config_str, replace),
   id = "row_number",
   group = "group_number",
   extra_cols = NULL,
   ngrams,
   nchar_max = 8000,
   concepts,
-  concepts_suppl = "\\\\t",
   wrap = FALSE,
-  wrap_suppl = FALSE,
-  upper_only = NA,
   limits = "both",
-  union = "\\\\t\\\\t",
-  exclus_man = "\\\\t",
-  exclus_auto_except = NA,
+  exclus_manual = NULL,
+  exclus_auto_except = NULL,
+  regex_replace = c(`[aeo]` = "\\\\\\\\w", `\\\\s` = "."),
   highlight_weight = "bold",
   highlight_color = "red",
   highlight_bg = "#ffffff",
@@ -32,8 +30,7 @@ edstr_extract(
   html_save = FALSE,
   html_popup = FALSE,
   dir_suffix = sample,
-  filename_suffix = sample,
-  seed = NULL
+  filename_suffix = sample
 )
 }
 \arguments{
