@@ -255,16 +255,17 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
     imap(~ .x |>
            mutate(mode = .y, .before = everything()))
 
-  .concept_exclus <-
-  data_match_exclus |>
-    list_rbind() |>
-    pull(text_input) |>
-    unique()
+  .match_exclus <-
+  list(concept =
+         data_match_exclus |>
+           list_rbind() |>
+           pull(text_input) |>
+           unique(),
+       expr = expr(get(text_input) %in% .match_exclus$concept))
 
   data_match_final <-
-  base::split(data_match,
-              ~ if_else(get(text_input) %in% .concept_exclus,
-                        true = "drop", false = "keep"))
+  list(keep = data_match |> filter(!eval(.match_exclus$expr)),
+       drop = data_match |> filter(eval(.match_exclus$expr)))
 
   data_count <-
   data_match_final |>
@@ -320,7 +321,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
     distinct() |>
     pivot_wider(names_from = concept,
                 values_from = concept) |>
-    mutate(across(names(concepts), ~ ifelse(!is.na(.), 1, 0)),
+    mutate(across(any_of(names(concepts)), ~ ifelse(!is.na(.), 1, 0)),
            nchar = nchar(get(text_input))) |>
       ungroup() |>
     filter(!is.na(get(group))) |>
@@ -395,6 +396,9 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
          list(match = data_match_exclus,
               count = data_count_exclus,
               nchar = data_exclus_nchar),
+       missing =
+         data_total[c(id, group, text_input)] |>
+           filter(!get(id) %in% data_str_br[[id]]),
        summary = data_summary)
 
 ### SET OUTPUT -----------------------------------------------------------------
@@ -465,11 +469,11 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                   regex = map_chr(concepts, ~ glue("^({.})$"))),
          ngrams = data_ngrams_match,
          count =
-           list(count_total = data_ngrams_count,
+           list(total = data_ngrams_count,
                 ngrams = data_summary$ngrams,
                 concepts = data_summary$concept,
                 exclus = data_count_exclus,
-                count_final = data_count))
+                final = data_count))
 
     print(.print)
 

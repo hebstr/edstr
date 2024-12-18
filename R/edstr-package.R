@@ -27,6 +27,7 @@
 #' @importFrom dplyr desc
 #' @importFrom dplyr distinct
 #' @importFrom dplyr everything
+#' @importFrom dplyr expr
 #' @importFrom dplyr filter
 #' @importFrom dplyr full_join
 #' @importFrom dplyr group_by
