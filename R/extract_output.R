@@ -1,7 +1,6 @@
 .extract_output <- \(highlight_weight,
                      highlight_color,
                      highlight_bg,
-                     data_str_br,
                      data_extract,
                      data_count,
                      data_match_list,
@@ -33,7 +32,7 @@
               searchInputStyle = list(width = "100%")))
 
   .data_text <-
-  data_str_br |>
+  data_match_list$data$output |>
     mutate(!!text_input :=
              get(text_input) |>
                str_replace_all(glue("(?={data_extract})"),
