@@ -22,12 +22,13 @@ edstr_extract(
   exclus_manual = NULL,
   exclus_auto_except = NULL,
   regex_replace = c(`[aeo]` = "\\\\\\\\w", `\\\\s` = "."),
-  highlight_weight = "bold",
-  highlight_color = "red",
-  highlight_bg = "#ffffff",
-  print = TRUE,
   html_save = FALSE,
   html_popup = FALSE,
+  xlsx_save = TRUE,
+  xlsx_popup = TRUE,
+  concept_color = "blue",
+  text_color = "red",
+  text_background = "#FFFFFF",
   dir_suffix = sample,
   filename_suffix = sample
 )

@@ -16,6 +16,7 @@ Imports:
     glue,
     htmltools,
     lifecycle,
+    openxlsx2,
     purrr,
     reactable,
     readr,

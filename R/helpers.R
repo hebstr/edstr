@@ -23,17 +23,6 @@ easy_replace <- \(...,
 }
 
 
-concepts_reduce <- \(x) {
-
-  x |>
-    pluck_depth() |>
-    seq() |>
-    reduce(~ list_flatten(.),
-           .init = x)
-
-}
-
-
 cli_error_config <- \(dest_dir = NULL,
                       dest_filename = NULL) {
 
@@ -71,7 +60,7 @@ cli_save <- \(data,
   cli_text("\n\n")
   cli_alert_info("{.strong Dimensions}")
   cli_ul()
-    cli_li("{nrow(data)} observations {prop_import}")
+    cli_li("{nrow(data)} documents {prop_import}")
     cli_li("{ncol(data)} variables")
     cli_end()
   cli_text("\n\n")
@@ -106,42 +95,85 @@ cli_load <- \(config_dir,
 }
 
 
-check_fonts <- \(...,
-                 .auto = NULL,
-                 .abort = FALSE) {
+wb_add_custom <- \(x,
+                   sheet,
+                   data,
+                   font_size = 8,
+                   font_color = "#222222",
+                   concept_var = "concept",
+                   concept_color = NULL,
+                   text_var = with(config, text),
+                   text_color = NULL,
+                   border_color = "#999999",
+                   border_type = "thin") {
 
-  if (!is.null(.auto)) {
+  if (!exists(".config_name")) {
 
-    check_dots_empty()
+    config <- cli_error_config()
 
-    if (!check_fonts(.auto)) "trebuchet ms" else .auto
+  } else config <- get(.config_name)
 
-  } else {
+  .wb <-
+  x |>
+    wb_add_worksheet(sheet = sheet) |>
+    wb_add_data_table(x = data,
+                      na.strings = fmt_txt("")) |>
+    wb_add_font(dims = wb_dims(x = data, select = "col_names"),
+                size = font_size + 1,
+                bold = TRUE) |>
+    wb_add_font(dims = wb_dims(x = data, select = "data"),
+                size = font_size) |>
+    wb_add_fill(dims = wb_dims(x = data, select = "col_names"),
+                color = wb_color("grey90")) |>
+    wb_set_col_widths(cols = 1:ncol(data), widths = "auto") |>
+    wb_add_cell_style(dims = wb_dims(x = data),
+                      horizontal = "center",
+                      vertical = "center") |>
+    wb_add_border(dims = wb_dims(x = data),
+                  top_color = wb_color(border_color),
+                  top_border = border_type,
+                  bottom_color = wb_color(border_color),
+                  bottom_border = border_type,
+                  left_color = wb_color(border_color),
+                  left_border = border_type,
+                  right_color = wb_color(border_color),
+                  right_border = border_type,
+                  inner_hcolor = wb_color(border_color),
+                  inner_hgrid = border_type,
+                  inner_vcolor = wb_color(border_color),
+                  inner_vgrid = border_type)
 
-    fonts <- unlist(...)
+  .add_font <- \(wb, vars, color) {
 
-    system <- unique(systemfonts::system_fonts()$family)
-    system <- glue("\\b{system}\\b")
-    system <- glue("(?i){str_u(system)}")
-
-    is_installed <- str_detect(fonts, system)
-
-    if (FALSE %in% is_installed) {
-
-      which_font <-
-      data.frame(fonts, is_installed) |>
-        filter(!is_installed) |>
-        pull(fonts)
-
-      if (.abort) cli_abort("{which_font} font{?s} {?is/are} not installed")
-
-      return(FALSE)
-
-    }
-
-    return(TRUE)
+    wb_add_font(wb = wb,
+                dims =
+                  wb_dims(x = data,
+                          cols = vars,
+                          select = "data"),
+                color = wb_color(color),
+                size = font_size,
+                bold = TRUE)
 
   }
 
-}
+  if (!is.null(concept_color)) {
 
+    .wb <-
+    .add_font(.wb,
+              concept_var,
+              concept_color)
+
+  }
+
+  if (!is.null(text_color)) {
+
+    .wb <-
+    .add_font(.wb,
+              text_var,
+              text_color)
+
+  }
+
+  return(.wb)
+
+}
