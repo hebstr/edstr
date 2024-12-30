@@ -3,6 +3,7 @@
 
 ## usethis namespace: start
 #' @importFrom cli cli_abort
+#' @importFrom cli cli_alert_danger
 #' @importFrom cli cli_alert_info
 #' @importFrom cli cli_alert_success
 #' @importFrom cli cli_end
@@ -118,6 +119,8 @@
 #' @importFrom stringr str_view
 #' @importFrom tibble rownames_to_column
 #' @importFrom tibble tibble
+#' @importFrom tictoc tic
+#' @importFrom tictoc toc
 #' @importFrom tidyr drop_na
 #' @importFrom tidyr fill
 #' @importFrom tidyr pivot_wider

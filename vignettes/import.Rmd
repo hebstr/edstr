@@ -1,10 +1,15 @@
 ---
 title: "Importer avec edstr_import()"
+
 output: rmarkdown::html_vignette
+
 vignette: >
   %\VignetteIndexEntry{Importer avec edstr_import()}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+  
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r, include = FALSE}
@@ -25,13 +30,13 @@ library(edstr)
 La fonction `edstr_import()` dépend des paramètres définis avec `edstr_config()` : celle-ci doit alors être exécutée en amont.
 
 ```{r}
-.r <- "S:/_R_/edstr_config"
+.r <- "S:/_R_/config"
 
-edstr_config(dest_dir = "S:/_FRACTURES_OSTEOPOROSE/data/urg",
-             dest_filename = "test_urg",
+edstr_config(dest_dir = "S:/_CRPV_/data/emla",
+             dest_filename = "emla",
              str = "{.r}/str.RData",
+             split = "{.r}/split/output/mix/mix_split.RData",
              concepts = "{.r}/concepts.RData",
-             split = "{.r}/split/urg/urg_split.RData",
              text = "text")
 ```
 
@@ -55,7 +60,7 @@ edstr_import(query = "select * from test_urg",
 ```
 
 ```{r, echo = FALSE}
-edstr_import(query = "select * from test_urg",
+edstr_import(query = "S:/_CRPV_/scripts/emla/emla_text.sql",
              connect_dir = "S:/_R_/database_connection",
              user = "w_etudes",
              password = "h9$c9WnE5*")

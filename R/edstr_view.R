@@ -1,19 +1,20 @@
 #' Explorer
 #'
 #' @param data
+#' @param config
+#' @param config_str
 #' @param text_input
-#' @param sample
 #' @param filter
 #' @param replace
 #' @param str
 #' @param case_sensitive
-#' @param mode
+#' @param limits
 #' @param ngram_max
 #' @param id
 #' @param quantile_right
 #' @param raw
-#' @param config
-#' @param config_str
+#' @param output_sample
+#' @param quiet
 #' @param ...
 #'
 #' @return
@@ -22,19 +23,20 @@
 #' @examples
 #'
 edstr_view <- \(data,
-                sample = 10,
+                config = get(.config_name),
+                config_str = with(config, str),
+                text_input = with(config, text),
                 filter = NULL,
                 replace = NULL,
                 str = NULL,
                 case_sensitive = FALSE,
-                mode = c("raw", "start_word", "full_word", "sentence"),
+                limits = c("asis", "start-end", "start", "end", "sentence"),
                 ngram_max = NULL,
                 id = NULL,
                 quantile_right = .99,
                 raw = FALSE,
-                config = get(.config_name),
-                config_str = with(config, str),
-                text_input = with(config, text),
+                output_sample = 5,
+                quiet = FALSE,
                 ...) {
 
   if (is.character(data)) data <- get(data)
@@ -48,21 +50,25 @@ edstr_view <- \(data,
 
   config_file <- glue("{with(config, file)}_view{str_name}")
 
-  mode <- arg_match(mode)
+  limits <- arg_match(limits)
 
   q_right <- glue("q{quantile_right*100}")
   over_q_right <- str_c("over_", q_right)
 
-  cli_h1("edstr_view")
-  cli_text("\n\n")
+  if (!quiet) {
 
-  cli_progress_step("Creating {.strong {config_file}}")
+    cli_h1("edstr_view")
+    cli_text("\n\n")
+
+    cli_progress_step("Creating {.strong {config_file}}")
+
+  }
 
   filter <- enexpr(filter)
 
   if (!is.null(filter)) data <- filter(data, !!filter)
 
-### REPLACE ------------------------------------------------------------------------------
+### REPLACE --------------------------------------------------------------------
 
   if (!is.null(replace)) {
 
@@ -77,7 +83,7 @@ edstr_view <- \(data,
 
   }
 
-### MATCH ------------------------------------------------------------------------------
+### MATCH ----------------------------------------------------------------------
 
   enstr <- \(x, y = x) str <- glue("{x}{str}{y}")
 
@@ -90,10 +96,11 @@ edstr_view <- \(data,
 
   if (!case_sensitive) str <- enstr("(?i)", "")
 
-  switch(mode,
-         "start_word" = str <- enstr("", "\\w*"),
-         "full_word" = str <- enstr("\\w*"),
-         "sentence" = str <- enstr(".*"))
+  switch(limits,
+         "start-end" = str <- enstr("\\w*"),
+         "start" = str <- enstr("", "\\w*"),
+         "end" = str <- enstr("\\w*", ""),
+         "sentence" = str <- enstr("(?<=<p>).*", ".*(?=</p>)"))
 
   data_match <-
   data |>
@@ -108,9 +115,9 @@ edstr_view <- \(data,
 
   if (nrow(data_match) == 0) cli_abort("{.strong No match}")
 
-### DISTINCT ------------------------------------------------------------------------------
+### COUNT ----------------------------------------------------------------------
 
-  data_distinct <-
+  data_count <-
   data_match |>
     count(match,
           nchar,
@@ -118,92 +125,96 @@ edstr_view <- \(data,
           !!over_q_right := get(over_q_right),
           sort = TRUE)
 
-### SAMPLE ------------------------------------------------------------------------------
+### SET LIST -------------------------------------------------------------------
 
-  if (nrow(data_match) > sample) {
+  data_list <-
+  list(match = data_match,
+       count = data_count)
 
-    sample <- sample(nrow(data_match), sample)
-    sample_max <- "(max)"
+  if (!quiet) {
+
+### ASSIGN ---------------------------------------------------------------------
+
+    assign(config_file,
+           data_list,
+           envir = .GlobalEnv)
+
+### OUTPUT PLOT -----------------------------------------------------------------
+
+    if (n_distinct(data_match$nchar) >= 50) {
+
+      data_output_plot <-
+      ggplot(data_match) +
+        aes(nchar) +
+        geom_density(color = "#0099EE",
+                     fill = "#0099EE") +
+        geom_vline(mapping = aes(xintercept = get(q_right)),
+                   color = "#CC0C00")
+
+      print(data_output_plot)
+
+    }
+
+### OUTPUT SAMPLE ---------------------------------------------------------------
+
+  if (nrow(data_match) > output_sample) {
+
+    output_sample <- sample(nrow(data_match), output_sample)
+    output_sample_max <- "(max)"
 
   } else {
 
-    sample <- 1:nrow(data_match)
-    sample_max <- NULL
+    output_sample <- 1:nrow(data_match)
+    output_sample_max <- NULL
 
   }
 
-  data_sample <-
-  data_match[sample, ] |>
-    distinct() |>
-    drop_na()
+    data_output_sample <-
+    data_match[[text_input]][output_sample] |>
+      unique() |>
+      str_view(str, ...)
 
-### PRINT ------------------------------------------------------------------------------
+    if (raw & !is.null(filter)) {
 
-  data_print <-
-  data_match[[text_input]][sample] |>
-    unique() |>
-    str_view(str, ...)
+      data_output_sample <-
+      data |>
+        filter(!!filter) |>
+        pull(text_input)
 
-  if (raw & !is.null(filter)) {
+    }
 
-    data_print <-
-    data |>
-      filter(!!filter) |>
-      pull(text_input)
+    print(list(sample = data_output_sample,
+               count = data_count))
+
+    cli_progress_done()
+
+### CLI ------------------------------------------------------------------------
+
+    cli_h1("edstr_view")
+    cli_text("\n\n")
+
+    cli_n_match <- n_distinct(data_match[[id]])
+    cli_p_match <- label_percent(0.1)(cli_n_match / nrow(data))
+
+    cli_alert_info("{.strong Documents:} {nrow(data)} {id}")
+    cli_text("\n\n")
+
+    cli_alert_info("{.strong Matching}")
+    cli_ul()
+      cli_li("Total: {nrow(data_match)} from {cli_n_match} {id} ({cli_p_match} {id})")
+      cli_li("Distinct: {nrow(data_count)}")
+      cli_end()
+
+    cli_text("\n\n")
+    cli_rule()
+    cli_text("\n\n")
+
+  } else {
+
+    regex_match <- data_list$count[c("match", "n")]
+
+    return(regex_match)
 
   }
-
-  print(data_print)
-
-### OUTPUT ------------------------------------------------------------------------------
-
-  assign(config_file,
-         list(match = data_match,
-              distinct = data_distinct,
-              sample = data_sample),
-         envir = .GlobalEnv)
-
-  if (n_distinct(data_match$nchar) >= 50) {
-
-    data_plot <-
-    ggplot(data_match) +
-      aes(nchar) +
-      geom_density(color = "darkcyan",
-                   fill = "darkcyan") +
-      geom_vline(mapping = aes(xintercept = get(q_right)),
-                 color = "darkred")
-
-    print(data_plot)
-
-  }
-
-### CLI ------------------------------------------------------------------------------
-
-  median_match <-
-  data_match |>
-    count(get(id), get(text_input)) |>
-    pull(n) |>
-    median() |>
-    round(1)
-
-  cli_h1("edstr_view")
-  cli_text("\n\n")
-  cli_progress_done()
-  cli_text("\n\n")
-  cli_alert_info("{.strong Details}")
-  cli_ul()
-    cli_li("sample: {nrow(data_sample)} {sample_max}")
-    cli_li("total matching: {nrow(data_match)} (median: {median_match} by {id})")
-    cli_li("distinct matching: {nrow(data_distinct)}")
-    cli_end()
-  cli_text("\n\n")
-
-  data_distinct |>
-    select(distinct = match, nchar, n) |>
-    arrange(desc(n)) |>
-    print()
-
-  cli_text("\n\n")
-  cli_rule()
 
 }

@@ -6,19 +6,20 @@
 \usage{
 edstr_view(
   data,
-  sample = 10,
+  config = get(.config_name),
+  config_str = with(config, str),
+  text_input = with(config, text),
   filter = NULL,
   replace = NULL,
   str = NULL,
   case_sensitive = FALSE,
-  mode = c("raw", "start_word", "full_word", "sentence"),
+  limits = c("asis", "start-end", "start", "end", "sentence"),
   ngram_max = NULL,
   id = NULL,
   quantile_right = 0.99,
   raw = FALSE,
-  config = get(.config_name),
-  config_str = with(config, str),
-  text_input = with(config, text),
+  output_sample = 5,
+  quiet = FALSE,
   ...
 )
 }

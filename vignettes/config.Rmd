@@ -1,10 +1,15 @@
 ---
 title: "Définir une configuration par défaut avec edstr_config()"
+
 output: rmarkdown::html_vignette
+
 vignette: >
   %\VignetteIndexEntry{Définir une configuration par défaut avec edstr_config()}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+  
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r, include = FALSE}
@@ -19,23 +24,23 @@ library(edstr)
 ```
 
 ```{r}
-edstr_config(dest_dir = "S:/_FRACTURES_OSTEOPOROSE/data/urg",
-             dest_filename = "test_urg",
-             str = "S:/_R_/edstr_config/str.RData",
-             concepts = "S:/_R_/edstr_config/concepts.RData",
-             split = "S:/_R_/edstr_config/split/urg/urg_split.RData",
+edstr_config(dest_dir = "S:/_CRPV_/data/emla",
+             dest_filename = "emla",
+             str = "S:/_R_/config/str.RData",
+             split = "S:/_R_/config/split/output/mix/mix_split.RData",
+             concepts = "S:/_R_/config/concepts.RData",
              text = "text")
 ```
 
 Les arguments peuvent interpréter la syntaxe [glue](https://glue.tidyverse.org/).
 
 ```{r}
-.r <- "S:/_R_/edstr_config"
+.r <- "S:/_R_/config"
 
-edstr_config(dest_dir = "S:/_FRACTURES_OSTEOPOROSE/data/urg",
-             dest_filename = "test_urg",
+edstr_config(dest_dir = "S:/_CRPV_/data/emla",
+             dest_filename = "emla",
              str = "{.r}/str.RData",
-             split = "{.r}/split/urg/urg_split.RData",
+             split = "{.r}/split/output/mix/mix_split.RData",
              concepts = "{.r}/concepts.RData",
              text = "text")
 ```
@@ -63,8 +68,8 @@ Seuls deux arguments sont indispensables :
 - Le nom à donner aux fichiers qui seront produits (`dest_filename`)
 
 ```{r}
-edstr_config(dest_dir = "S:/_FRACTURES_OSTEOPOROSE/data/urg",
-             dest_filename = "test_urg")
+edstr_config(dest_dir = "S:/_CRPV_/data/emla",
+             dest_filename = "emla")
 ```
 
 Les éléments non créés seront toujours dans la liste, mais prendront la valeur `NULL`.

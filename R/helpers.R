@@ -61,7 +61,7 @@ cli_save <- \(data,
   cli_alert_info("{.strong Dimensions}")
   cli_ul()
     cli_li("{nrow(data)} documents {prop_import}")
-    cli_li("{ncol(data)} variables")
+    cli_li("{ncol(data)} features")
     cli_end()
   cli_text("\n\n")
   cli_rule()

@@ -52,11 +52,12 @@ edstr_import <- \(query = NULL,
     tns <- read.table(glue("{connect_dir}/{tns}.txt"))
 
     .con <-
-    RJDBC::dbConnect(drv = RJDBC::JDBC(driverClass = "oracle.jdbc.OracleDriver",
-                         classPath = glue("{connect_dir}/ojdbc6.jar")),
-              url = glue("jdbc:oracle:thin:@//{tns}"),
-              user = user,
-              password = password)
+    RJDBC::dbConnect(drv =
+                       RJDBC::JDBC(driverClass = "oracle.jdbc.OracleDriver",
+                                   classPath = glue("{connect_dir}/ojdbc6.jar")),
+                     url = glue("jdbc:oracle:thin:@//{tns}"),
+                     user = user,
+                     password = password)
 
     assign(".con", .con, envir = .GlobalEnv)
 
@@ -64,13 +65,16 @@ edstr_import <- \(query = NULL,
 
     if (!str_starts(query, "(?i)\\s*SELECT")) {
 
-      query <- read_lines(query)
-      query <- query[!str_starts(query, "--")]
+      query <-
+      read_lines(file = query,
+                 skip_empty_rows = TRUE)
+
+      query <- query[!str_starts(query, "\\s*--")]
 
       query_flatten <- \(replace) {
 
         query |>
-          str_replace_all(c("$" = replace)) |>
+          str_replace("$", replace) |>
           str_flatten()
 
       }
@@ -90,13 +94,12 @@ edstr_import <- \(query = NULL,
 
     }
 
-    cli_text("\n\n")
-    cli_progress_step("Import with user {.strong {user}}")
+### IMPORT ---------------------------------------------------------------------
 
-    data_import <-
-    .con |>
-      tbl(sql(query)) |>
-      collect()
+    cli_text("\n\n")
+    cli_progress_step("Import (user: {.strong {user}})")
+
+    data_import <- tbl(.con, sql(query)) |> collect()
 
     if (to_lower) {
 

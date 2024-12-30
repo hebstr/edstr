@@ -21,6 +21,7 @@
 #' @param html_popup
 #' @param xlsx_save
 #' @param xlsx_popup
+#' @param str_view
 #' @param concept_color
 #' @param text_color
 #' @param text_background
@@ -41,18 +42,19 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                    filter = NULL,
                    id = "",
                    group = "",
-                   ngrams,
+                   ngrams = 1,
                    nchar_max = 8000,
                    concepts,
-                   wrap = FALSE,
-                   limits = "both",
+                   wrap = TRUE,
+                   limits = c("start-end", "start", "end", "asis"),
                    exclus_manual = NULL,
                    exclus_auto_except = NULL,
-                   regex_replace = c("[aeo]" = "\\\\w", "\\s" = "."),
+                   regex_replace = "",
                    html_save = FALSE,
                    html_popup = FALSE,
                    xlsx_save = TRUE,
                    xlsx_popup = TRUE,
+                   str_view = TRUE,
                    concept_color = "blue",
                    text_color = "red",
                    text_background = "#FFFFFF",
@@ -100,6 +102,8 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
            .after = all_of(id))
 
   }
+
+  tic("Full steps")
 
   cli_h1("edstr_extract")
   cli_text("\n\n")
@@ -184,18 +188,20 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   cli_progress_step("{.strong Match}")
 
-  lim <- \(start, end) glue("{start}({str_u(concepts)}){end}")
+  set_limit <- \(x, y) glue("{x}({str_u(concepts)}){y}")
+
+  limits <- arg_match(limits)
 
   switch(limits,
-         "start" = .cpts_str <- lim("^", ""),
-         "end" = .cpts_str <- lim("", "$"),
-         "both" = .cpts_str <- lim("^", "$"),
-         "none" = .cpts_str <- lim("", ""))
+         "start-end" = .concept_str <- set_limit("^", "$"),
+         "start" = .concept_str <- set_limit("^", ""),
+         "end" = .concept_str <- set_limit("", "$"),
+         "asis" = .concept_str <- set_limit("", ""))
 
   data_ngrams_match <-
   ngrams |>
     imap(~ data_ngrams[[.y]] |>
-           filter(str_detect(get(text_input), .cpts_str)) |>
+           filter(str_detect(get(text_input), .concept_str)) |>
            count(pick(text_input),
                  name = "match",
                  sort = TRUE)) |>
@@ -304,14 +310,19 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   cli_progress_step("{.strong Extract}")
 
-  data_regex <-
-  reduce(list(regex_replace),
-         str_replace_all,
-         .init =
-           glue("(?i)\\b{data_count[[text_input]]}\\b") |>
-             paste(collapse = "|"))
+  regex_replace <- list2(!!glue("[e{regex_replace}]") := "\\\\w") |> unlist()
 
-  set_wrap <- \(x) if (wrap) c(x - 1, x, x + 1) else x
+  data_regex <-
+  list(char = regex_replace,
+       space = c("\\s" = ".")) |>
+    reduce(str_replace_all,
+           .init =
+             paste(data_count[[text_input]],
+                   collapse = "|"))
+
+  data_regex <- glue("(?i)\\b({data_regex})\\b")
+
+  set_wrap <- \(x) if (wrap) unique(sort(c(x - 1, x, x + 1))) else x
 
   .which_rows <-
   data_clean[[text_input]] |>
@@ -377,7 +388,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   cli_progress_done()
   cli_text("\n\n")
 
-### SET OUTPUT -----------------------------------------------------------------
+### HTML OUTPUT ----------------------------------------------------------------
 
   if (html_popup) html_save <- TRUE
 
@@ -467,7 +478,11 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
     .wb <-
     wb_workbook() |>
       wb_add_custom(sheet = "data",
-                    data = data_extract$base |> select(-text_input),
+                    data =
+                      data_extract$base |>
+                        select(-text_input) |>
+                        mutate(nchar = "") |>
+                        rename(commentaires = nchar),
                     concept_var = unique(data_count$concept),
                     concept_color = concept_color,
                     text_var = "extract",
@@ -497,17 +512,22 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   if (xlsx_popup) wb_open(.wb)
 
-### SAVE DATA -----------------------------------------------------------------
+### SAVE DATA ------------------------------------------------------------------
 
   cli_progress_step("{.strong Save data}")
 
   data_save <-
   list(split = data_split[.which_rows, ],
        regex =
-         list(init =
-                tibble(concept = names(concepts),
-                       regex = map_chr(concepts, ~ glue("^({.})$"))),
-              final = data_regex),
+         lst(init =
+               tibble(concept = names(concepts),
+                      regex = map_chr(concepts, ~ glue("^({.})$"))),
+             final = data_regex,
+             match =
+               edstr_view(data = data,
+                          str = final,
+                          id = id,
+                          quiet = TRUE)),
        match =
          list(init = data_match,
               final = data_match_final),
@@ -538,8 +558,11 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   cli_progress_done()
   cli_text("\n\n")
 
+  toc()
+
 ### PRINT ----------------------------------------------------------------------
 
+  cli_text("\n\n")
   cli_rule()
   cli_text("\n\n")
 
@@ -559,7 +582,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   }
 
   data_print <-
-  list(regex = data_save$regex$init,
+  list(regex = data_save$regex,
        ngrams = data_ngrams_match,
        count =
          list(total = data_ngrams_count,
@@ -573,7 +596,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   cli_rule()
   cli_text("\n\n")
 
-### CLI -----------------------------------------------------------------------
+### CLI ------------------------------------------------------------------------
 
   cli_p_final <- label_percent(0.1)(nrow(data) / nrow(data_init))
   cli_n_match <- n_distinct(data_match[[id]])
@@ -602,8 +625,17 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   cli_ul()
     cli_li("Auto: {nrow(data_match_exclus$auto)}")
     cli_li("Manual: {nrow(data_match_exclus$manual)}")
-    cli_li("Over character limit (n={nchar_max}): {nrow(data_exclus_nchar)}")
+    cli_li("Over {nchar_max} characters: {nrow(data_exclus_nchar)}")
     cli_end()
+
+  if (sum(data_save$count$init$match) != sum(data_save$regex$match$n)) {
+
+    count_alert <- "Mismatch between final regex and ngrams counts"
+
+    cli_text("\n\n")
+    cli_alert_danger(col_red("{.strong {count_alert}}"))
+
+  }
 
   cli_text("\n\n")
   cli_rule()

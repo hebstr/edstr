@@ -1,10 +1,15 @@
 ---
 title: "Nettoyer avec edstr_clean()"
+
 output: rmarkdown::html_vignette
+
 vignette: >
   %\VignetteIndexEntry{Nettoyer avec edstr_clean()}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+  
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r, include = FALSE}
@@ -22,13 +27,13 @@ library(edstr)
 La fonction `edstr_clean()` dépend des paramètres définis avec `edstr_config()` : celle-ci doit alors être exécutée en amont.
 
 ```{r}
-.r <- "S:/_R_/edstr_config"
+.r <- "S:/_R_/config"
 
-edstr_config(dest_dir = "S:/_FRACTURES_OSTEOPOROSE/data/urg",
-             dest_filename = "test_urg",
+edstr_config(dest_dir = "S:/_CRPV_/data/emla",
+             dest_filename = "emla",
              str = "{.r}/str.RData",
+             split = "{.r}/split/output/mix/mix_split.RData",
              concepts = "{.r}/concepts.RData",
-             split = "{.r}/split/urg/urg_split.RData",
              text = "text")
 ```
 
@@ -54,7 +59,7 @@ On peut ensuite procéder à son nettoyage avec `edstr_clean()`, en appliquant a
 Le dataframe nettoyé est automatiquement sauvegardé en .RData dans le répertoire défini avec `edstr_config()` (argument `dest_dir`).
 
 ```{r}
-edstr_clean(replace = clean_all)
+edstr_clean(clean = .config$str$clean)
 ```
 
 ### Chargement d'un dataframe
