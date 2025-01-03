@@ -2,27 +2,24 @@
 % Please edit documentation in R/edstr_import.R
 \name{edstr_import}
 \alias{edstr_import}
-\title{Importer des caractéristiques depuis une base de données}
+\title{Title}
 \usage{
 edstr_import(
   query = NULL,
   head = NULL,
   to_lower = TRUE,
-  connect_dir = NULL,
+  dest_dir = NULL,
+  dest_filename = NULL,
+  connect_dir = with(config, connect),
   tns = "tns",
   user = NULL,
   password = getPass::getPass(),
-  dest_dir = NULL,
-  dest_filename = NULL,
   load = FALSE
 )
 }
 \arguments{
 \item{load}{}
 }
-\value{
-A tibble
-}
 \description{
-Importer des caractéristiques depuis une base de données
+Title
 }

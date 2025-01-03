@@ -1,17 +1,17 @@
-#' Importer des caractéristiques depuis une base de données
+#' Title
 #'
 #' @param query
 #' @param head
 #' @param to_lower
+#' @param dest_dir
+#' @param dest_filename
 #' @param connect_dir
 #' @param tns
 #' @param user
 #' @param password
-#' @param dest_dir
-#' @param dest_filename
 #' @param load
 #'
-#' @return A tibble
+#' @return
 #' @export
 #'
 #' @examples
@@ -19,12 +19,12 @@
 edstr_import <- \(query = NULL,
                   head = NULL,
                   to_lower = TRUE,
-                  connect_dir = NULL,
+                  dest_dir = NULL,
+                  dest_filename = NULL,
+                  connect_dir = with(config, connect),
                   tns = "tns",
                   user = NULL,
                   password = getPass::getPass(),
-                  dest_dir = NULL,
-                  dest_filename = NULL,
                   load = FALSE) {
 
   if (!exists(".config_name")) {

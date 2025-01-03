@@ -1,43 +1,43 @@
-#' Définir une configuration initale
+#' Title
 #'
-#' @param dest_dir Chemin vers le répertoire de destination. Un vecteur de caractères.
-#' @param dest_filename Base name of files to create, located in destination
-#'   directory.
-#' @param str Path to a RData file containing string for further text
-#'   management. Un vecteur de caractères.
-#' @param split
-#' @param concepts Path to a RData file containing a list of concepts to use
-#'   with [edstr_extract()].
+#' @param dest_dir
+#' @param dest_filename
+#' @param connect_dir
+#' @param config_dir
+#' @param config_name
 #' @param text
-#' @param config_name Nom du fichier de configuration. Un vecteur de caractères. Nommé
-#'   ".config" par défaut.
+#' @param str
+#' @param split
+#' @param concepts
 #'
-#' @return Two hidden objects
+#' @return
 #' @export
 #'
 #' @examples
 #'
 edstr_config <- \(dest_dir,
                   dest_filename,
+                  connect_dir = "../_R_/database_connection",
+                  config_dir = "../_R_/config",
+                  config_name = ".config",
+                  text = "text",
                   str = NULL,
                   split = NULL,
-                  concepts = NULL,
-                  text = NULL,
-                  config_name = ".config") {
+                  concepts = NULL) {
 
   dest_dir <- glue(dest_dir)
   dest_filename <- glue(dest_filename)
 
   if (!is.null(str)) {
 
-    str <- glue(str) |> load()
+    str <- load(glue("{config_dir}/{str}"))
     str_data <- get(str)
 
   } else str_data <- NULL
 
   if (!is.null(concepts)) {
 
-    concepts <- glue(concepts) |> load()
+    concepts <- load(glue("{config_dir}/{concepts}"))
     concepts_data <- get(concepts)
 
   } else concepts_data <- NULL
@@ -64,20 +64,19 @@ edstr_config <- \(dest_dir,
 
   if (!is.null(split)) {
 
-    split <- glue(split) |> load()
+    split <- load(glue("{config_dir}/{split}"))
 
-    str_data <-
-    list_modify(get(str),
-                split = list(sect = with(get(split), str)))
+    str_data <- list_modify(get(str), split = list(sect = with(get(split), str)))
 
   }
 
   assign(config_name,
-         lst(dir = str_remove(dest_dir, "/+$"),
-             file = dest_filename,
-             str = str_data,
-             concepts = concepts_data,
-             text = text),
+         list(dir = str_remove(dest_dir, "/+$"),
+              file = dest_filename,
+              connect = connect_dir,
+              text = text,
+              str = str_data,
+              concepts = concepts_data),
          envir = .GlobalEnv)
 
   assign(".config_name",
@@ -88,11 +87,11 @@ edstr_config <- \(dest_dir,
 
   dirname <- with(get(config_name), dir)
   filename <- col_red(with(get(config_name), file))
-  config_name <- col_green(config_name)
-  str <- col_green(str)
-  concepts <- col_green(concepts)
-  split <- col_green(split)
-  text <- col_green(text)
+  config_name <- col_red(config_name)
+  text <- col_red(text)
+  str <- col_red(str)
+  concepts <- col_red(concepts)
+  split <- col_red(split)
 
   cli_h1("edstr_config")
   cli_text("\n\n")
@@ -100,16 +99,21 @@ edstr_config <- \(dest_dir,
   cli_text("\n\n")
   cli_alert_info("{.strong Destination}")
   cli_ul()
+  cli_ul()
     cli_li("{dir_status} directory: {.path {dirname}}")
     cli_li("Filename: {filename}")
   cli_end()
   cli_text("\n\n")
-  cli_alert_info("{.strong Configuration file:} {.strong {config_name}}")
+  cli_alert_info("{.strong Connection directory:} {.path {connect_dir}}")
+  cli_text("\n\n")
+  cli_alert_info("{.strong Config directory:} {.path {config_dir}}")
+  cli_text("\n\n")
+  cli_alert_info("{.strong Config file:} {config_name}")
   cli_ul()
-    cli_li("Replacement list: {str}")
-    cli_li("Concepts list: {concepts}")
-    cli_li("Split list: {split}")
-    cli_li("Text input: {text}")
+    cli_li("text: {text}")
+    cli_li("str: {str}")
+    cli_li("concepts: {concepts}")
+    cli_li("split: {split}")
     cli_end()
   cli_text("\n\n")
   cli_rule()

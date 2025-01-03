@@ -71,11 +71,34 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   config_str <- with(config, str)
 
-  if (!is.list(concepts)) concepts <- list("<concept>" = concepts)
+  if (length(concepts) > 1) {
+
+    if (!rlang::is_named(concepts)) {
+
+      cli_abort("{.arg concepts} must all be named")
+
+    } else {
+
+      concepts <- as.list(concepts)
+
+    }
+
+  } else if (!is.list(concepts)) {
+
+    if (!rlang::is_named(concepts)) {
+
+      concepts <- list("<concept>" = concepts)
+
+    } else {
+
+      concepts <- as.list(concepts)
+
+    }
+
+  }
 
   concepts <-
-  config$concepts |>
-    with(eval(enexpr(concepts))) |>
+  concepts |>
     pluck_depth() |>
     seq() |>
     reduce(~ list_flatten(.), .init = concepts)
@@ -628,14 +651,14 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
     cli_li("Over {nchar_max} characters: {nrow(data_exclus_nchar)}")
     cli_end()
 
-  if (sum(data_save$count$init$match) != sum(data_save$regex$match$n)) {
-
-    count_alert <- "Mismatch between final regex and ngrams counts"
-
-    cli_text("\n\n")
-    cli_alert_danger(col_red("{.strong {count_alert}}"))
-
-  }
+  # if (sum(data_save$count$init$match) != sum(data_save$regex$match$n)) {
+  #
+  #   count_alert <- "Mismatch between final regex and ngrams counts"
+  #
+  #   cli_text("\n\n")
+  #   cli_alert_danger(col_red("{.strong {count_alert}}"))
+  #
+  # }
 
   cli_text("\n\n")
   cli_rule()

@@ -2,36 +2,23 @@
 % Please edit documentation in R/edstr_config.R
 \name{edstr_config}
 \alias{edstr_config}
-\title{Définir une configuration initale}
+\title{Title}
 \usage{
 edstr_config(
   dest_dir,
   dest_filename,
+  connect_dir = "../_R_/database_connection",
+  config_dir = "../_R_/config",
+  config_name = ".config",
+  text = "text",
   str = NULL,
   split = NULL,
-  concepts = NULL,
-  text = NULL,
-  config_name = ".config"
+  concepts = NULL
 )
 }
 \arguments{
-\item{dest_dir}{Chemin vers le répertoire de destination. Un vecteur de caractères.}
-
-\item{dest_filename}{Base name of files to create, located in destination
-directory.}
-
-\item{str}{Path to a RData file containing string for further text
-management. Un vecteur de caractères.}
-
-\item{concepts}{Path to a RData file containing a list of concepts to use
-with \code{\link[=edstr_extract]{edstr_extract()}}.}
-
-\item{config_name}{Nom du fichier de configuration. Un vecteur de caractères. Nommé
-".config" par défaut.}
-}
-\value{
-Two hidden objects
+\item{concepts}{}
 }
 \description{
-Définir une configuration initale
+Title
 }
