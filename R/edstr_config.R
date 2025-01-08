@@ -27,17 +27,19 @@ edstr_config <- \(dest_dir,
 
   dest_dir <- glue(dest_dir)
   dest_filename <- glue(dest_filename)
+  connect_dir <- glue(connect_dir)
+  config_dir <- glue(config_dir)
 
   if (!is.null(str)) {
 
-    str <- load(glue("{config_dir}/{str}"))
+    str <- load(file.path(config_dir, str))
     str_data <- get(str)
 
   } else str_data <- NULL
 
   if (!is.null(concepts)) {
 
-    concepts <- load(glue("{config_dir}/{concepts}"))
+    concepts <- load(file.path(config_dir, concepts))
     concepts_data <- get(concepts)
 
   } else concepts_data <- NULL
@@ -57,14 +59,11 @@ edstr_config <- \(dest_dir,
 
   } else dir_status <- "Existing"
 
-  parent_dir <- str_remove(getwd(), "[^/]+/?$")
-  dest_dir <- str_replace(dest_dir, "^(\\.\\./)", parent_dir)
-
 ### ASSIGNMENT -----------------------------------------------------------------
 
   if (!is.null(split)) {
 
-    split <- load(glue("{config_dir}/{split}"))
+    split <- load(file.path(config_dir, split))
 
     str_data <- list_modify(get(str), split = list(sect = with(get(split), str)))
 
@@ -95,26 +94,32 @@ edstr_config <- \(dest_dir,
 
   cli_h1("edstr_config")
   cli_text("\n\n")
-  cli_alert_info("{.strong Working directory:} {.path {getwd()}}")
+
+  cli_alert_success("{.strong Working directory:} {.path {here()}}")
+
   cli_text("\n\n")
   cli_alert_info("{.strong Destination}")
   cli_ul()
   cli_ul()
-    cli_li("{dir_status} directory: {.path {dirname}}")
+    cli_li("{dir_status} directory: {.path {normalize_dir(dirname)}}")
     cli_li("Filename: {filename}")
   cli_end()
+
   cli_text("\n\n")
-  cli_alert_info("{.strong Connection directory:} {.path {connect_dir}}")
+  cli_alert_success("{.strong Connection directory:} {.path {normalize_dir(connect_dir)}}")
+
   cli_text("\n\n")
-  cli_alert_info("{.strong Config directory:} {.path {config_dir}}")
+  cli_alert_success("{.strong Config directory:} {.path {normalize_dir(config_dir)}}")
+
   cli_text("\n\n")
-  cli_alert_info("{.strong Config file:} {config_name}")
+  cli_alert_success("{.strong Config file:} {config_name}")
   cli_ul()
     cli_li("text: {text}")
     cli_li("str: {str}")
     cli_li("concepts: {concepts}")
     cli_li("split: {split}")
     cli_end()
+
   cli_text("\n\n")
   cli_rule()
 

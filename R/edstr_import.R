@@ -1,14 +1,14 @@
 #' Title
 #'
-#' @param query
-#' @param head
-#' @param to_lower
 #' @param dest_dir
 #' @param dest_filename
 #' @param connect_dir
 #' @param tns
 #' @param user
 #' @param password
+#' @param query
+#' @param head
+#' @param to_lower
 #' @param load
 #'
 #' @return
@@ -16,15 +16,16 @@
 #'
 #' @examples
 #'
-edstr_import <- \(query = NULL,
-                  head = NULL,
-                  to_lower = TRUE,
-                  dest_dir = NULL,
+edstr_import <- \(dest_dir = NULL,
                   dest_filename = NULL,
                   connect_dir = with(config, connect),
                   tns = "tns",
-                  user = NULL,
+                  user = "w_etudes",
                   password = getPass::getPass(),
+                  control = FALSE,
+                  query = NULL,
+                  head = NULL,
+                  to_lower = TRUE,
                   load = FALSE) {
 
   if (!exists(".config_name")) {
@@ -37,8 +38,8 @@ edstr_import <- \(query = NULL,
   config_file <- glue("{with(config, file)}_import")
   config_save <- glue("{config_dir}/{config_file}.RData")
 
-  query <- glue(query)
   connect_dir <- glue(connect_dir)
+  query <- glue(query)
 
   cli_h1("edstr_import")
   cli_text("\n\n")
@@ -96,24 +97,43 @@ edstr_import <- \(query = NULL,
 
 ### IMPORT ---------------------------------------------------------------------
 
-    cli_text("\n\n")
-    cli_progress_step("Import (user: {.strong {user}})")
+    if (!control) {
 
-    data_import <- tbl(.con, sql(query)) |> collect()
+      cli_text("\n\n")
+      cli_progress_step("Import (user: {.strong {user}})")
 
-    if (to_lower) {
+      data_import <- tbl(.con, sql(query)) |> collect()
 
-      data_import <- data_import |> set_names(tolower)
+      if (to_lower) {
 
-    }
+        data_import <- data_import |> set_names(tolower)
 
-    cli_progress_done()
+      }
+
+      cli_progress_done()
 
 ### CLI ------------------------------------------------------------------------
 
-    cli_save(data_import,
-             config_file,
-             config_save)
+      cli_save(data_import,
+               config_file,
+               config_save)
+
+    } else {
+
+      cli_text("\n\n")
+      cli_progress_step("Control (user: {.strong {user}})")
+
+      data_import <- tbl(.con, sql(query)) |> collect()
+
+      cli_progress_done()
+      cli_text("\n\n")
+
+      print(data_import)
+
+      cli_text("\n\n")
+      cli_rule()
+
+    }
 
   } else {
 

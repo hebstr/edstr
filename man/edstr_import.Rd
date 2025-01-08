@@ -5,15 +5,16 @@
 \title{Title}
 \usage{
 edstr_import(
-  query = NULL,
-  head = NULL,
-  to_lower = TRUE,
   dest_dir = NULL,
   dest_filename = NULL,
   connect_dir = with(config, connect),
   tns = "tns",
-  user = NULL,
+  user = "w_etudes",
   password = getPass::getPass(),
+  control = FALSE,
+  query = NULL,
+  head = NULL,
+  to_lower = TRUE,
   load = FALSE
 )
 }

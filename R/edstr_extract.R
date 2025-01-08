@@ -21,6 +21,7 @@
 #' @param html_popup
 #' @param xlsx_save
 #' @param xlsx_popup
+#' @param mismatch_save
 #' @param str_view
 #' @param concept_color
 #' @param text_color
@@ -54,8 +55,9 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                    html_popup = FALSE,
                    xlsx_save = TRUE,
                    xlsx_popup = TRUE,
+                   mismatch_save = TRUE,
                    str_view = TRUE,
-                   concept_color = "blue",
+                   concept_color = "#0099EE",
                    text_color = "red",
                    text_background = "#FFFFFF",
                    dir_suffix = sample,
@@ -133,17 +135,20 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
 ### SAVE PARAMS ----------------------------------------------------------------
 
-  dir_name <- glue("{with(config, file)}_extract")
-  save_dir <- glue("{with(config, dir)}/{dir_name}")
-  save_files <- dir_name
+  filename <- config$file
+  dirname <- glue("{filename}_extract")
+  save_dir <- glue("{config$dir}/{dirname}")
+  save_files <- dirname
 
   if (!is.null(dir_suffix)) save_dir <- glue("{save_dir}_{dir_suffix}")
 
-  if (!is.null(filename_suffix)) save_files <- glue("{dir_name}_{filename_suffix}")
+  if (!is.null(filename_suffix)) save_files <- glue("{dirname}_{filename_suffix}")
 
   if (!file.exists(glue(save_dir))) dir.create(path = glue(save_dir))
 
-  .save_extract <- glue("{save_dir}/{save_files}")
+  save_extract <- glue("{save_dir}/{save_files}")
+
+  unlink(file.path(save_dir, list.files(save_dir)), recursive = TRUE)
 
 ### FILTERS --------------------------------------------------------------------
 
@@ -336,8 +341,8 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   regex_replace <- list2(!!glue("[e{regex_replace}]") := "\\\\w") |> unlist()
 
   data_regex <-
-  list(char = regex_replace,
-       space = c("\\s" = ".")) |>
+  list(chr = regex_replace,
+       space = c("\\s" = "\\\\s?[:punct:]?[:symbol:]?\\\\s?")) |>
     reduce(str_replace_all,
            .init =
              paste(data_count[[text_input]],
@@ -374,7 +379,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                   mutate(!!text_input := str_flatten(get(text_input), " ; "),
                          .by = id) |>
                   distinct()) |>
-          reduce(left_join, by = c(id, group)) |>
+          reduce(inner_join, by = c(id, group)) |>
           mutate(nchar = nchar(get(text_input))),
       output =
         base |>
@@ -411,92 +416,94 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   cli_progress_done()
   cli_text("\n\n")
 
-### HTML OUTPUT ----------------------------------------------------------------
-
-  if (html_popup) html_save <- TRUE
-
-  if (html_save) {
-
-    cli_progress_step("{.strong HTML output}")
-
-    .lib <- glue("{save_dir}/lib")
-
-    if (exists(.lib)) unlink(.lib, recursive = TRUE)
-
-    .highlight <-
-    paste0(c(glue("color:{text_color}"),
-             glue("background-color:{text_background}"),
-             glue("font-weight:bold")),
-           collapse = ";")
-
-    data_output <-
-    data_extract$output |>
-      mutate(extract = extract |> str_replace_all(" ; ", "<br>"),
-             !!text_input :=
-               get(text_input) |>
-                 str_replace_all(" ; ", "<br><br>") |>
-                 str_replace_all(glue("(?={data_regex})"),
-                                 glue("<span style='{.highlight}'>")) |>
-                 str_replace_all(glue("(?<={data_regex})"),
-                                 "</span>")) |>
-      reactable(height = "100%",
-                defaultColDef =
-                  colDef(vAlign = "center",
-                         align = "center"),
-                showSortable = TRUE,
-                striped = TRUE,
-                searchable = TRUE,
-                filterable = TRUE,
-                selection = "multiple",
-                columns =
-                  list2(.selection = colDef(sticky = "left"),
-                        .rownames =
-                          colDef(name = "n°",
-                                 width = 40,
-                                 sticky = "left"),
-                        extract =
-                          colDef(html = TRUE,
-                                 width = 250,
-                                 style =
-                                   list(color = text_color,
-                                        fontWeight = "bold")),
-                        !!text_input :=
-                          colDef(html = TRUE,
-                                 width = 500,
-                                 style = list(textAlign = "justify"))),
-                rownames = TRUE,
-                highlight = TRUE,
-                showPageSizeOptions = TRUE,
-                pageSizeOptions = c(10, 25, 50, 100, 200, 500, 1000),
-                defaultPageSize = 100,
-                theme =
-                  reactableTheme(style =
-                                   list(fontFamily = "Luciole, Trebuchet MS",
-                                        fontSize = "12px"),
-                                 borderColor = "#dfe2e5",
-                                 searchInputStyle = list(width = "100%"),
-                                 rowSelectedStyle = list(backgroundColor = "skyblue")))
-
-    output <- glue("{.save_extract}.html")
-
-    save_html(data_output, output)
-
-    if (html_popup) browseURL(output)
-
-    cli_progress_done()
-    cli_text("\n\n")
-
-  } else {
-
-    data_output <- NULL
-
-  }
-
 ### XLSX OUTPUT ----------------------------------------------------------------
 
   if (xlsx_save) {
 
     cli_progress_step("{.strong XLSX output}")
+
+    wb_add_custom <- \(x,
+                   sheet,
+                   data,
+                   font_size = 8,
+                   font_color = "#222222",
+                   concept_var = "concept",
+                   concept_color = NULL,
+                   text_var = with(config, text),
+                   text_color = NULL,
+                   border_color = "#999999",
+                   border_type = "thin") {
+
+      if (!exists(".config_name")) {
+
+        config <- cli_error_config()
+
+      } else config <- get(.config_name)
+
+      .wb <-
+      x |>
+        wb_add_worksheet(sheet = sheet) |>
+        wb_add_data_table(x = data,
+                          na.strings = fmt_txt("")) |>
+        wb_add_font(dims = wb_dims(x = data, select = "col_names"),
+                    size = font_size + 1,
+                    bold = TRUE) |>
+        wb_add_font(dims = wb_dims(x = data, select = "data"),
+                    size = font_size) |>
+        wb_add_fill(dims = wb_dims(x = data, select = "col_names"),
+                    color = wb_color("grey90")) |>
+        wb_set_col_widths(cols = 1:ncol(data), widths = "auto") |>
+        wb_add_cell_style(dims = wb_dims(x = data),
+                          horizontal = "center",
+                          vertical = "center") |>
+        wb_add_border(dims = wb_dims(x = data),
+                      top_color = wb_color(border_color),
+                      top_border = border_type,
+                      bottom_color = wb_color(border_color),
+                      bottom_border = border_type,
+                      left_color = wb_color(border_color),
+                      left_border = border_type,
+                      right_color = wb_color(border_color),
+                      right_border = border_type,
+                      inner_hcolor = wb_color(border_color),
+                      inner_hgrid = border_type,
+                      inner_vcolor = wb_color(border_color),
+                      inner_vgrid = border_type)
+
+      .add_font <- \(wb, vars, color) {
+
+        wb_add_font(wb = wb,
+                    dims =
+                      wb_dims(x = data,
+                              cols = vars,
+                              select = "data"),
+                    color = wb_color(color),
+                    size = font_size,
+                    bold = TRUE)
+
+      }
+
+      if (!is.null(concept_color)) {
+
+        .wb <-
+        .add_font(.wb,
+                  concept_var,
+                  concept_color)
+
+      }
+
+      if (!is.null(text_color)) {
+
+        .wb <-
+        .add_font(.wb,
+                  text_var,
+                  text_color)
+
+      }
+
+      return(.wb)
+
+    }
 
     .wb <-
     wb_workbook() |>
@@ -521,7 +528,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
       wb_add_custom(sheet = "summary",
                     data = data_summary$concept,
                     concept_color = concept_color) |>
-      wb_save(file = glue("{.save_extract}.xlsx"))
+      wb_save(file = glue("{save_extract}.xlsx"))
 
 
     cli_progress_done()
@@ -535,6 +542,92 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   if (xlsx_popup) wb_open(.wb)
 
+### HTML OUTPUT ----------------------------------------------------------------
+
+  set_reactable <- \(x) {
+
+    reactable(data = x,
+              height = "100%",
+              defaultColDef = colDef(vAlign = "center", align = "center"),
+              showSortable = TRUE,
+              striped = TRUE,
+              searchable = TRUE,
+              filterable = TRUE,
+              selection = "multiple",
+              columns =
+                list2(.selection = colDef(sticky = "left"),
+                      .rownames =
+                        colDef(name = "n°",
+                               width = 40,
+                               sticky = "left"),
+                      !!id := colDef(width = 110),
+                      !!group := colDef(width = 110),
+                      extract =
+                        colDef(html = TRUE,
+                               minWidth = 200,
+                               style =
+                                 list(color = text_color,
+                                      fontWeight = "bold")),
+                      !!text_input :=
+                        colDef(html = TRUE,
+                               minWidth = 600,
+                               style = list(textAlign = "justify"))),
+              rownames = TRUE,
+              highlight = TRUE,
+              showPageSizeOptions = TRUE,
+              pageSizeOptions = c(10, 25, 50, 100, 200, 500, 1000),
+              defaultPageSize = 100,
+              theme =
+                reactableTheme(style =
+                                 list(fontFamily = "Luciole, system-ui",
+                                      fontSize = "11px"),
+                               borderColor = "#dfe2e5",
+                               searchInputStyle = list(width = "100%"),
+                               rowSelectedStyle = list(backgroundColor = "skyblue")))
+
+  }
+
+  if (html_popup) html_save <- TRUE
+
+  if (html_save) {
+
+    cli_progress_step("{.strong HTML output}")
+
+
+    .highlight <-
+    paste0(c(glue("color:{text_color}"),
+             glue("background-color:{text_background}"),
+             glue("font-weight:bold")),
+           collapse = ";")
+
+    data_output <-
+    data_extract$output |>
+      mutate(extract = extract |> str_replace_all(" ; ", "<br>"),
+             !!text_input :=
+               get(text_input) |>
+                 str_replace_all(" ; ", "<br><br>") |>
+                 str_replace_all(glue("(?={data_regex})"),
+                                 glue("<span style='{.highlight}'>")) |>
+                 str_replace_all(glue("(?<={data_regex})"),
+                                 "</span>")) |>
+      set_reactable()
+
+    output <- glue("{save_extract}.html")
+
+    save_html(html = data_output,
+              file = output)
+
+    if (html_popup) browseURL(output)
+
+    cli_progress_done()
+    cli_text("\n\n")
+
+  } else {
+
+    data_output <- NULL
+
+  }
+
 ### SAVE DATA ------------------------------------------------------------------
 
   cli_progress_step("{.strong Save data}")
@@ -545,6 +638,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
          lst(init =
                tibble(concept = names(concepts),
                       regex = map_chr(concepts, ~ glue("^({.})$"))),
+             replace = regex_replace,
              final = data_regex,
              match =
                edstr_view(data = data,
@@ -573,15 +667,33 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
          envir = .GlobalEnv)
 
   save(list = glue(save_files),
-       file = glue("{.save_extract}.RData"))
+       file = glue("{save_extract}.RData"))
 
   write_excel_csv(x = data_extract$output,
-                  file = glue("{.save_extract}.csv"))
+                  file = glue("{save_extract}.csv"))
 
   cli_progress_done()
   cli_text("\n\n")
 
-  toc()
+### MISMATCH OUTPUT ------------------------------------------------------------
+
+  if (mismatch_save) {
+
+    if (nrow(data_save$mismatch) > 0) {
+
+      data_output_mismatch <-
+      data_save$mismatch |>
+        mutate(text = str_remove_all(text, "</p>\n<p>|<br/>")) |>
+        set_reactable()
+
+      mismatch_name <- "{filename}_mismatch.html"
+
+      save_html(html = data_output_mismatch,
+                file = glue("{save_dir}/{glue(mismatch_name)}"))
+
+    }
+
+  }
 
 ### PRINT ----------------------------------------------------------------------
 
@@ -608,11 +720,12 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   list(regex = data_save$regex,
        ngrams = data_ngrams_match,
        count =
-         list(total = data_ngrams_count,
+         list(total = data_save$count$final,
               ngrams = data_summary$ngrams,
               concepts = data_summary$concept,
-              exclus = data_count_exclus,
-              final = data_count))
+              exclus = data_save$exclus$count,
+              final = data_save$count$final,
+              mismatch = data_save$mismatch))
 
   print(data_print)
 
@@ -621,13 +734,27 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
 ### CLI ------------------------------------------------------------------------
 
+  toc()
+  cli_text("\n\n")
+
   cli_p_final <- label_percent(0.1)(nrow(data) / nrow(data_init))
+
   cli_n_match <- n_distinct(data_match[[id]])
   cli_p_match <- label_percent(0.1)(cli_n_match / nrow(data))
+
   cli_n_extract <- nrow(data_extract$base)
   cli_p_extract <- label_percent(0.1)(cli_n_extract / nrow(data))
+
   cli_n_group <- n_distinct(data_extract$base[[group]])
   cli_p_group <- label_percent(0.1)(cli_n_group / n_distinct(data[[group]]))
+
+  cli_n_mismatch <- nrow(data_save$mismatch)
+  cli_p_mismatch <- label_percent(0.1)(cli_n_mismatch / nrow(data))
+
+  cli_n_group_mismatch <- n_distinct(data_save$mismatch[[group]])
+  cli_p_group_mismatch <- label_percent(0.1)(cli_n_group_mismatch / n_distinct(data[[group]]))
+
+  cli_n_files <- sum(str_detect(list.files(save_dir), "\\.\\w+"))
 
   cli_alert_info("{.strong Documents}")
   cli_ul()
@@ -651,31 +778,47 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
     cli_li("Over {nchar_max} characters: {nrow(data_exclus_nchar)}")
     cli_end()
 
-  # if (sum(data_save$count$init$match) != sum(data_save$regex$match$n)) {
-  #
-  #   count_alert <- "Mismatch between final regex and ngrams counts"
-  #
-  #   cli_text("\n\n")
-  #   cli_alert_danger(col_red("{.strong {count_alert}}"))
-  #
-  # }
+  cli_text("\n\n")
+  cli_alert_info("{.strong Mismatch:} {cli_n_mismatch}")
 
   cli_text("\n\n")
   cli_rule()
   cli_text("\n\n")
 
-  cli_alert_success("{.strong {nrow(data_id)} matchs from}")
+  cli_alert_success("{.strong {nrow(data_id)} matchs}")
   cli_ul()
     cli_li("{cli_n_extract} {id} ({cli_p_extract} {id})")
     if (check_group) cli_li("{cli_n_group} {group} ({cli_p_group} {group})")
     cli_end()
 
-  cli_text("\n\n")
-  cli_alert_success("{.strong {nrow(data_count)} distinct expression{?s}}")
-  cli_alert_success("{.strong {n_distinct(data_count$concept)} concept{?s}}")
+  if (cli_n_mismatch > 0) {
+
+    cli_text("\n\n")
+    cli_alert_success("{.strong {cli_n_mismatch} mismatchs}")
+    cli_ul()
+      cli_li("{cli_n_mismatch} {id} ({cli_p_mismatch} {id})")
+      if (check_group) cli_li("{cli_n_group_mismatch} {group} ({cli_p_group_mismatch} {group})")
+      cli_end()
+
+  }
 
   cli_text("\n\n")
-  cli_alert_success("files saved to {.path {save_dir}}")
+  cli_alert_success("{.strong {n_distinct(data_count$concept)} concept{?s}}")
+  cli_ul()
+    cli_li("{.strong {nrow(data_count)} distinct match{?s}}")
+    cli_end()
+
+  cli_text("\n\n")
+  cli_alert_success("{.strong {cli_n_files} files saved in {.path {here(save_dir)}}}")
+  cli_ul()
+    cli_li("Data: {col_red(glue('{save_files}.Rdata'))}")
+    cli_li("CSV output: {col_red(glue('{save_files}.csv'))}")
+    if (html_save) cli_li("HTML output: {col_red(glue('{save_files}.html'))}")
+    if (xlsx_save) cli_li("XLSX output: {col_red(glue('{save_files}.xlsx'))}")
+    if (exists("data_output_mismatch")) {
+      cli_li("Mismatch output: {col_red(glue(mismatch_name))}")
+    }
+    cli_end()
 
   cli_text("\n\n")
   cli_rule()

@@ -1,13 +1,11 @@
 ---
 title: "Définir une configuration par défaut avec edstr_config()"
-
 output: rmarkdown::html_vignette
-
 vignette: >
   %\VignetteIndexEntry{Définir une configuration par défaut avec edstr_config()}
   %\VignetteEncoding{UTF-8}
-  %\VignetteEngine{knitr::rmarkdown}
   
+  %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
   chunk_output_type: console
 ---
@@ -24,27 +22,11 @@ library(edstr)
 ```
 
 ```{r}
-edstr_config(dest_dir = "S:/_CRPV_/data/emla",
+edstr_config(dest_dir = "emla/data",
              dest_filename = "emla",
-             str = "S:/_R_/config/str.RData",
-             split = "S:/_R_/config/split/output/mix/mix_split.RData",
-             concepts = "S:/_R_/config/concepts.RData",
-             text = "text")
+             str = "str.RData",
+             split = "split/output/mix/mix_split.RData")
 ```
-
-Les arguments peuvent interpréter la syntaxe [glue](https://glue.tidyverse.org/).
-
-```{r}
-.r <- "S:/_R_/config"
-
-edstr_config(dest_dir = "S:/_CRPV_/data/emla",
-             dest_filename = "emla",
-             str = "{.r}/str.RData",
-             split = "{.r}/split/output/mix/mix_split.RData",
-             concepts = "{.r}/concepts.RData",
-             text = "text")
-```
-
 
 ### Valeur
 
@@ -68,7 +50,7 @@ Seuls deux arguments sont indispensables :
 - Le nom à donner aux fichiers qui seront produits (`dest_filename`)
 
 ```{r}
-edstr_config(dest_dir = "S:/_CRPV_/data/emla",
+edstr_config(dest_dir = "emla/data",
              dest_filename = "emla")
 ```
 

@@ -1,13 +1,11 @@
 ---
 title: "Nettoyer avec edstr_clean()"
-
 output: rmarkdown::html_vignette
-
 vignette: >
   %\VignetteIndexEntry{Nettoyer avec edstr_clean()}
   %\VignetteEncoding{UTF-8}
-  %\VignetteEngine{knitr::rmarkdown}
   
+  %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
   chunk_output_type: console
 ---
@@ -27,14 +25,10 @@ library(edstr)
 La fonction `edstr_clean()` dépend des paramètres définis avec `edstr_config()` : celle-ci doit alors être exécutée en amont.
 
 ```{r}
-.r <- "S:/_R_/config"
-
-edstr_config(dest_dir = "S:/_CRPV_/data/emla",
+edstr_config(dest_dir = "emla/data",
              dest_filename = "emla",
-             str = "{.r}/str.RData",
-             split = "{.r}/split/output/mix/mix_split.RData",
-             concepts = "{.r}/concepts.RData",
-             text = "text")
+             str = "str.RData",
+             split = "split/output/mix/mix_split.RData")
 ```
 
 La fonction `edstr_clean` produit un dataframe portant le nom défini dans `edstr_config()` (argument `dest_filename`) suivi du suffixe `_clean`. Dans cet exemple, il sera donc nommé ``r glue("{.config$file}_clean")``.
@@ -43,7 +37,6 @@ Il peut être produit de deux façons :
 
   - Nettoyage d'un dataframe chargé dans l'environnement
   - Chargement d'un dataframe déjà nettoyé
-
 
 ### Nettoyage d'un dataframe
 

@@ -1,13 +1,11 @@
 ---
 title: "Importer avec edstr_import()"
-
 output: rmarkdown::html_vignette
-
 vignette: >
   %\VignetteIndexEntry{Importer avec edstr_import()}
   %\VignetteEncoding{UTF-8}
-  %\VignetteEngine{knitr::rmarkdown}
   
+  %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
   chunk_output_type: console
 ---
@@ -30,14 +28,10 @@ library(edstr)
 La fonction `edstr_import()` dépend des paramètres définis avec `edstr_config()` : celle-ci doit alors être exécutée en amont.
 
 ```{r}
-.r <- "S:/_R_/config"
-
-edstr_config(dest_dir = "S:/_CRPV_/data/emla",
+edstr_config(dest_dir = "emla/data",
              dest_filename = "emla",
-             str = "{.r}/str.RData",
-             split = "{.r}/split/output/mix/mix_split.RData",
-             concepts = "{.r}/concepts.RData",
-             text = "text")
+             str = "str.RData",
+             split = "split/output/mix/mix_split.RData")
 ```
 
 La fonction `edstr_import()` produit un dataframe portant le nom défini dans `edstr_config()` (argument `dest_filename`) suivi du suffixe `_import`. Dans cet exemple, il sera donc nommé ``r glue("{.config$file}_import")``.
@@ -60,9 +54,7 @@ edstr_import(query = "select * from test_urg",
 ```
 
 ```{r, echo = FALSE}
-edstr_import(query = "S:/_CRPV_/scripts/emla/emla_text.sql",
-             connect_dir = "S:/_R_/database_connection",
-             user = "w_etudes",
+edstr_import(query = "emla/emla_text.sql",
              password = "h9$c9WnE5*")
 ```
 

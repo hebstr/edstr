@@ -5,6 +5,16 @@ str_u <- \(...) {
 }
 
 
+normalize_dir <- \(dir) {
+
+  dir |>
+    glue() |>
+    normalizePath() |>
+    str_replace_all("\\\\", "/")
+
+}
+
+
 easy_replace <- \(...,
                   replace = "</>") {
 
@@ -35,8 +45,8 @@ cli_error_config <- \(dest_dir = NULL,
 
   } else {
 
-    cli_abort(c("Configuration file doesn't exists!",
-                "i" = "Please create it first with {.fn edstr_config}"))
+    cli_abort(c("Config file doesn't exists!",
+                "i" = "Create it first with {.fn edstr_config}"))
 
   }
 
@@ -56,7 +66,7 @@ cli_save <- \(data,
 
   cli_progress_done()
 
-  cli_alert_success("{.strong {config_file}} saved to {.path {config_save}}")
+  cli_alert_success("{.strong {config_file}} saved in {.path {here(config_save)}}")
   cli_text("\n\n")
   cli_alert_info("{.strong Dimensions}")
   cli_ul()
@@ -75,10 +85,10 @@ cli_load <- \(config_dir,
 
   if (!file.exists(config_save)) {
 
-    cli_abort(c("{.strong {config_file}} not found in {.path {config_dir}}",
+    cli_abort(c("{.strong {config_file}} not found in {.path {here(config_dir)}}",
                 "i" =
-                  "Please create {.strong {config_file}} first with {.field load = FALSE}
-                  or change directory in {.fn edstr_config}"))
+                  "Create {.strong {config_file}} first with {.field load = FALSE}
+                  or change directory in {.fn edstr_config} with {.field dest_dir}"))
 
   }
 
@@ -88,92 +98,8 @@ cli_load <- \(config_dir,
 
   cli_progress_done()
 
-  cli_alert_success("{.strong {config_file}} loaded from {.path {config_save}}")
+  cli_alert_success("{.strong {config_file}} loaded from {.path {here(config_save)}}")
   cli_text("\n\n")
   cli_rule()
-
-}
-
-
-wb_add_custom <- \(x,
-                   sheet,
-                   data,
-                   font_size = 8,
-                   font_color = "#222222",
-                   concept_var = "concept",
-                   concept_color = NULL,
-                   text_var = with(config, text),
-                   text_color = NULL,
-                   border_color = "#999999",
-                   border_type = "thin") {
-
-  if (!exists(".config_name")) {
-
-    config <- cli_error_config()
-
-  } else config <- get(.config_name)
-
-  .wb <-
-  x |>
-    wb_add_worksheet(sheet = sheet) |>
-    wb_add_data_table(x = data,
-                      na.strings = fmt_txt("")) |>
-    wb_add_font(dims = wb_dims(x = data, select = "col_names"),
-                size = font_size + 1,
-                bold = TRUE) |>
-    wb_add_font(dims = wb_dims(x = data, select = "data"),
-                size = font_size) |>
-    wb_add_fill(dims = wb_dims(x = data, select = "col_names"),
-                color = wb_color("grey90")) |>
-    wb_set_col_widths(cols = 1:ncol(data), widths = "auto") |>
-    wb_add_cell_style(dims = wb_dims(x = data),
-                      horizontal = "center",
-                      vertical = "center") |>
-    wb_add_border(dims = wb_dims(x = data),
-                  top_color = wb_color(border_color),
-                  top_border = border_type,
-                  bottom_color = wb_color(border_color),
-                  bottom_border = border_type,
-                  left_color = wb_color(border_color),
-                  left_border = border_type,
-                  right_color = wb_color(border_color),
-                  right_border = border_type,
-                  inner_hcolor = wb_color(border_color),
-                  inner_hgrid = border_type,
-                  inner_vcolor = wb_color(border_color),
-                  inner_vgrid = border_type)
-
-  .add_font <- \(wb, vars, color) {
-
-    wb_add_font(wb = wb,
-                dims =
-                  wb_dims(x = data,
-                          cols = vars,
-                          select = "data"),
-                color = wb_color(color),
-                size = font_size,
-                bold = TRUE)
-
-  }
-
-  if (!is.null(concept_color)) {
-
-    .wb <-
-    .add_font(.wb,
-              concept_var,
-              concept_color)
-
-  }
-
-  if (!is.null(text_color)) {
-
-    .wb <-
-    .add_font(.wb,
-              text_var,
-              text_color)
-
-  }
-
-  return(.wb)
 
 }
