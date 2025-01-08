@@ -26,7 +26,7 @@ edstr_extract(
   html_popup = FALSE,
   xlsx_save = TRUE,
   xlsx_popup = TRUE,
-  mismatch_save = TRUE,
+  mismatch_save = FALSE,
   str_view = TRUE,
   concept_color = "#0099EE",
   text_color = "red",
