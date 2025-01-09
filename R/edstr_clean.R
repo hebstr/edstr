@@ -97,4 +97,6 @@ edstr_clean <- \(data = glue("{with(config, file)}_import"),
 
   }
 
+  invisible(gc())
+
 }

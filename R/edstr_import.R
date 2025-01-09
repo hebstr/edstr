@@ -143,4 +143,6 @@ edstr_import <- \(dest_dir = NULL,
 
   }
 
+  invisible(gc())
+
 }

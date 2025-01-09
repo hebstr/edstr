@@ -55,7 +55,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                    html_popup = FALSE,
                    xlsx_save = TRUE,
                    xlsx_popup = TRUE,
-                   mismatch_save = FALSE,
+                   mismatch_save = TRUE,
                    str_view = TRUE,
                    concept_color = "#0099EE",
                    text_color = "red",
@@ -184,7 +184,8 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
     mutate(!!text_input :=
              reduce(replace,
                     str_replace_all,
-                    .init = get(text_input)))
+                    .init = get(text_input))) |>
+    filter(str_detect(get(text_input), "\\w+"))
 
   cli_progress_done()
   cli_text("\n\n")
@@ -193,17 +194,14 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   cli_progress_step("{.strong Tokenize}")
 
-  data_clean <-
-  data_split |>
-    mutate(!!text_input :=
-             get(text_input) |>
-               iconv(from = "UTF-8",
-                     to = "ASCII//TRANSLIT") |>
-               str_replace_all("'", " "))
-
   data_ngrams <-
   ngrams |>
-    map(~ data_clean |>
+    map(~ data_split |>
+          mutate(!!text_input :=
+                   get(text_input) |>
+                     iconv(from = "UTF-8",
+                           to = "ASCII//TRANSLIT") |>
+                     str_replace_all("'", " ")) |>
           unnest_tokens(output = !!text_input,
                         input = !!text_input,
                         token = "ngrams",
@@ -352,11 +350,17 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   set_wrap <- \(x) if (wrap) unique(sort(c(x - 1, x, x + 1))) else x
 
-  .which_rows <-
-  data_clean[[text_input]] |>
+  .index <-
+  data_split[[text_input]] |>
     str_detect(data_regex) |>
     which() |>
     set_wrap()
+
+  data_split_match <-
+  data_split[.index, ]
+
+  rm(data_split)
+  invisible(gc())
 
   data_extract <-
   lst(base =
@@ -375,7 +379,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                          .keep = "unused") |>
                   distinct(),
               !!text_input :=
-                data_split[.which_rows, ] |>
+                data_split_match |>
                   mutate(!!text_input := str_flatten(get(text_input), " ; "),
                          .by = id) |>
                   distinct()) |>
@@ -633,7 +637,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   cli_progress_step("{.strong Save data}")
 
   data_save <-
-  list(split = data_split[.which_rows, ],
+  list(split = data_split_match,
        regex =
          lst(init =
                tibble(concept = names(concepts),
