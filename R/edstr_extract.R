@@ -148,8 +148,6 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   save_extract <- glue("{save_dir}/{save_files}")
 
-  unlink(file.path(save_dir, list.files(save_dir)), recursive = TRUE)
-
 ### FILTERS --------------------------------------------------------------------
 
   if (!is.null(sample)) data <- data[sample(nrow(data), sample), ]
@@ -356,11 +354,9 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
     which() |>
     set_wrap()
 
-  data_split_match <-
-  data_split[.index, ]
+  data_split_match <- data_split[.index, ]
 
-  rm(data_split)
-  invisible(gc())
+  rm(data_split); invisible(gc())
 
   data_extract <-
   lst(base =
@@ -420,6 +416,8 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   cli_progress_done()
   cli_text("\n\n")
 
+  unlink(file.path(save_dir, list.files(save_dir)), recursive = TRUE)
+
 ### XLSX OUTPUT ----------------------------------------------------------------
 
   if (xlsx_save) {
@@ -444,7 +442,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
       } else config <- get(.config_name)
 
-      .wb <-
+      .xlsx_output <-
       x |>
         wb_add_worksheet(sheet = sheet) |>
         wb_add_data_table(x = data,
@@ -489,8 +487,8 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
       if (!is.null(concept_color)) {
 
-        .wb <-
-        .add_font(.wb,
+        .xlsx_output <-
+        .add_font(.xlsx_output,
                   concept_var,
                   concept_color)
 
@@ -498,18 +496,18 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
       if (!is.null(text_color)) {
 
-        .wb <-
-        .add_font(.wb,
+        .xlsx_output <-
+        .add_font(.xlsx_output,
                   text_var,
                   text_color)
 
       }
 
-      return(.wb)
+      return(.xlsx_output)
 
     }
 
-    .wb <-
+    .xlsx_output <-
     wb_workbook() |>
       wb_add_custom(sheet = "data",
                     data =
@@ -534,7 +532,6 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                     concept_color = concept_color) |>
       wb_save(file = glue("{save_extract}.xlsx"))
 
-
     cli_progress_done()
     cli_text("\n\n")
 
@@ -543,8 +540,6 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
     xlsx_popup <- FALSE
 
   }
-
-  if (xlsx_popup) wb_open(.wb)
 
 ### HTML OUTPUT ----------------------------------------------------------------
 
@@ -562,10 +557,14 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                 list2(.selection = colDef(sticky = "left"),
                       .rownames =
                         colDef(name = "n°",
-                               width = 40,
+                               maxWidth = 50,
                                sticky = "left"),
-                      !!id := colDef(width = 110),
-                      !!group := colDef(width = 110),
+                      !!id :=
+                        colDef(width = 110,
+                               sticky = "left"),
+                      !!group :=
+                        colDef(width = 110,
+                               sticky = "left"),
                       extract =
                         colDef(html = TRUE,
                                minWidth = 200,
@@ -587,7 +586,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                                       fontSize = "11px"),
                                borderColor = "#dfe2e5",
                                searchInputStyle = list(width = "100%"),
-                               rowSelectedStyle = list(backgroundColor = "skyblue")))
+                               rowSelectedStyle = list(backgroundColor = "#E1F6FF")))
 
   }
 
@@ -616,12 +615,10 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                                  "</span>")) |>
       set_reactable()
 
-    output <- glue("{save_extract}.html")
+    .html_output <- glue("{save_extract}.html")
 
     save_html(html = data_output,
-              file = output)
-
-    if (html_popup) browseURL(output)
+              file = .html_output)
 
     cli_progress_done()
     cli_text("\n\n")
@@ -676,28 +673,28 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   write_excel_csv(x = data_extract$output,
                   file = glue("{save_extract}.csv"))
 
+  if (html_popup) browseURL(.html_output)
+
+  if (xlsx_popup) wb_open(.xlsx_output)
+
+  if (mismatch_save && nrow(data_save$mismatch) > 0) {
+
+    data_output_mismatch <-
+    data_save$mismatch |>
+      mutate(text = str_remove_all(text, "</p>\n<p>|<br/>")) |>
+      set_reactable()
+
+    mismatch_name <- "{filename}_mismatch.html"
+
+    save_html(html = data_output_mismatch,
+              file = glue("{save_dir}/{glue(mismatch_name)}"))
+
+  }
+
   cli_progress_done()
   cli_text("\n\n")
 
 ### MISMATCH OUTPUT ------------------------------------------------------------
-
-  if (mismatch_save) {
-
-    if (nrow(data_save$mismatch) > 0) {
-
-      data_output_mismatch <-
-      data_save$mismatch |>
-        mutate(text = str_remove_all(text, "</p>\n<p>|<br/>")) |>
-        set_reactable()
-
-      mismatch_name <- "{filename}_mismatch.html"
-
-      save_html(html = data_output_mismatch,
-                file = glue("{save_dir}/{glue(mismatch_name)}"))
-
-    }
-
-  }
 
 ### PRINT ----------------------------------------------------------------------
 

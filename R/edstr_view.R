@@ -11,7 +11,6 @@
 #' @param limits
 #' @param ngram_max
 #' @param id
-#' @param quantile_right
 #' @param raw
 #' @param output_sample
 #' @param quiet
@@ -33,7 +32,6 @@ edstr_view <- \(data,
                 limits = c("asis", "start-end", "start", "end", "sentence"),
                 ngram_max = NULL,
                 id = NULL,
-                quantile_right = .99,
                 raw = FALSE,
                 output_sample = 5,
                 quiet = FALSE,
@@ -51,9 +49,6 @@ edstr_view <- \(data,
   config_file <- glue("{with(config, file)}_view{str_name}")
 
   limits <- arg_match(limits)
-
-  q_right <- glue("q{quantile_right*100}")
-  over_q_right <- str_c("over_", q_right)
 
   if (!quiet) {
 
@@ -106,10 +101,8 @@ edstr_view <- \(data,
   data |>
     mutate(match = str_extract_all(data[[text_input]], str)) |>
     unnest(match) |>
-    mutate(nchar = nchar(match),
-           !!q_right := quantile(nchar, probs = quantile_right, na.rm = TRUE),
-           !!over_q_right := ifelse(nchar > get(q_right), 1, 0)) |>
-    select(id, text_input, match, nchar, matches("(over_)?q(\\d+)")) |>
+    mutate(nchar = nchar(match)) |>
+    select(id, text_input, match, nchar) |>
     arrange(desc(nchar)) |>
     drop_na()
 
@@ -117,13 +110,7 @@ edstr_view <- \(data,
 
 ### COUNT ----------------------------------------------------------------------
 
-  data_count <-
-  data_match |>
-    count(match,
-          nchar,
-          !!q_right := get(q_right),
-          !!over_q_right := get(over_q_right),
-          sort = TRUE)
+  data_count <- data_match |> count(match, nchar, sort = TRUE)
 
 ### SET LIST -------------------------------------------------------------------
 
@@ -144,12 +131,9 @@ edstr_view <- \(data,
     if (n_distinct(data_match$nchar) >= 50) {
 
       data_output_plot <-
-      ggplot(data_match) +
-        aes(nchar) +
-        geom_density(color = "#0099EE",
-                     fill = "#0099EE") +
-        geom_vline(mapping = aes(xintercept = get(q_right)),
-                   color = "#CC0C00")
+      data_match |>
+        ggplot(aes(nchar)) +
+        geom_histogram()
 
       print(data_output_plot)
 
