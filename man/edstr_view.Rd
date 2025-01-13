@@ -16,7 +16,6 @@ edstr_view(
   limits = c("asis", "start-end", "start", "end", "sentence"),
   ngram_max = NULL,
   id = NULL,
-  quantile_right = 0.99,
   raw = FALSE,
   output_sample = 5,
   quiet = FALSE,

@@ -3,9 +3,11 @@
 #' @param dest_dir
 #' @param dest_filename
 #' @param connect_dir
+#' @param env
 #' @param tns
 #' @param user
 #' @param password
+#' @param control
 #' @param query
 #' @param head
 #' @param to_lower
@@ -19,6 +21,7 @@
 edstr_import <- \(dest_dir = NULL,
                   dest_filename = NULL,
                   connect_dir = with(config, connect),
+                  env = "jdk-21",
                   tns = "tns",
                   user = "w_etudes",
                   password = getPass::getPass(),
@@ -48,27 +51,23 @@ edstr_import <- \(dest_dir = NULL,
 
 ### CONNECT --------------------------------------------------------------------
 
-    Sys.setenv(JAVA_HOME = glue("{connect_dir}/jdk1.8.0_261"))
+    Sys.setenv(JAVA_HOME = glue("{connect_dir}/{env}"),
+               DATABASECONNECTOR_JAR_FOLDER = connect_dir)
 
-    tns <- read.table(glue("{connect_dir}/{tns}.txt"))
+    tns <- read_lines(glue("{connect_dir}/{tns}.txt"))
+    adress <- glue("jdbc:oracle:thin:@{tns}")
 
-    .con <-
-    RJDBC::dbConnect(drv =
-                       RJDBC::JDBC(driverClass = "oracle.jdbc.OracleDriver",
-                                   classPath = glue("{connect_dir}/ojdbc6.jar")),
-                     url = glue("jdbc:oracle:thin:@//{tns}"),
-                     user = user,
-                     password = password)
-
-    assign(".con", .con, envir = .GlobalEnv)
+    conn <-
+    DatabaseConnector::connect(dbms = "oracle",
+                               connectionString = adress,
+                               user = user,
+                               password = password)
 
 ### QUERY ----------------------------------------------------------------------
 
     if (!str_starts(query, "(?i)\\s*SELECT")) {
 
-      query <-
-      read_lines(file = query,
-                 skip_empty_rows = TRUE)
+      query <- read_lines(file = query, skip_empty_rows = TRUE)
 
       query <- query[!str_starts(query, "\\s*--")]
 
@@ -102,7 +101,7 @@ edstr_import <- \(dest_dir = NULL,
       cli_text("\n\n")
       cli_progress_step("Import (user: {.strong {user}})")
 
-      data_import <- tbl(.con, sql(query)) |> collect()
+      data_import <- tbl(conn, sql(query)) |> collect()
 
       if (to_lower) {
 
@@ -123,7 +122,7 @@ edstr_import <- \(dest_dir = NULL,
       cli_text("\n\n")
       cli_progress_step("Control (user: {.strong {user}})")
 
-      data_import <- tbl(.con, sql(query)) |> collect()
+      data_import <- tbl(conn, sql(query)) |> collect()
 
       cli_progress_done()
       cli_text("\n\n")
@@ -134,6 +133,8 @@ edstr_import <- \(dest_dir = NULL,
       cli_rule()
 
     }
+
+    DatabaseConnector::disconnect(conn)
 
   } else {
 
