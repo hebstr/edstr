@@ -63,6 +63,8 @@ edstr_import <- \(dest_dir = NULL,
                                user = user,
                                password = password)
 
+    cli_text("\n\n")
+
 ### QUERY ----------------------------------------------------------------------
 
     if (!str_starts(query, "(?i)\\s*SELECT")) {

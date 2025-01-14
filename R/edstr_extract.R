@@ -171,6 +171,8 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   cli_progress_done()
   cli_text("\n\n")
 
+  invisible(gc())
+
 ### REPLACE --------------------------------------------------------------------
 
   cli_progress_step("{.strong Replace}")
@@ -187,6 +189,8 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   cli_progress_done()
   cli_text("\n\n")
+
+  invisible(gc())
 
 ### TOKENIZE -------------------------------------------------------------------
 
@@ -207,6 +211,8 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   cli_progress_done()
   cli_text("\n\n")
+
+  invisible(gc())
 
 ### MATCH ----------------------------------------------------------------------
 

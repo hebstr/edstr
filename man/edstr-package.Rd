@@ -9,7 +9,7 @@
 Un ensemble de fonctions pour importer, nettoyer et extraire des données textuelles de routine.
 }
 \author{
-\strong{Maintainer}: pas chatGPT \email{ju.diez@protonmail.com}
+\strong{Maintainer}: IN CLUDE \email{ju.diez@protonmail.com}
 
 }
 \keyword{internal}
