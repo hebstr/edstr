@@ -1,5 +1,5 @@
 ---
-title: "Exploration adu texte vec edstr_view()"
+title: "Exploration du texte avec edstr_view()"
 
 format: 
   html:
