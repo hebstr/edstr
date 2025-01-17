@@ -1,0 +1,33 @@
+---
+title: "Exploration adu texte vec edstr_view()"
+
+format: 
+  html:
+    toc: true
+    
+vignette: >
+  %\VignetteIndexEntry{Exploration adu texte vec edstr_view()}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{quarto::html}
+  
+knitr:
+  opts_knit: 
+    root.dir: S:/_CRPV_
+  opts_chunk:
+    collapse: true
+    comment: "#>"
+    echo: false
+    message: false
+    warning: false
+
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+#| include: false 
+
+library(edstr)
+```
+
+Test `edstr_view`

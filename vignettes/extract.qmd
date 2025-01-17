@@ -1,0 +1,37 @@
+---
+title: "Extraction avec edstr_extract()"
+
+format: 
+  html:
+    toc: true
+    
+vignette: >
+  %\VignetteIndexEntry{Extraction avec edstr_extract()}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{quarto::html}
+  
+knitr:
+  opts_knit: 
+    root.dir: S:/_CRPV_
+  opts_chunk:
+    collapse: true
+    comment: "#>"
+    echo: false
+    message: false
+    warning: false
+
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  eval =  FALSE,
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r}
+library(edstr)
+```

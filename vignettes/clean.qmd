@@ -1,26 +1,37 @@
 ---
-title: "Nettoyer avec edstr_clean()"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{Nettoyer avec edstr_clean()}
-  %\VignetteEncoding{UTF-8}
+title: "Nettoyage du texte avec edstr_clean()"
   
-  %\VignetteEngine{knitr::rmarkdown}
+format: 
+  html:
+    toc: true
+    
+vignette: >
+  %\VignetteIndexEntry{Nettoyage du texte avec edstr_clean()}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{quarto::html}
+  
+knitr:
+  opts_knit: 
+    root.dir: S:/_CRPV_
+  opts_chunk:
+    collapse: true
+    comment: "#>"
+    echo: false
+    message: false
+    warning: false
+
 editor_options: 
   chunk_output_type: console
 ---
 
-```{r, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
-)
+```{r}
+#| include: false
+
+library(edstr)
 library(glue)
 ```
 
-```{r}
-library(edstr)
-```
+### Prérequis
 
 La fonction `edstr_clean()` dépend des paramètres définis avec `edstr_config()` : celle-ci doit alors être exécutée en amont.
 
@@ -40,7 +51,7 @@ Il peut être produit de deux façons :
 
 ### Nettoyage d'un dataframe
 
-Admettons qu'un dataframe fut déjà importé dans le dossier ``r .config$dir`` avec `edstr_import()`.
+Admettons qu'un dataframe est déjà importé dans le dossier ``r .config$dir`` avec `edstr_import()`.
 Il peut être simplement chargé avec la fonction l'argument `load = TRUE`.
 
 ```{r}

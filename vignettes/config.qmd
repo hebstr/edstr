@@ -1,23 +1,32 @@
 ---
 title: "Définir une configuration par défaut avec edstr_config()"
-output: rmarkdown::html_vignette
+
+format: 
+  html:
+    toc: true
+    
 vignette: >
   %\VignetteIndexEntry{Définir une configuration par défaut avec edstr_config()}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{quarto::html}
   
-  %\VignetteEngine{knitr::rmarkdown}
+knitr:
+  opts_knit: 
+    root.dir: S:/_CRPV_
+  opts_chunk:
+    collapse: true
+    comment: "#>"
+    echo: false
+    message: false
+    warning: false
+
 editor_options: 
   chunk_output_type: console
 ---
 
-```{r, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
-)
-```
-
 ```{r}
+#| include: false
+
 library(edstr)
 ```
 

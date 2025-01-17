@@ -8,6 +8,13 @@
 \description{
 Un ensemble de fonctions pour importer, nettoyer et extraire des données textuelles de routine.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://codeberg.org/hebstr/edstr}
+}
+
+}
 \author{
 \strong{Maintainer}: IN CLUDE \email{ju.diez@protonmail.com}
 

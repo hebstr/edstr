@@ -1,18 +1,28 @@
 ---
 title: "Vue d'ensemble"
-output: rmarkdown::html_vignette
+
+format: 
+  html:
+    toc: true
+    
 vignette: >
   %\VignetteIndexEntry{Vue d'ensemble}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
----
+  %\VignetteEngine{quarto::html}
+  
+knitr:
+  opts_knit: 
+    root.dir: S:/_CRPV_
+  opts_chunk:
+    collapse: true
+    comment: "#>"
+    echo: false
+    message: false
+    warning: false
 
-```{r, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
-)
-```
+editor_options: 
+  chunk_output_type: console
+---
 
 Exemple de la détection des fractures de l'extrémité supérieure du fémur (FESF).
 

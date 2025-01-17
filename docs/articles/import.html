@@ -5,12 +5,14 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Importer avec edstr_import() • edstr</title>
+<title>Collecter avec edstr_import() • edstr</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Importer avec edstr_import()">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><script src="import_files/libs/quarto-html/popper.min.js"></script><script src="import_files/libs/quarto-html/tippy.umd.min.js"></script><link href="import_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="import_files/libs/quarto-html/light-border.css" rel="stylesheet">
+<!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Collecter avec edstr_import()">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -35,10 +37,10 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/config.html">Définir une configuration par défaut avec edstr_config()</a></li>
-    <li><a class="dropdown-item" href="../articles/import.html">Importer avec edstr_import()</a></li>
-    <li><a class="dropdown-item" href="../articles/clean.html">Nettoyer avec edstr_clean()</a></li>
+    <li><a class="dropdown-item" href="../articles/import.html">Collecter avec edstr_import()</a></li>
+    <li><a class="dropdown-item" href="../articles/clean.html">Nettoyage du texte avec edstr_clean()</a></li>
     <li><a class="dropdown-item" href="../articles/extract.html">Extraction avec edstr_extract()</a></li>
-    <li><a class="dropdown-item" href="../articles/explore.html">Explorer avec edstr_view()</a></li>
+    <li><a class="dropdown-item" href="../articles/explore.html">Exploration adu texte vec edstr_view()</a></li>
     <li><a class="dropdown-item" href="../articles/split.html">Splitage du texte</a></li>
   </ul>
 </li>
@@ -53,197 +55,248 @@
 
 
   </div>
-</nav><div class="container template-article">
-
-
-
-
+</nav><div class="container template-quarto">
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
 
-      <h1>Importer avec edstr_import()</h1>
-            
-      
-      <small class="dont-index">Source: <a href="https://codeberg.org/hebstr/edstr/src/branch/main/vignettes/import.Rmd"><code>vignettes/import.Rmd</code></a></small>
-      <div class="d-none name"><code>import.Rmd</code></div>
+      <h1>Collecter avec edstr_import()</h1>
+
+
+
+
+      <small class="dont-index">Source: <a href="https://codeberg.org/hebstr/edstr/src/branch/main/vignettes/import.qmd"><code>vignettes/import.qmd</code></a></small>
+      <div class="d-none name"><code></code></div>
     </div>
 
-    
-    
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">edstr</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Error in get(paste0(generic, ".", class), envir = get_method_env()) : </span></span>
-<span><span class="co">#&gt;   object 'type_sum.accel' not found</span></span></code></pre></div>
-<div class="section level3">
-<h3 id="prérequis">Prérequis<a class="anchor" aria-label="anchor" href="#pr%C3%A9requis"></a>
+
+
+
+
+
+    <section class="level3"><h3 id="prérequis">Prérequis<a class="anchor" aria-label="anchor" href="#pr%C3%A9requis"></a>
 </h3>
-<p>La fonction <code><a href="../reference/edstr_import.html">edstr_import()</a></code> dépend des paramètres définis
-avec <code><a href="../reference/edstr_config.html">edstr_config()</a></code> : celle-ci doit alors être exécutée en
-amont.</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">.r</span> <span class="op">&lt;-</span> <span class="st">"S:/_R_/config"</span></span>
-<span></span>
-<span><span class="fu"><a href="../reference/edstr_config.html">edstr_config</a></span><span class="op">(</span>dest_dir <span class="op">=</span> <span class="st">"S:/_CRPV_/data/emla"</span>,</span>
-<span>             dest_filename <span class="op">=</span> <span class="st">"emla"</span>,</span>
-<span>             str <span class="op">=</span> <span class="st">"{.r}/str.RData"</span>,</span>
-<span>             split <span class="op">=</span> <span class="st">"{.r}/split/output/mix/mix_split.RData"</span>,</span>
-<span>             concepts <span class="op">=</span> <span class="st">"{.r}/concepts.RData"</span>,</span>
-<span>             text <span class="op">=</span> <span class="st">"text"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">edstr_config</span> <span style="color: #00BBBB;">────────────────────────────────────────────────────────────────</span></span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="font-weight: bold;">Working directory:</span> <span style="color: #0000BB;">C:/Users/julien.elicesdiez/Documents/edstr/vignettes</span></span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="font-weight: bold;">Destination</span></span></span>
-<span><span class="co">#&gt; • Existing directory: <span style="color: #0000BB;">S:/_CRPV_/data/emla</span></span></span>
-<span><span class="co">#&gt; • Filename: <span style="color: #BB0000;">emla</span></span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="font-weight: bold;">Configuration file:</span> <span style="color: #00BB00; font-weight: bold;">.config</span></span></span>
-<span><span class="co">#&gt;   • Replacement list: <span style="color: #00BB00;">.str</span></span></span>
-<span><span class="co">#&gt;   • Concepts list: <span style="color: #00BB00;">.concepts</span></span></span>
-<span><span class="co">#&gt;   • Split list: <span style="color: #00BB00;">mix_split</span></span></span>
-<span><span class="co">#&gt;   • Text input: <span style="color: #00BB00;">text</span></span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ────────────────────────────────────────────────────────────────────────────────</span></span></code></pre></div>
-<p>La fonction <code><a href="../reference/edstr_import.html">edstr_import()</a></code> produit un dataframe portant
-le nom défini dans <code><a href="../reference/edstr_config.html">edstr_config()</a></code> (argument
-<code>dest_filename</code>) suivi du suffixe <code>_import</code>. Dans
-cet exemple, il sera donc nommé <code>emla_import</code>.</p>
+<p>La fonction <code><a href="../reference/edstr_import.html">edstr_import()</a></code> dépend des paramètres définis avec <code><a href="../reference/edstr_config.html">edstr_config()</a></code> : celle-ci doit alors être exécutée en amont.</p>
+<p>La fonction <code><a href="../reference/edstr_import.html">edstr_import()</a></code> produit un dataframe portant le nom défini dans <code><a href="../reference/edstr_config.html">edstr_config()</a></code> (argument <code>dest_filename</code>) suivi du suffixe <code>_import</code>. Dans cet exemple, il sera donc nommé <code>emla_import</code>.</p>
 <p>Il peut être produit de deux façons :</p>
 <ul>
 <li>Importation d’un dataframe depuis une base de données</li>
 <li>Chargement d’un dataframe déjà importé</li>
-</ul>
-</div>
-<div class="section level3">
-<h3 id="importation-dun-dataframe">Importation d’un dataframe<a class="anchor" aria-label="anchor" href="#importation-dun-dataframe"></a>
+</ul></section><section class="level3"><h3 id="importation-dun-dataframe">Importation d’un dataframe<a class="anchor" aria-label="anchor" href="#importation-dun-dataframe"></a>
 </h3>
-<p>On peut procéder à l’importation avec <code><a href="../reference/edstr_import.html">edstr_import()</a></code> en
-précisant a minima la requête et les paramètres de connexion de la
-base.</p>
-<p>Le dataframe importé est automatiquement sauvegardé en .RData dans le
-répertoire défini avec <code><a href="../reference/edstr_config.html">edstr_config()</a></code> (argument
-<code>dest_dir</code>).</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<p>On peut procéder à l’importation avec <code><a href="../reference/edstr_import.html">edstr_import()</a></code> en précisant a minima la requête et les paramètres de connexion de la base.</p>
+<p>Le dataframe importé est automatiquement sauvegardé en .RData dans le répertoire défini avec <code><a href="../reference/edstr_config.html">edstr_config()</a></code> (argument <code>dest_dir</code>).</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/edstr_import.html">edstr_import</a></span><span class="op">(</span>query <span class="op">=</span> <span class="st">"select * from test_urg"</span>,</span>
 <span>             connect_dir <span class="op">=</span> <span class="st">"S:/_R_/database_connection"</span>,</span>
 <span>             user <span class="op">=</span> <span class="st">"w_etudes"</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">edstr_import</span> <span style="color: #00BBBB;">────────────────────────────────────────────────────────────────</span></span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #555555;">[1] │</span> select id_entrepot, id_sej, iep, id_pat, ipp,</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>        datenais date_nais, age_pat age, sexe,</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>        annee_entree, annee_sortie, date_entree, date_sortie,</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>        round(date_sortie - date_entree, 1) duree_sej,</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>        to_date(date_sortie) - to_date(date_entree) nb_nuit,</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>        date_deces_chu, date_deces_insee,</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>        to_date(date_deces_chu) - date_deces_insee deces_diff,</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>        to_date(date_deces_chu) - to_date(date_sortie) sortie_deces_chu_diff,</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>        to_date(date_deces_insee) - to_date(date_sortie) sortie_deces_insee_diff,</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>        uf code_uf_doc, uf_entree code_uf_entree, libelle_uf libelle_uf_entree,</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>        titre, type_doc,</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>        regexp_replace(</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>            regexp_replace(</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>                regexp_replace(</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>                    regexp_replace(</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>                        regexp_replace(texte_affichage,</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>                        '\&lt;!-- Page \d+ --\&gt;\s\&lt;a name=\"\d+\"\&gt;\&lt;/a\&gt;\s', ''),</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>                    '\&lt;!--\s+p {.+}|\&lt;(/|!\w+\s)?(html|head|title|meta|div|style).*\&gt;', ''),</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>                ' (style|class|id|bgcolor|v?link)=.+\"|.ft\d+{.+}', ''),</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>            '\.x?y?flip.+(\s+.+){6}|\&lt;!--|--\&gt;|\&lt;/?(i|b)\&gt;|\s{3}|\&lt;p\&gt; \&lt;/p\&gt;', ''),</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>        '\s*(\[\w+_?\w+\]|&amp;#160;|(_|-){10,})\s*', ' ') text</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span> from(</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>      select eh.id_entrepot, eh.id_pat, eh.id_sej, eh.uf, eh.age_pat,</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>             eh.titre, eh.type_doc, eh.texte_affichage,</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>             epm.ipp,</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>             es.date_entree, es.date_sortie, es.annee_entree, es.annee_sortie, es.uf_entree,</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>             de.date_deces_insee, de.date_deces_chu,</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>             uf.libelle_uf,</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>             esm.iep,</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>             ep.sexe, ep.datenais</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>      from(</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>           select *</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>           from edbm_eds.ehop_entrepot</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>           where not regexp_like(type_doc, 'RSS|RUM|LN:|HISTO|ANATCYTO|FICHEARRIV|ORD|PHARMA|TTTAUT|BIOL|TRACA|RCP|IMAG|CERTIF|CERFA|VIDE|DI|AUTRE')</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>             and not regexp_like(titre, 'intervention|anapath|non venu', 'i')</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>             and age_pat &lt;= 15</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>          ) eh</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>      inner join(</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>                 select *</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>                 from edbm_eds.ehop_texte</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>                 where certitude = '1'</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>                   and rang_contexte = '1'</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>                   and contexte = 'texte'</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>                   and contains(texte, q'[m%t%gl%b%n% AND (emla% OR lido%)]') &gt; 0</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>                ) et</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>              on eh.id_entrepot = et.id_entrepot</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>      inner join(</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>                 select *</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>                 from edbm_zpat.ehop_patient_mapping epm</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>                 where retrait = '0'</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>                   and not exists(</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>                                  select ipp</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>                                  from noyau_eds.patients_opposition op</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>                                  where epm.ipp = op.ipp</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>                                 )</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>                ) epm</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>             on eh.id_pat = epm.id_pat</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>      left join(</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>                select es.*,</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>                       extract(year from date_entree) annee_entree,</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>                       extract(year from date_sortie) annee_sortie</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>                from edbm_eds.ehop_sejour es</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>               ) es</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>             on eh.id_sej = es.id_sej</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>      left join structure_chu_historique uf</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>             on es.annee_entree = uf.exercice</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>            and es.uf_entree = uf.code_uf</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>      left join edbm_zpat.ehop_sejour_mapping esm</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>             on eh.id_sej = esm.id_sej</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>      left join edbm_eds.ehop_patient ep</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>             on eh.id_pat = ep.id_pat</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>      left join data_eds.deces_eds de</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>             on eh.id_pat = de.id_pat</span></span>
-<span><span class="co">#&gt;     <span style="color: #555555;">│</span>     )</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Import (user: <span style="font-weight: bold;">w_etudes</span>)</span></span>
-<span><span class="co">#&gt; Warning: &lt;JDBCConnection&gt; uses an old dbplyr interface</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> Please install a newer version of the package or contact the maintainer</span></span>
-<span><span class="co">#&gt; <span style="color: #555555;">This warning is displayed once every 8 hours.</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Import (user: <span style="font-weight: bold;">w_etudes</span>) <span style="color: #B2B2B2;">[4.4s]</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Saving <span style="font-weight: bold;">emla_import</span><span style="color: #00BB00;">✔</span> Saving <span style="font-weight: bold;">emla_import</span> <span style="color: #B2B2B2;">[49ms]</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="font-weight: bold;">emla_import</span> saved to <span style="color: #0000BB;">S:/_CRPV_/data/emla/emla_import.RData</span></span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="font-weight: bold;">Dimensions</span></span></span>
-<span><span class="co">#&gt; • 22 documents</span></span>
-<span><span class="co">#&gt; • 25 features</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ────────────────────────────────────────────────────────────────────────────────</span></span></code></pre>
+<div class="cell">
+<pre><code><span><span class="co">#&gt; [1] │ select id_entrepot, id_sej, iep, id_pat, ipp,</span></span>
+<span><span class="co">#&gt;     │        datenais date_nais, age_pat age, sexe,</span></span>
+<span><span class="co">#&gt;     │        annee_entree, annee_sortie, date_entree, date_sortie,</span></span>
+<span><span class="co">#&gt;     │        round(date_sortie - date_entree, 1) duree_sej,</span></span>
+<span><span class="co">#&gt;     │        to_date(date_sortie) - to_date(date_entree) nb_nuit,</span></span>
+<span><span class="co">#&gt;     │        date_deces_chu, date_deces_insee,</span></span>
+<span><span class="co">#&gt;     │        to_date(date_deces_chu) - date_deces_insee deces_diff,</span></span>
+<span><span class="co">#&gt;     │        to_date(date_deces_chu) - to_date(date_sortie) sortie_deces_chu_diff,</span></span>
+<span><span class="co">#&gt;     │        to_date(date_deces_insee) - to_date(date_sortie) sortie_deces_insee_diff,</span></span>
+<span><span class="co">#&gt;     │        code_uf_sejour,</span></span>
+<span><span class="co">#&gt;     │        uf_entree code_uf_entree, libelle_uf_entree,</span></span>
+<span><span class="co">#&gt;     │        uf code_uf_doc, libelle_uf_doc,</span></span>
+<span><span class="co">#&gt;     │        titre, type_doc,</span></span>
+<span><span class="co">#&gt;     │        regexp_replace(</span></span>
+<span><span class="co">#&gt;     │            regexp_replace(</span></span>
+<span><span class="co">#&gt;     │                regexp_replace(</span></span>
+<span><span class="co">#&gt;     │                    regexp_replace(</span></span>
+<span><span class="co">#&gt;     │                        regexp_replace(texte_affichage,</span></span>
+<span><span class="co">#&gt;     │                        '\&lt;!-- Page \d+ --\&gt;\s\&lt;a name=\"\d+\"\&gt;\&lt;/a\&gt;\s', ''),</span></span>
+<span><span class="co">#&gt;     │                    '\&lt;!--\s+p {.+}|\&lt;(/|!\w+\s)?(html|head|title|meta|div|style).*\&gt;', ''),</span></span>
+<span><span class="co">#&gt;     │                ' (style|class|id|bgcolor|v?link)=.+\"|.ft\d+{.+}', ''),</span></span>
+<span><span class="co">#&gt;     │            '\.x?y?flip.+(\s+.+){6}|\&lt;!--|--\&gt;|\&lt;/?(i|b)\&gt;|\s{3}|\&lt;p\&gt; \&lt;/p\&gt;', ''),</span></span>
+<span><span class="co">#&gt;     │        '\s*(\[\w+_?\w+\]|&amp;#160;|(_|-){10,})\s*', ' ') text</span></span>
+<span><span class="co">#&gt;     │ from(</span></span>
+<span><span class="co">#&gt;     │      select eh.id_entrepot, eh.id_pat, eh.id_sej, eh.uf, eh.age_pat,</span></span>
+<span><span class="co">#&gt;     │             eh.titre, eh.type_doc, eh.texte_affichage,</span></span>
+<span><span class="co">#&gt;     │             epm.ipp,</span></span>
+<span><span class="co">#&gt;     │             es.date_entree, es.date_sortie, es.annee_entree, es.annee_sortie, es.uf_entree,</span></span>
+<span><span class="co">#&gt;     │             de.date_deces_insee, de.date_deces_chu,</span></span>
+<span><span class="co">#&gt;     │             str_e.libelle_uf_entree,</span></span>
+<span><span class="co">#&gt;     │             str_d.libelle_uf_doc,</span></span>
+<span><span class="co">#&gt;     │             uf.code_uf_sejour,</span></span>
+<span><span class="co">#&gt;     │             esm.iep,</span></span>
+<span><span class="co">#&gt;     │             ep.sexe, ep.datenais</span></span>
+<span><span class="co">#&gt;     │      from(</span></span>
+<span><span class="co">#&gt;     │           select *</span></span>
+<span><span class="co">#&gt;     │           from edbm_eds.ehop_entrepot</span></span>
+<span><span class="co">#&gt;     │           where not regexp_like(type_doc, 'RSS|RUM|LN:|HISTORIQUE|ORDSORT')</span></span>
+<span><span class="co">#&gt;     │             and not regexp_like(titre, 'rapport d''intervention|check list', 'i')</span></span>
+<span><span class="co">#&gt;     │             and age_pat &lt;= 15</span></span>
+<span><span class="co">#&gt;     │          ) eh</span></span>
+<span><span class="co">#&gt;     │      inner join(</span></span>
+<span><span class="co">#&gt;     │                 select *</span></span>
+<span><span class="co">#&gt;     │                 from edbm_eds.ehop_texte</span></span>
+<span><span class="co">#&gt;     │                 where certitude = '1'</span></span>
+<span><span class="co">#&gt;     │                   and rang_contexte = '1'</span></span>
+<span><span class="co">#&gt;     │                   and contexte = 'texte'</span></span>
+<span><span class="co">#&gt;     │                   and contains(texte, q'[m%t%ogl%b% OR m%t%hb%]') &gt; 0</span></span>
+<span><span class="co">#&gt;     │                ) et</span></span>
+<span><span class="co">#&gt;     │              on eh.id_entrepot = et.id_entrepot</span></span>
+<span><span class="co">#&gt;     │      inner join(</span></span>
+<span><span class="co">#&gt;     │                 select *</span></span>
+<span><span class="co">#&gt;     │                 from edbm_zpat.ehop_patient_mapping epm</span></span>
+<span><span class="co">#&gt;     │                 where retrait = '0'</span></span>
+<span><span class="co">#&gt;     │                   and not exists(</span></span>
+<span><span class="co">#&gt;     │                                  select ipp</span></span>
+<span><span class="co">#&gt;     │                                  from noyau_eds.patients_opposition op</span></span>
+<span><span class="co">#&gt;     │                                  where epm.ipp = op.ipp</span></span>
+<span><span class="co">#&gt;     │                                 )</span></span>
+<span><span class="co">#&gt;     │                ) epm</span></span>
+<span><span class="co">#&gt;     │             on eh.id_pat = epm.id_pat</span></span>
+<span><span class="co">#&gt;     │      left join(</span></span>
+<span><span class="co">#&gt;     │                select es.*,</span></span>
+<span><span class="co">#&gt;     │                       extract(year from date_entree) annee_entree,</span></span>
+<span><span class="co">#&gt;     │                       extract(year from date_sortie) annee_sortie</span></span>
+<span><span class="co">#&gt;     │                from edbm_eds.ehop_sejour es</span></span>
+<span><span class="co">#&gt;     │                order by id_pat, date_entree</span></span>
+<span><span class="co">#&gt;     │               ) es</span></span>
+<span><span class="co">#&gt;     │             on eh.id_sej = es.id_sej</span></span>
+<span><span class="co">#&gt;     │      left join(</span></span>
+<span><span class="co">#&gt;     │                select exercice, code_uf, libelle_uf libelle_uf_entree</span></span>
+<span><span class="co">#&gt;     │                from structure_chu_historique</span></span>
+<span><span class="co">#&gt;     │               ) str_e</span></span>
+<span><span class="co">#&gt;     │             on es.annee_entree = str_e.exercice</span></span>
+<span><span class="co">#&gt;     │            and es.uf_entree = str_e.code_uf</span></span>
+<span><span class="co">#&gt;     │      left join(</span></span>
+<span><span class="co">#&gt;     │                select exercice, code_uf, libelle_uf libelle_uf_doc</span></span>
+<span><span class="co">#&gt;     │                from structure_chu_historique</span></span>
+<span><span class="co">#&gt;     │               ) str_d</span></span>
+<span><span class="co">#&gt;     │             on es.annee_entree = str_d.exercice</span></span>
+<span><span class="co">#&gt;     │            and eh.uf = str_d.code_uf</span></span>
+<span><span class="co">#&gt;     │      left join(</span></span>
+<span><span class="co">#&gt;     │                select id_sej,</span></span>
+<span><span class="co">#&gt;     │                       listagg(uf, ';') within group (order by date_entree) code_uf_sejour</span></span>
+<span><span class="co">#&gt;     │                from edbm_eds.ehop_sejour_uf</span></span>
+<span><span class="co">#&gt;     │                group by id_sej</span></span>
+<span><span class="co">#&gt;     │               ) uf</span></span>
+<span><span class="co">#&gt;     │             on eh.id_sej = uf.id_sej</span></span>
+<span><span class="co">#&gt;     │      left join edbm_zpat.ehop_sejour_mapping esm</span></span>
+<span><span class="co">#&gt;     │             on eh.id_sej = esm.id_sej</span></span>
+<span><span class="co">#&gt;     │      left join edbm_eds.ehop_patient ep</span></span>
+<span><span class="co">#&gt;     │             on eh.id_pat = ep.id_pat</span></span>
+<span><span class="co">#&gt;     │      left join data_eds.deces_eds de</span></span>
+<span><span class="co">#&gt;     │             on eh.id_pat = de.id_pat</span></span>
+<span><span class="co">#&gt;     │     )</span></span></code></pre>
 </div>
-<div class="section level3">
-<h3 id="chargement-dun-dataframe-déjà-importé">Chargement d’un dataframe déjà importé<a class="anchor" aria-label="anchor" href="#chargement-dun-dataframe-d%C3%A9j%C3%A0-import%C3%A9"></a>
+</section><section class="level3"><h3 id="chargement-dun-dataframe-déjà-importé">Chargement d’un dataframe déjà importé<a class="anchor" aria-label="anchor" href="#chargement-dun-dataframe-d%C3%A9j%C3%A0-import%C3%A9"></a>
 </h3>
-<p>Si un dataframe est déjà importé dans le dossier
-S:/<em>CRPV</em>/data/emla, celui-ci peut être simplement chargé avec
-l’argument <code>load = TRUE</code>.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/edstr_import.html">edstr_import</a></span><span class="op">(</span>load <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">edstr_import</span> <span style="color: #00BBBB;">────────────────────────────────────────────────────────────────</span></span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Loading <span style="font-weight: bold;">emla_import</span><span style="color: #00BB00;">✔</span> Loading <span style="font-weight: bold;">emla_import</span> <span style="color: #B2B2B2;">[90ms]</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="font-weight: bold;">emla_import</span> loaded from <span style="color: #0000BB;">S:/_CRPV_/data/emla/emla_import.RData</span></span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ────────────────────────────────────────────────────────────────────────────────</span></span></code></pre></div>
-</div>
-  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+<p>Si un dataframe est déjà importé dans le dossier emla/data, celui-ci peut être simplement chargé avec l’argument <code>load = TRUE</code>.</p>
+</section><script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'light-border',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config);
+  }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script></main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
 </div>
 
 
-
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by pas chatGPT.</p>
+  <p>Developed by IN CLUDE.</p>
 </div>
 
 <div class="pkgdown-footer-right">
