@@ -342,9 +342,11 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   regex_replace <- list2(!!glue("[e{regex_replace}]") := "\\\\w") |> unlist()
 
+  # "\\\\s?[:punct:]?[:symbol:]?\\\\s?"
+
   data_regex <-
   list(chr = regex_replace,
-       space = c("\\s" = "\\\\s?[:punct:]?[:symbol:]?\\\\s?")) |>
+       space = c("\\s" = ".")) |>
     reduce(str_replace_all,
            .init =
              paste(data_count[[text_input]],

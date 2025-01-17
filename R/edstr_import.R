@@ -49,6 +49,8 @@ edstr_import <- \(dest_dir = NULL,
 
   if (!load) {
 
+    tic("Full steps")
+
 ### CONNECT --------------------------------------------------------------------
 
     Sys.setenv(JAVA_HOME = glue("{connect_dir}/{env}"),
@@ -119,6 +121,10 @@ edstr_import <- \(dest_dir = NULL,
                config_file,
                config_save)
 
+      cli_text("\n\n")
+      toc()
+      cli_text("\n\n")
+
     } else {
 
       cli_text("\n\n")
@@ -127,6 +133,8 @@ edstr_import <- \(dest_dir = NULL,
       data_import <- tbl(conn, sql(query)) |> collect()
 
       cli_progress_done()
+      cli_text("\n\n")
+      toc()
       cli_text("\n\n")
 
       print(data_import)

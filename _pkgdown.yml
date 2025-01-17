@@ -7,8 +7,6 @@ template:
     primary: "#0099EE"
     navbar-bg: "#0099EE"
     headings-color: "#0099EE"
-  base_font:
-    google: "Luciole"
 
 repo:
   url:
