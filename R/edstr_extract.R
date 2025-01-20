@@ -10,7 +10,6 @@
 #' @param id
 #' @param group
 #' @param ngrams
-#' @param nchar_max
 #' @param concepts
 #' @param wrap
 #' @param limits
@@ -44,7 +43,6 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                    id = "",
                    group = "",
                    ngrams = 1,
-                   nchar_max = 8000,
                    concepts,
                    wrap = TRUE,
                    limits = c("start-end", "start", "end", "asis"),
@@ -368,17 +366,23 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   data_extract <-
   lst(base =
-        list2(data = data |> select(-text_input),
+        list2(data =
+                data |>
+                  rename(fulltext = text_input) |>
+                  mutate(extract_full =
+                           fulltext |>
+                             str_extract_all(data_regex) |>
+                             map_chr(~ paste0(., collapse = " ; "))),
               concept =
                 data_id |>
                   distinct(pick(id, group), concept) |>
                   pivot_wider(names_from = concept,
                               values_from = concept) |>
                   mutate(across(any_of(names(concepts)), ~ ifelse(!is.na(.), 1, 0))),
-              expr =
+              extract =
                 data_id |>
                   distinct(pick(id, group, text_input)) |>
-                  mutate(extract = str_flatten(get(text_input), " ; "),
+                  mutate(extract_unique = str_flatten(get(text_input), " ; "),
                          .by = id,
                          .keep = "unused") |>
                   distinct(),
@@ -387,15 +391,11 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                   mutate(!!text_input := str_flatten(get(text_input), " ; "),
                          .by = id) |>
                   distinct()) |>
-          reduce(inner_join, by = c(id, group)) |>
-          mutate(nchar = nchar(get(text_input))),
+          reduce(inner_join, by = c(id, group)),
       output =
         base |>
-          select(id, group, any_of(names(concepts)), extract, text_input))
-
-  data_exclus_nchar <- data_extract$base |> filter(nchar > nchar_max)
-
-  data_extract$base <- data_extract$base |> filter(nchar <= nchar_max)
+          select(id, group, any_of(names(concepts)),
+                 extract_unique, extract_full, text_input, fulltext))
 
   set_summary <- \(var) {
 
@@ -518,14 +518,10 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
     .xlsx_output <-
     wb_workbook() |>
       wb_add_custom(sheet = "data",
-                    data =
-                      data_extract$base |>
-                        select(-text_input) |>
-                        mutate(nchar = "") |>
-                        rename(commentaires = nchar),
+                    data = data_extract$base |> select(-text_input),
                     concept_var = unique(data_count$concept),
                     concept_color = concept_color,
-                    text_var = "extract",
+                    text_var = "extract_full",
                     text_color = text_color) |>
       wb_add_custom(sheet = "match",
                     data = data_id,
@@ -573,7 +569,13 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                       !!group :=
                         colDef(width = 110,
                                sticky = "left"),
-                      extract =
+                      extract_unique =
+                        colDef(html = TRUE,
+                               minWidth = 200,
+                               style =
+                                 list(color = text_color,
+                                      fontWeight = "bold")),
+                      extract_full =
                         colDef(html = TRUE,
                                minWidth = 200,
                                style =
@@ -598,22 +600,22 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   }
 
+  .highlight <-
+  paste0(c(glue("color:{text_color}"),
+           glue("background-color:{text_background}"),
+           glue("font-weight:bold")),
+         collapse = ";")
+
   if (html_popup) html_save <- TRUE
 
   if (html_save) {
 
     cli_progress_step("{.strong HTML output}")
 
-
-    .highlight <-
-    paste0(c(glue("color:{text_color}"),
-             glue("background-color:{text_background}"),
-             glue("font-weight:bold")),
-           collapse = ";")
-
     data_output <-
     data_extract$output |>
-      mutate(extract = extract |> str_replace_all(" ; ", "<br>"),
+      mutate(extract_unique = str_replace_all(extract_unique, " ; ", "<br>"),
+             extract_full = str_replace_all(extract_full, " ; ", "<br>"),
              !!text_input :=
                get(text_input) |>
                  str_replace_all(" ; ", "<br><br>") |>
@@ -621,6 +623,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                                  glue("<span style='{.highlight}'>")) |>
                  str_replace_all(glue("(?<={data_regex})"),
                                  "</span>")) |>
+      select(-fulltext) |>
       set_reactable()
 
     .html_output <- glue("{save_extract}.html")
@@ -636,6 +639,16 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
     data_output <- NULL
 
   }
+
+  data_output_full <-
+  data_extract$base |>
+    mutate(fulltext :=
+             fulltext |>
+               str_replace_all(glue("(?={data_regex})"),
+                               glue("<span style='{.highlight}'>")) |>
+               str_replace_all(glue("(?<={data_regex})"),
+                               "</span>")) |>
+    select(-text_input)
 
 ### SAVE DATA ------------------------------------------------------------------
 
@@ -662,14 +675,14 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
               final = data_count),
        exclus =
          list(match = data_match_exclus,
-              count = data_count_exclus,
-              nchar = data_exclus_nchar),
+              count = data_count_exclus),
        mismatch =
          data[c(id, group, text_input)] |>
            filter(!get(id) %in% data_extract$base[[id]]),
        summary = data_summary,
        data = data_extract,
-       output = data_output)
+       output = data_output,
+       output_full = data_output_full)
 
   assign(glue(save_files),
          data_save,
@@ -784,7 +797,6 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   cli_ul()
     cli_li("Auto: {nrow(data_match_exclus$auto)}")
     cli_li("Manual: {nrow(data_match_exclus$manual)}")
-    cli_li("Over {nchar_max} characters: {nrow(data_exclus_nchar)}")
     cli_end()
 
   cli_text("\n\n")
@@ -820,7 +832,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   cli_text("\n\n")
   cli_alert_success("{.strong {cli_n_files} files saved in {.path {here(save_dir)}}}")
   cli_ul()
-    cli_li("Data: {col_red(glue('{save_files}.Rdata'))}")
+    cli_li("Data: {col_red(glue('{save_files}.RData'))}")
     cli_li("CSV output: {col_red(glue('{save_files}.csv'))}")
     if (html_save) cli_li("HTML output: {col_red(glue('{save_files}.html'))}")
     if (xlsx_save) cli_li("XLSX output: {col_red(glue('{save_files}.xlsx'))}")

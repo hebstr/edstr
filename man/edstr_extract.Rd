@@ -15,7 +15,6 @@ edstr_extract(
   id = "",
   group = "",
   ngrams = 1,
-  nchar_max = 8000,
   concepts,
   wrap = TRUE,
   limits = c("start-end", "start", "end", "asis"),
