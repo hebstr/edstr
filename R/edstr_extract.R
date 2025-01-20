@@ -11,11 +11,12 @@
 #' @param group
 #' @param ngrams
 #' @param concepts
-#' @param wrap
+#' @param concepts_collapse
 #' @param limits
 #' @param exclus_manual
 #' @param exclus_auto_except
 #' @param regex_replace
+#' @param text_wrap
 #' @param html_save
 #' @param html_popup
 #' @param xlsx_save
@@ -44,11 +45,12 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                    group = "",
                    ngrams = 1,
                    concepts,
-                   wrap = TRUE,
+                   concepts_collapse = FALSE,
                    limits = c("start-end", "start", "end", "asis"),
                    exclus_manual = NULL,
                    exclus_auto_except = NULL,
                    regex_replace = "",
+                   text_wrap = TRUE,
                    html_save = FALSE,
                    html_popup = FALSE,
                    xlsx_save = TRUE,
@@ -70,6 +72,8 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   } else config <- get(.config_name)
 
   config_str <- with(config, str)
+
+### CONCEPTS -------------------------------------------------------------------
 
   if (length(concepts) > 1) {
 
@@ -97,11 +101,21 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   }
 
-  concepts <-
-  concepts |>
-    pluck_depth() |>
-    seq() |>
-    reduce(~ list_flatten(.), .init = concepts)
+  if (concepts_collapse) {
+
+    concepts <- concepts |> map(paste, collapse = "|")
+
+  } else {
+
+    concepts <-
+    concepts |>
+      pluck_depth() |>
+      seq() |>
+      reduce(~ list_flatten(.), .init = concepts)
+
+  }
+
+### ----------------------------------------------------------------------------
 
   if (is.character(data)) data <- get(data)
 
@@ -338,6 +352,10 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   cli_progress_step("{.strong Extract}")
 
+  regex_init <-
+  tibble(concept = names(concepts),
+         regex = map_chr(concepts, ~ glue("^({.})$")))
+
   regex_replace <- list2(!!glue("[e{regex_replace}]") := "\\\\w") |> unlist()
 
   # "\\\\s?[:punct:]?[:symbol:]?\\\\s?"
@@ -352,7 +370,13 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   data_regex <- glue("(?i)\\b({data_regex})\\b")
 
-  set_wrap <- \(x) if (wrap) unique(sort(c(x - 1, x, x + 1))) else x
+  data_regex_match <-
+  edstr_view(data = data,
+             str = data_regex,
+             id = id,
+             quiet = TRUE)
+
+  set_wrap <- \(x) if (text_wrap) unique(sort(c(x - 1, x, x + 1))) else x
 
   .index <-
   data_split[[text_input]] |>
@@ -395,7 +419,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
       output =
         base |>
           select(id, group, any_of(names(concepts)),
-                 extract_unique, extract_full, text_input, fulltext))
+                 extract_full, text_input, fulltext))
 
   set_summary <- \(var) {
 
@@ -405,7 +429,10 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
          final = data_id,
          distinct = data_count) |>
       set_names(~ glue("match_{.}")) |>
-      imap(~ .x |> count(pick(all_of(var)), name = .y))
+      imap(~ .x |>
+             count(pick(all_of(var)),
+                   sort = TRUE,
+                   name = .y))
 
   }
 
@@ -433,16 +460,19 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
     cli_progress_step("{.strong XLSX output}")
 
     wb_add_custom <- \(x,
-                   sheet,
-                   data,
-                   font_size = 8,
-                   font_color = "#222222",
-                   concept_var = "concept",
-                   concept_color = NULL,
-                   text_var = with(config, text),
-                   text_color = NULL,
-                   border_color = "#999999",
-                   border_type = "thin") {
+                       sheet,
+                       ...,
+                       data,
+                       width = "auto",
+                       halign = "center",
+                       font_size = 8,
+                       font_color = "#222222",
+                       concept_var = "concept",
+                       concept_color = NULL,
+                       text_var = with(config, text),
+                       text_color = NULL,
+                       border_color = "#999999",
+                       border_type = "thin") {
 
       if (!exists(".config_name")) {
 
@@ -452,9 +482,11 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
       .xlsx_output <-
       x |>
-        wb_add_worksheet(sheet = sheet) |>
+        wb_add_worksheet(sheet = sheet,
+                         zoom = 115,
+                         ...) |>
         wb_add_data_table(x = data,
-                          na.strings = fmt_txt("")) |>
+                          na.strings = NULL) |>
         wb_add_font(dims = wb_dims(x = data, select = "col_names"),
                     size = font_size + 1,
                     bold = TRUE) |>
@@ -462,10 +494,11 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                     size = font_size) |>
         wb_add_fill(dims = wb_dims(x = data, select = "col_names"),
                     color = wb_color("grey90")) |>
-        wb_set_col_widths(cols = 1:ncol(data), widths = "auto") |>
+        wb_set_col_widths(cols = 1:ncol(data), widths = width) |>
         wb_add_cell_style(dims = wb_dims(x = data),
-                          horizontal = "center",
-                          vertical = "center") |>
+                          horizontal = halign,
+                          vertical = "center",
+                          wrap_text = TRUE) |>
         wb_add_border(dims = wb_dims(x = data),
                       top_color = wb_color(border_color),
                       top_border = border_type,
@@ -518,20 +551,33 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
     .xlsx_output <-
     wb_workbook() |>
       wb_add_custom(sheet = "data",
-                    data = data_extract$base |> select(-text_input),
+                    data =
+                      data_extract$base |>
+                        select(-fulltext, -text_input, -extract_full),
                     concept_var = unique(data_count$concept),
                     concept_color = concept_color,
-                    text_var = "extract_full",
+                    text_var = "extract_unique",
                     text_color = text_color) |>
-      wb_add_custom(sheet = "match",
+      wb_add_custom(sheet = "match_total",
                     data = data_id,
                     concept_color = concept_color,
                     text_color = text_color) |>
-      wb_add_custom(sheet = "concepts",
-                    data = data_count,
+      wb_add_custom(sheet = "regex_init",
+                    data = regex_init,
+                    halign = "left") |>
+      wb_add_custom(sheet = "regex_final",
+                    data = tibble(regex_final = data_regex),
+                    width = 100,
+                    halign = "left") |>
+      wb_add_custom(sheet = "regex_match",
+                    data = data_regex_match,
+                    text_var = "match",
+                    text_color = text_color) |>
+      wb_add_custom(sheet = "match_count",
+                    data = data_count |> select(-ngrams),
                     concept_color = concept_color,
                     text_color = text_color) |>
-      wb_add_custom(sheet = "summary",
+      wb_add_custom(sheet = "concepts",
                     data = data_summary$concept,
                     concept_color = concept_color) |>
       wb_save(file = glue("{save_extract}.xlsx"))
@@ -569,12 +615,6 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                       !!group :=
                         colDef(width = 110,
                                sticky = "left"),
-                      extract_unique =
-                        colDef(html = TRUE,
-                               minWidth = 200,
-                               style =
-                                 list(color = text_color,
-                                      fontWeight = "bold")),
                       extract_full =
                         colDef(html = TRUE,
                                minWidth = 200,
@@ -614,8 +654,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
     data_output <-
     data_extract$output |>
-      mutate(extract_unique = str_replace_all(extract_unique, " ; ", "<br>"),
-             extract_full = str_replace_all(extract_full, " ; ", "<br>"),
+      mutate(extract_full = str_replace_all(extract_full, " ; ", "<br>"),
              !!text_input :=
                get(text_input) |>
                  str_replace_all(" ; ", "<br><br>") |>
@@ -657,16 +696,10 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   data_save <-
   list(split = data_split_match,
        regex =
-         lst(init =
-               tibble(concept = names(concepts),
-                      regex = map_chr(concepts, ~ glue("^({.})$"))),
+         lst(init = regex_init,
              replace = regex_replace,
              final = data_regex,
-             match =
-               edstr_view(data = data,
-                          str = final,
-                          id = id,
-                          quiet = TRUE)),
+             match = data_regex_match),
        match =
          list(init = data_match,
               final = data_match_final),
