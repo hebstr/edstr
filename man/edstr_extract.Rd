@@ -17,11 +17,11 @@ edstr_extract(
   ngrams = 1,
   concepts,
   concepts_collapse = FALSE,
-  wrap = TRUE,
   limits = c("start-end", "start", "end", "asis"),
   exclus_manual = NULL,
   exclus_auto_except = NULL,
   regex_replace = "",
+  text_wrap = TRUE,
   html_save = FALSE,
   html_popup = FALSE,
   xlsx_save = TRUE,
@@ -30,7 +30,7 @@ edstr_extract(
   str_view = TRUE,
   concept_color = "#0099EE",
   text_color = "red",
-  text_background = "#FFFFFF",
+  text_background = "#FFFF44",
   dir_suffix = sample,
   filename_suffix = sample
 )

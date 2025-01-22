@@ -59,7 +59,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                    str_view = TRUE,
                    concept_color = "#0099EE",
                    text_color = "red",
-                   text_background = "#FFFFFF",
+                   text_background = "#FFFF44",
                    dir_suffix = sample,
                    filename_suffix = sample) {
 
@@ -356,13 +356,13 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   tibble(concept = names(concepts),
          regex = map_chr(concepts, ~ glue("^({.})$")))
 
-  regex_replace <- list2(!!glue("[e{regex_replace}]") := "\\\\w") |> unlist()
+  regex_replace <- list2(!!glue("[ei{regex_replace}]") := "\\\\w") |> unlist()
 
   # "\\\\s?[:punct:]?[:symbol:]?\\\\s?"
 
   data_regex <-
   list(chr = regex_replace,
-       space = c("\\s" = ".")) |>
+       space = c("\\s" = "\\\\s?-?\\\\s?(<br/>)?")) |>
     reduce(str_replace_all,
            .init =
              paste(data_count[[text_input]],
