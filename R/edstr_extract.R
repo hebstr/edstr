@@ -641,10 +641,12 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   }
 
   .highlight <-
-  paste0(c(glue("color:{text_color}"),
-           glue("background-color:{text_background}"),
-           glue("font-weight:bold")),
-         collapse = ";")
+  css(color = text_color,
+      background.color = text_background,
+      font.weight = "bold",
+      font.family = "system-ui",
+      padding = "0.25rem",
+      border.radius = "5px")
 
   if (html_popup) html_save <- TRUE
 

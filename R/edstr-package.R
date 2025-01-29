@@ -64,6 +64,7 @@
 #' @importFrom ggplot2 scale_x_continuous
 #' @importFrom glue glue
 #' @importFrom here here
+#' @importFrom htmltools css
 #' @importFrom htmltools save_html
 #' @importFrom lifecycle deprecated
 #' @importFrom openxlsx2 fmt_txt
