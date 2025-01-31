@@ -103,16 +103,7 @@
 <span><span class="co">#&gt;     │        uf_entree code_uf_entree, libelle_uf_entree,</span></span>
 <span><span class="co">#&gt;     │        uf code_uf_doc, libelle_uf_doc,</span></span>
 <span><span class="co">#&gt;     │        titre, type_doc,</span></span>
-<span><span class="co">#&gt;     │        regexp_replace(</span></span>
-<span><span class="co">#&gt;     │            regexp_replace(</span></span>
-<span><span class="co">#&gt;     │                regexp_replace(</span></span>
-<span><span class="co">#&gt;     │                    regexp_replace(</span></span>
-<span><span class="co">#&gt;     │                        regexp_replace(texte_affichage,</span></span>
-<span><span class="co">#&gt;     │                        '\&lt;!-- Page \d+ --\&gt;\s\&lt;a name=\"\d+\"\&gt;\&lt;/a\&gt;\s', ''),</span></span>
-<span><span class="co">#&gt;     │                    '\&lt;!--\s+p {.+}|\&lt;(/|!\w+\s)?(html|head|title|meta|div|style).*\&gt;', ''),</span></span>
-<span><span class="co">#&gt;     │                ' (style|class|id|bgcolor|v?link)=.+\"|.ft\d+{.+}', ''),</span></span>
-<span><span class="co">#&gt;     │            '\.x?y?flip.+(\s+.+){6}|\&lt;!--|--\&gt;|\&lt;/?(i|b)\&gt;|\s{3}|\&lt;p\&gt; \&lt;/p\&gt;', ''),</span></span>
-<span><span class="co">#&gt;     │        '\s*(\[\w+_?\w+\]|&amp;#160;|(_|-){10,})\s*', ' ') text</span></span>
+<span><span class="co">#&gt;     │        regexp_replace(texte_affichage, '(&amp;#160;)+|(_|-){10,}', ' ') text</span></span>
 <span><span class="co">#&gt;     │ from(</span></span>
 <span><span class="co">#&gt;     │      select eh.id_entrepot, eh.id_pat, eh.id_sej, eh.uf, eh.age_pat,</span></span>
 <span><span class="co">#&gt;     │             eh.titre, eh.type_doc, eh.texte_affichage,</span></span>
@@ -184,7 +175,8 @@
 <span><span class="co">#&gt;     │             on eh.id_pat = ep.id_pat</span></span>
 <span><span class="co">#&gt;     │      left join data_eds.deces_eds de</span></span>
 <span><span class="co">#&gt;     │             on eh.id_pat = de.id_pat</span></span>
-<span><span class="co">#&gt;     │     )</span></span></code></pre>
+<span><span class="co">#&gt;     │     )</span></span>
+<span><span class="co">#&gt; Full steps: 82.42 sec elapsed</span></span></code></pre>
 </div>
 </section><section class="level3"><h3 id="chargement-dun-dataframe-déjà-importé">Chargement d’un dataframe déjà importé<a class="anchor" aria-label="anchor" href="#chargement-dun-dataframe-d%C3%A9j%C3%A0-import%C3%A9"></a>
 </h3>
