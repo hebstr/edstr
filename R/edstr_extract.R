@@ -576,7 +576,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                     text_color = text_color) |>
       wb_add_custom(sheet = "regex_init",
                     data = regex_init,
-                    halign = "left") |>
+                    concept_color = concept_color) |>
       wb_add_custom(sheet = "regex_final",
                     data = tibble(regex_final = data_regex),
                     width = 100,
