@@ -3,7 +3,7 @@ Title: edstr
 Version: 0.1.0
 Authors@R: 
     person("IN", "CLUDE", , "ju.diez@protonmail.com", role = c("aut", "cre"))
-Description: Un ensemble de fonctions pour importer, nettoyer et extraire des données textuelles de routine.
+Description: Collecter, nettoyer et extraire des données textuelles de routine depuis l'EDS.
 URL: https://codeberg.org/hebstr/edstr
 License: GPL (>= 3)
 Encoding: UTF-8
@@ -16,6 +16,7 @@ Imports:
     getPass,
     ggplot2,
     glue,
+    graphics,
     here,
     htmltools,
     lifecycle,
@@ -23,7 +24,6 @@ Imports:
     purrr,
     reactable,
     readr,
-    RJDBC,
     rlang,
     scales,
     stats,
@@ -35,6 +35,7 @@ Imports:
     utils
 Suggests:
     knitr,
-    rmarkdown
+    rmarkdown,
+    quarto
 VignetteBuilder: 
     quarto

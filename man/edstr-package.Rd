@@ -6,7 +6,7 @@
 \alias{edstr-package}
 \title{edstr: edstr}
 \description{
-Un ensemble de fonctions pour importer, nettoyer et extraire des données textuelles de routine.
+Collecter, nettoyer et extraire des données textuelles de routine depuis l'EDS.
 }
 \seealso{
 Useful links:
