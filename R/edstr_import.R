@@ -21,7 +21,6 @@
 edstr_import <- \(dest_dir = NULL,
                   dest_filename = NULL,
                   connect_dir = with(config, connect),
-                  env = "jdk-21",
                   tns = "tns",
                   user = "w_etudes",
                   password = getPass::getPass(),
@@ -53,14 +52,15 @@ edstr_import <- \(dest_dir = NULL,
 
 ### CONNECT --------------------------------------------------------------------
 
-    Sys.setenv(JAVA_HOME = glue("{connect_dir}/{env}"),
-               DATABASECONNECTOR_JAR_FOLDER = connect_dir)
+    RJDBC::JDBC(driverClass = "oracle.jdbc.OracleDriver",
+                classPath = "/opt/oracle/instantclient_23_7/ojdbc17.jar")
 
     tns <- read_lines(glue("{connect_dir}/{tns}.txt"))
     adress <- glue("jdbc:oracle:thin:@{tns}")
 
     conn <-
     DatabaseConnector::connect(dbms = "oracle",
+                               pathToDriver = connect_dir,
                                connectionString = adress,
                                user = user,
                                password = password)

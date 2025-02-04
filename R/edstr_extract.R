@@ -172,41 +172,20 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   if (!is.null(filter)) data <- filter(data, !!filter)
 
-### SPLIT ----------------------------------------------------------------------
-
-  cli_progress_step("{.strong Split}")
-
-  data_split <-
-  data[c(id, group, text_input)] |>
-    unnest_tokens(output = !!text_input,
-                  input = !!text_input,
-                  token = str_split,
-                  pattern = str_u(split),
-                  to_lower = FALSE)
-
-  cli_progress_done()
-  cli_text("\n\n")
-
-  invisible(gc())
-
 ### REPLACE --------------------------------------------------------------------
 
   cli_progress_step("{.strong Replace}")
 
   if (!is.list(replace)) replace <- list(replace)
 
-  data_split <-
-  data_split |>
+  data_replace <-
+  data[c(id, group, text_input)] |>
     mutate(!!text_input :=
-             reduce(replace,
-                    str_replace_all,
-                    .init = get(text_input))) |>
-    filter(str_detect(get(text_input), "\\w+"))
+             reduce(replace, str_replace_all,
+                    .init = get(text_input)))
 
   cli_progress_done()
   cli_text("\n\n")
-
-  invisible(gc())
 
 ### TOKENIZE -------------------------------------------------------------------
 
@@ -214,11 +193,10 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   data_ngrams <-
   ngrams |>
-    map(~ data_split |>
+    map(~ data_replace |>
           mutate(!!text_input :=
                    get(text_input) |>
-                     iconv(from = "UTF-8",
-                           to = "ASCII//TRANSLIT") |>
+                     iconv(from = "UTF-8", to = "ASCII//TRANSLIT") |>
                      str_replace_all("'", " ")) |>
           unnest_tokens(output = !!text_input,
                         input = !!text_input,
@@ -228,11 +206,11 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   cli_progress_done()
   cli_text("\n\n")
 
-  invisible(gc())
+  rm(data_replace); invisible(gc())
 
-### MATCH ----------------------------------------------------------------------
+### MATCHING -------------------------------------------------------------------
 
-  cli_progress_step("{.strong Match}")
+  cli_progress_step("{.strong Matching}")
 
   set_limit <- \(x, y) glue("{x}({str_u(concepts)}){y}")
 
@@ -244,6 +222,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
          "end" = .concept_str <- set_limit("", "$"),
          "asis" = .concept_str <- set_limit("", ""))
 
+  # LONG
   data_ngrams_match <-
   ngrams |>
     imap(~ data_ngrams[[.y]] |>
@@ -253,6 +232,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                  sort = TRUE)) |>
     set_names(ngrams)
 
+  # LONG
   data_match <-
   names(concepts) |>
     map(~ ngrams |>
@@ -269,6 +249,8 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
           drop_na()) |>
     list_rbind()
 
+  rm(data_ngrams); invisible(gc())
+
   if (nrow(data_match) == 0) cli_abort("{.strong No match}")
 
   data_ngrams_count <-
@@ -282,7 +264,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
 ### EXCLUSIONS -----------------------------------------------------------------
 
-  cli_progress_step("{.strong Exclusions}")
+  cli_progress_step("{.strong Exclusion}")
 
   if (!is.null(exclus_auto_except)) {
 
@@ -352,9 +334,9 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   cli_progress_done()
   cli_text("\n\n")
 
-### EXTRACT --------------------------------------------------------------------
+### EXTRACTION -----------------------------------------------------------------
 
-  cli_progress_step("{.strong Extract}")
+  cli_progress_step("{.strong Extraction}")
 
   regex_init <-
   tibble(concept = names(concepts),
@@ -366,45 +348,26 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   list(chr = regex_replace,
        space = c("\\s" = "\\\\s?-?\\\\s?(<br/>)?")) |>
     reduce(str_replace_all,
-           .init =
-             paste(data_count[[text_input]],
-                   collapse = "|"))
+           .init = data_count[[text_input]] |> paste(collapse = "|"))
 
   data_regex <- glue("(?i)\\b({data_regex})\\b")
 
+  # LONG
   data_regex_match <-
   edstr_view(data = data,
              str = data_regex,
              id = id,
              quiet = TRUE)
 
-  set_wrap <- \(x) if (text_wrap) unique(sort(c(x - 1, x, x + 1))) else x
-
-  .index <-
-  data_split[[text_input]] |>
-    str_detect(data_regex) |>
-    which() |>
-    set_wrap()
-
-  data_split_match <- data_split[.index, ]
-
-  rm(data_split); invisible(gc())
-
+  # LONG
   data_extract <-
   lst(base =
         list2(data =
                 data |>
-                  rename(fulltext = text_input) |>
-                  mutate(extract_full =
-                           fulltext |>
+                  mutate(extract_text =
+                           get(text_input) |>
                              str_extract_all(data_regex) |>
                              map_chr(~ paste0(., collapse = " ; "))),
-              concept =
-                data_id |>
-                  distinct(pick(id, group), concept) |>
-                  pivot_wider(names_from = concept,
-                              values_from = concept) |>
-                  mutate(across(any_of(names(concepts)), ~ ifelse(!is.na(.), 1, 0))),
               extract =
                 data_id |>
                   distinct(pick(id, group, text_input)) |>
@@ -412,12 +375,14 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                          .by = id,
                          .keep = "unused") |>
                   distinct(),
-              !!text_input :=
-                data_split_match |>
-                  mutate(!!text_input := str_flatten(get(text_input), " ; "),
-                         .by = id) |>
-                  distinct()) |>
-          reduce(inner_join, by = c(id, group)),
+              concept =
+                data_id |>
+                  distinct(pick(id, group), concept) |>
+                  pivot_wider(names_from = concept,
+                              values_from = concept) |>
+                  mutate(across(any_of(names(concepts)), ~ ifelse(!is.na(.), 1, 0)))) |>
+          reduce(inner_join, by = c(id, group)) |>
+          rownames_to_column("n"),
       final = base)
 
   .intersect <-
@@ -563,9 +528,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
     .xlsx_output <-
     wb_workbook() |>
       wb_add_custom(sheet = if (concepts_intersect) "data (intersection)" else "data",
-                    data =
-                      data_extract$final |>
-                        select(-fulltext, -text_input, -extract_full),
+                    data = data_extract$final |> select(-text_input, -extract_text),
                     concept_var = unique(data_count$concept),
                     concept_color = concept_color,
                     text_var = "extract_unique",
@@ -605,52 +568,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
 ### HTML OUTPUT ----------------------------------------------------------------
 
-  set_reactable <- \(x) {
-
-    reactable(data = x,
-              height = "100%",
-              defaultColDef = colDef(vAlign = "center", align = "center"),
-              showSortable = TRUE,
-              striped = TRUE,
-              searchable = TRUE,
-              filterable = TRUE,
-              selection = "multiple",
-              columns =
-                list2(.selection = colDef(sticky = "left"),
-                      .rownames =
-                        colDef(name = "n°",
-                               maxWidth = 50,
-                               sticky = "left"),
-                      !!id :=
-                        colDef(width = 110,
-                               sticky = "left"),
-                      !!group :=
-                        colDef(width = 110,
-                               sticky = "left"),
-                      extract_full =
-                        colDef(html = TRUE,
-                               minWidth = 200,
-                               style =
-                                 list(color = text_color,
-                                      fontWeight = "bold")),
-                      !!text_input :=
-                        colDef(html = TRUE,
-                               minWidth = 600,
-                               style = list(textAlign = "justify"))),
-              rownames = TRUE,
-              highlight = TRUE,
-              showPageSizeOptions = TRUE,
-              pageSizeOptions = c(10, 25, 50, 100, 200, 500, 1000),
-              defaultPageSize = 100,
-              theme =
-                reactableTheme(style =
-                                 list(fontFamily = "Luciole, system-ui",
-                                      fontSize = "11px"),
-                               borderColor = "#dfe2e5",
-                               searchInputStyle = list(width = "100%"),
-                               rowSelectedStyle = list(backgroundColor = "#E1F6FF")))
-
-  }
+  cli_progress_step("{.strong HTML output}")
 
   highlight <- \(var) {
 
@@ -670,53 +588,23 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   }
 
-  if (html_popup) html_save <- TRUE
-
-  if (html_save) {
-
-    cli_progress_step("{.strong HTML output}")
-
-    data_reactable <-
-    data_extract$final |>
-      select(id, group, any_of(names(concepts)), extract_full, text_input, fulltext) |>
-      mutate(extract_full = str_replace_all(extract_full, " ; ", "<br>"),
-             !!text_input :=
-               get(text_input) |>
-                 str_replace_all(" ; ", "<br><br>") |>
-                 highlight()) |>
-      select(-fulltext) |>
-      set_reactable()
-
-    .html_output <- glue("{save_extract}.html")
-
-    save_html(html = data_reactable,
-              file = .html_output)
-
-    cli_progress_done()
-    cli_text("\n\n")
-
-  } else {
-
-    data_reactable <- NULL
-
-  }
-
   data_streamlit <-
   data_extract$final |>
-    mutate(fulltext = highlight(fulltext)) |>
-    rownames_to_column("document") |>
+    mutate(!!text_input := get(text_input) |> highlight()) |>
     mutate(by_pat = glue("({row_number()}/{max(row_number())})"),
            by_pat = if_else(by_pat == "(1/1)", "", by_pat),
            .by = group, .before = group) |>
-    select(-text_input, -extract_unique)
+    select(-extract_unique)
+
+  cli_progress_done()
+  cli_text("\n\n")
 
 ### SAVE DATA ------------------------------------------------------------------
 
   cli_progress_step("{.strong Save data}")
 
   data_save <-
-  list(split = data_split_match,
-       regex =
+  list(regex =
          lst(init = regex_init,
              replace = regex_replace,
              final = data_regex,
@@ -735,7 +623,6 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
            filter(!get(id) %in% data_extract$base[[id]]),
        summary = data_summary,
        data = data_extract,
-       reactable = data_reactable,
        streamlit = data_streamlit)
 
   assign(glue(save_files),

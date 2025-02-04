@@ -24,6 +24,7 @@ Imports:
     purrr,
     reactable,
     readr,
+    RJDBC,
     rlang,
     scales,
     stats,

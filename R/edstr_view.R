@@ -78,7 +78,7 @@ edstr_view <- \(data,
 
   }
 
-### MATCH ----------------------------------------------------------------------
+### EXTRACT --------------------------------------------------------------------
 
   enstr <- \(x, y = x) str <- glue("{x}{str}{y}")
 
@@ -101,61 +101,45 @@ edstr_view <- \(data,
   data |>
     mutate(match = str_extract_all(data[[text_input]], str)) |>
     unnest(match) |>
-    mutate(nchar = nchar(match)) |>
-    select(id, text_input, match, nchar) |>
-    arrange(desc(nchar)) |>
-    drop_na()
+    select(id, match)
+
+  match_id <- n_distinct(data_match[[id]])
 
   if (nrow(data_match) == 0) cli_abort("{.strong No match}")
 
-### COUNT ----------------------------------------------------------------------
-
-  data_count <- data_match |> count(match, nchar, sort = TRUE)
-
-### SET LIST -------------------------------------------------------------------
-
-  data_list <-
-  list(match = data_match,
-       count = data_count)
+  data_count <- data_match |> count(match, sort = TRUE)
 
   if (!quiet) {
 
 ### ASSIGN ---------------------------------------------------------------------
 
     assign(config_file,
-           data_list,
+           list(match = data_match,
+                count = data_count),
            envir = .GlobalEnv)
 
-### OUTPUT PLOT -----------------------------------------------------------------
-
-    if (n_distinct(data_match$nchar) >= 50) {
-
-      data_output_plot <-
-      data_match |>
-        ggplot(aes(nchar)) +
-        geom_histogram()
-
-      print(data_output_plot)
-
-    }
+# ### OUTPUT PLOT --------------------------------------------------------------
+#
+#     if (n_distinct(data_match$nchar) >= 50) {
+#
+#       data_output_plot <-
+#       data_match |>
+#         ggplot(aes(nchar)) +
+#         geom_histogram()
+#
+#       print(data_output_plot)
+#
+#     }
 
 ### OUTPUT SAMPLE ---------------------------------------------------------------
 
-  if (nrow(data_match) > output_sample) {
-
-    output_sample <- sample(nrow(data_match), output_sample)
-    output_sample_max <- "(max)"
-
-  } else {
-
-    output_sample <- 1:nrow(data_match)
-    output_sample_max <- NULL
-
-  }
+    output_sample_max <- if (match_id > output_sample) "(max)" else NULL
 
     data_output_sample <-
-    data_match[[text_input]][output_sample] |>
-      unique() |>
+    data |>
+      filter(get(id) %in% data_match[[id]]) |>
+      slice(1:output_sample) |>
+      pull(text_input) |>
       str_view(str, ...)
 
     if (raw & !is.null(filter)) {
@@ -177,16 +161,15 @@ edstr_view <- \(data,
     cli_h1("edstr_view")
     cli_text("\n\n")
 
-    cli_n_match <- n_distinct(data_match[[id]])
-    cli_p_match <- label_percent(0.1)(cli_n_match / nrow(data))
+    cli_p_match <- label_percent(0.1)(match_id / nrow(data))
 
-    cli_alert_info("{.strong Documents:} {nrow(data)} {id}")
+    cli_alert_info("{.strong Documents :} {nrow(data)} {id}")
     cli_text("\n\n")
 
-    cli_alert_info("{.strong Matching}")
+    cli_alert_info("{.strong Correspondances}")
     cli_ul()
-      cli_li("Total: {nrow(data_match)} from {cli_n_match} {id} ({cli_p_match} {id})")
-      cli_li("Distinct: {nrow(data_count)}")
+      cli_li("Totales : {nrow(data_match)} parmi {match_id} {id} ({cli_p_match} {id})")
+      cli_li("Distinctes : {nrow(data_count)}")
       cli_end()
 
     cli_text("\n\n")
@@ -195,9 +178,7 @@ edstr_view <- \(data,
 
   } else {
 
-    regex_match <- data_list$count[c("match", "n")]
-
-    return(regex_match)
+    return(data_match)
 
   }
 
