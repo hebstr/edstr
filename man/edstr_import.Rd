@@ -7,8 +7,7 @@
 edstr_import(
   dest_dir = NULL,
   dest_filename = NULL,
-  connect_dir = with(config, connect),
-  env = "jdk-21",
+  connect_dir = "../R/dbconnect",
   tns = "tns",
   user = "w_etudes",
   password = getPass::getPass(),

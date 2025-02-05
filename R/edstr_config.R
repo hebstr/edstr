@@ -2,12 +2,10 @@
 #'
 #' @param dest_dir
 #' @param dest_filename
-#' @param connect_dir
 #' @param config_dir
 #' @param config_name
 #' @param text
 #' @param str
-#' @param split
 #' @param concepts
 #'
 #' @return
@@ -17,17 +15,14 @@
 #'
 edstr_config <- \(dest_dir,
                   dest_filename,
-                  connect_dir = "../_R_/database_connection",
-                  config_dir = "../_R_/config",
+                  config_dir = "../R/config",
                   config_name = ".config",
                   text = "text",
                   str = NULL,
-                  split = NULL,
                   concepts = NULL) {
 
   dest_dir <- glue(dest_dir)
   dest_filename <- glue(dest_filename)
-  connect_dir <- glue(connect_dir)
   config_dir <- glue(config_dir)
 
   if (!is.null(str)) {
@@ -61,18 +56,9 @@ edstr_config <- \(dest_dir,
 
 ### ASSIGNMENT -----------------------------------------------------------------
 
-  if (!is.null(split)) {
-
-    split <- load(file.path(config_dir, split))
-
-    str_data <- list_modify(get(str), split = list(sect = with(get(split), str)))
-
-  }
-
   assign(config_name,
          list(dir = str_remove(dest_dir, "/+$"),
               file = dest_filename,
-              connect = connect_dir,
               text = text,
               str = str_data,
               concepts = concepts_data),
@@ -90,7 +76,6 @@ edstr_config <- \(dest_dir,
   text <- col_red(text)
   str <- col_red(str)
   concepts <- col_red(concepts)
-  split <- col_red(split)
 
   cli_h1("edstr_config")
   cli_text("\n\n")
@@ -106,9 +91,6 @@ edstr_config <- \(dest_dir,
   cli_end()
 
   cli_text("\n\n")
-  cli_alert_success("{.strong Connection directory:} {.path {normalize_dir(connect_dir)}}")
-
-  cli_text("\n\n")
   cli_alert_success("{.strong Config directory:} {.path {normalize_dir(config_dir)}}")
 
   cli_text("\n\n")
@@ -117,7 +99,6 @@ edstr_config <- \(dest_dir,
     cli_li("text: {text}")
     cli_li("str: {str}")
     cli_li("concepts: {concepts}")
-    cli_li("split: {split}")
     cli_end()
 
   cli_text("\n\n")

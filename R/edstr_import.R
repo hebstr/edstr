@@ -3,7 +3,6 @@
 #' @param dest_dir
 #' @param dest_filename
 #' @param connect_dir
-#' @param env
 #' @param tns
 #' @param user
 #' @param password
@@ -20,7 +19,7 @@
 #'
 edstr_import <- \(dest_dir = NULL,
                   dest_filename = NULL,
-                  connect_dir = with(config, connect),
+                  connect_dir = "../R/dbconnect",
                   tns = "tns",
                   user = "w_etudes",
                   password = getPass::getPass(),

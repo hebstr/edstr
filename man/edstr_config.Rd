@@ -7,12 +7,10 @@
 edstr_config(
   dest_dir,
   dest_filename,
-  connect_dir = "../_R_/database_connection",
-  config_dir = "../_R_/config",
+  config_dir = "../R/config",
   config_name = ".config",
   text = "text",
   str = NULL,
-  split = NULL,
   concepts = NULL
 )
 }
