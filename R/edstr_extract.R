@@ -2,7 +2,6 @@
 #'
 #' @param data
 #' @param text_input
-#' @param replace
 #' @param sample
 #' @param seed
 #' @param filter
@@ -12,10 +11,11 @@
 #' @param concepts
 #' @param concepts_collapse
 #' @param concepts_intersect
-#' @param limits
+#' @param starts_with_only
 #' @param exclus_manual
 #' @param exclus_auto_except
 #' @param regex_replace
+#' @param mismatch_data
 #' @param xlsx_save
 #' @param concept_color
 #' @param text_color
@@ -30,7 +30,6 @@
 #'
 edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                    text_input = with(config, text),
-                   replace = with(config_str, replace),
                    sample = NULL,
                    seed = NULL,
                    filter = NULL,
@@ -40,10 +39,11 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                    concepts,
                    concepts_collapse = FALSE,
                    concepts_intersect = FALSE,
-                   limits = c("start-end", "start", "end", "asis"),
+                   starts_with_only = FALSE,
                    exclus_manual = NULL,
                    exclus_auto_except = NULL,
-                   regex_replace = "",
+                   regex_replace = NULL,
+                   mismatch_data = FALSE,
                    xlsx_save = TRUE,
                    concept_color = "#0099EE",
                    text_color = "red",
@@ -162,13 +162,22 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   cli_progress_step("{.strong Replace}")
 
-  if (!is.list(replace)) replace <- list(replace)
-
   data_replace <-
   data[c(id, group, text_input)] |>
     mutate(!!text_input :=
-             reduce(replace, str_replace_all,
-                    .init = get(text_input)))
+             get(text_input) |>
+               str_replace_all("\\.", " ") |>
+               str_split("\n")) |>
+    unnest(text_input) |>
+    mutate(!!text_input :=
+             get(text_input) |>
+               str_extract("(?<=>).+(?=</\\w+>)") |>
+               str_split("</?\\w+/?>")) |>
+    unnest(text_input) |>
+    filter(str_detect(get(text_input), "[:graph:]")) |>
+    mutate(!!text_input :=
+             get(text_input) |>
+               iconv(from = "UTF-8", to = "ASCII//TRANSLIT"))
 
   cli_progress_done()
   cli_text("\n\n")
@@ -180,14 +189,11 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   data_ngrams <-
   ngrams |>
     map(~ data_replace |>
-          mutate(!!text_input :=
-                   get(text_input) |>
-                     iconv(from = "UTF-8", to = "ASCII//TRANSLIT") |>
-                     str_replace_all("'", " ")) |>
           unnest_tokens(output = !!text_input,
                         input = !!text_input,
                         token = "ngrams",
-                        n = .))
+                        n = .) |>
+          filter(str_detect(get(text_input), "[:alpha:]")))
 
   cli_progress_done()
   cli_text("\n\n")
@@ -198,21 +204,17 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   cli_progress_step("{.strong Matching}")
 
-  set_limit <- \(x, y) glue("{x}({str_u(concepts)}){y}")
+  concepts_str_end <- if (starts_with_only) "" else "\\S*$"
 
-  limits <- arg_match(limits)
+  concepts_str <- paste(concepts, collapse = "|")
 
-  switch(limits,
-         "start-end" = .concept_str <- set_limit("^", "$"),
-         "start" = .concept_str <- set_limit("^", ""),
-         "end" = .concept_str <- set_limit("", "$"),
-         "asis" = .concept_str <- set_limit("", ""))
+  data_regex_ngrams <- glue("^({concepts_str}){concepts_str_end}")
 
   # LONG
   data_ngrams_match <-
   ngrams |>
     imap(~ data_ngrams[[.y]] |>
-           filter(str_detect(get(text_input), .concept_str)) |>
+           filter(str_detect(get(text_input), data_regex_ngrams)) |>
            count(pick(text_input),
                  name = "match",
                  sort = TRUE)) |>
@@ -320,21 +322,30 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   cli_progress_done()
   cli_text("\n\n")
 
-### EXTRACTION -----------------------------------------------------------------
+### REGEX ----------------------------------------------------------------------
 
-  cli_progress_step("{.strong Extraction}")
+  cli_progress_step("{.strong Regex}")
 
-  regex_init <-
+  regex_concepts <-
   tibble(concept = names(concepts),
-         regex = map_chr(concepts, ~ glue("^({.})$")))
+         regex = unlist(concepts))
 
-  regex_replace <- list2(!!glue("[ei{regex_replace}]") := "\\\\w") |> unlist()
+  regex_replace <-
+  c("e(?!$)" = "[eéèë]",
+    "(?<=o)i" = "[iïî]",
+    "\\s" = "(<br/>)?\\\\s?-?\\\\s?(<br/>)?") |>
+    append(regex_replace)
+
+  regex_replace_tbl <-
+  tibble(pattern = names(as.list(regex_replace)),
+         replace = regex_replace)
 
   data_regex <-
-  list(chr = regex_replace,
-       space = c("\\s" = "\\\\s?-?\\\\s?(<br/>)?")) |>
-    reduce(str_replace_all,
-           .init = data_count[[text_input]] |> paste(collapse = "|"))
+  data_count |>
+    mutate(!!text_input :=
+             str_replace_all(get(text_input), regex_replace)) |>
+    pull(text_input) |>
+    paste(collapse = "|")
 
   data_regex <- glue("(?i)\\b({data_regex})\\b")
 
@@ -344,6 +355,13 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
              str = data_regex,
              id = id,
              quiet = TRUE)
+
+  cli_progress_done()
+  cli_text("\n\n")
+
+### EXTRACTION -----------------------------------------------------------------
+
+  cli_progress_step("{.strong Extraction}")
 
   # LONG
   data_extract <-
@@ -393,30 +411,36 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   cli_progress_step("{.strong Mismatch}")
 
+  if (mismatch_data) {
+
+    data_id_mismatch <-
+    data[c(id, group, text_input)] |>
+      filter(!get(id) %in% data_extract$base[[id]])
+
+  } else data_id_mismatch <- NULL
+
   data_regex_match_conv <-
   data_regex_match |>
     mutate(match =
              match |>
                iconv(from = "UTF-8", to = "ASCII//TRANSLIT") |>
                tolower() |>
-               str_replace_all(c("-(<br/>)?" = " ",
+               str_replace_all(c("-(<br/>)?|-?<br/>" = " ",
                                  "\\s+" = " ")))
 
   data_regex_mismatch <-
-  list(missing =
+  list(loss =
          data_match |>
            select(id, match = !!text_input) |>
            anti_join(y = data_regex_match_conv,
                      by = c(id, "match")),
-       unwanted =
+       excess =
          data_regex_match_conv |>
            anti_join(y = data_match |> select(id, match = !!text_input),
                      by = c(id, "match")))
 
   data_mismatch <-
-  list(id =
-         data[c(id, group, text_input)] |>
-           filter(!get(id) %in% data_extract$base[[id]]),
+  list(id = data_id_mismatch,
        regex = data_regex_mismatch)
 
   not_empty_mismatch <- \(x) nrow(data_regex_mismatch[[x]]) > 0
@@ -565,10 +589,14 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                     concept_color = concept_color,
                     text_var = "extract_unique",
                     text_color = text_color) |>
-      wb_add_custom(sheet = "concepts",
+      wb_add_custom(sheet = "regex_concepts",
+                    data = regex_concepts,
+                    concept_color = concept_color,
+                    halign = "left") |>
+      wb_add_custom(sheet = "match_concepts",
                     data = data_summary$concept,
                     concept_color = concept_color) |>
-      wb_add_custom(sheet = "match_total",
+      wb_add_custom(sheet = "match_text",
                     data = data_id,
                     concept_color = concept_color,
                     text_color = text_color) |>
@@ -576,12 +604,16 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                     data = data_count |> select(-ngrams),
                     concept_color = concept_color,
                     text_color = text_color) |>
-      wb_add_custom(sheet = "regex_init",
-                    data = regex_init,
-                    concept_color = concept_color) |>
+      wb_add_custom(sheet = "regex_ngrams",
+                    data = tibble(regex = data_regex_ngrams),
+                    width = 80,
+                    halign = "left") |>
+      wb_add_custom(sheet = "regex_replace",
+                    data = regex_replace_tbl,
+                    halign = "left") |>
       wb_add_custom(sheet = "regex_final",
                     data = tibble(regex = data_regex),
-                    width = 100,
+                    width = 80,
                     halign = "left") |>
       wb_add_custom(sheet = "regex_match",
                     data = data_regex_match,
@@ -591,16 +623,16 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                     data = data_regex_match |> count(match, sort = TRUE),
                     text_var = "match",
                     text_color = text_color) |>
-      wb_add_custom(sheet = "regex_mismatch_missing",
+      wb_add_custom(sheet = "regex_loss",
                     data =
-                      if (not_empty_mismatch("missing")) data_regex_mismatch$missing
-                      else add_row(data_regex_mismatch$missing),
+                      if (not_empty_mismatch("loss")) data_regex_mismatch$loss
+                      else add_row(data_regex_mismatch$loss),
                     text_var = "match",
                     text_color = text_color) |>
-      wb_add_custom(sheet = "regex_mismatch_unwanted",
+      wb_add_custom(sheet = "regex_excess",
                     data =
-                      if (not_empty_mismatch("unwanted")) data_regex_mismatch$unwanted
-                      else add_row(data_regex_mismatch$unwanted),
+                      if (not_empty_mismatch("excess")) data_regex_mismatch$excess
+                      else add_row(data_regex_mismatch$excess),
                     text_var = "match",
                     text_color = text_color) |>
       wb_save(file = glue("{save_extract}.xlsx"))
@@ -652,17 +684,17 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   cli_progress_step("{.strong Save data}")
 
   data_save <-
-  list(match =
+  list(regex =
+         lst(concepts = regex_concepts,
+             replace = regex_replace_tbl,
+             final = data_regex,
+             match = data_regex_match),
+       match =
          list(init = data_match,
               final = data_match_final),
        count =
          list(init = data_ngrams_count,
               final = data_count),
-       regex =
-         lst(init = regex_init,
-             replace = regex_replace,
-             final = data_regex,
-             match = data_regex_match),
        exclus =
          list(match = data_match_exclus,
               count = data_count_exclus),
@@ -754,10 +786,10 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   cli_n_group_final <- n_distinct(data_extract$final[[group]])
   cli_p_group_final <- label_percent(0.1)(cli_n_group_final / n_distinct(data[[group]]))
 
-  cli_n_mismatch <- nrow(data_save$mismatch$id)
+  cli_n_mismatch <- nrow(data_id_mismatch)
   cli_p_mismatch <- label_percent(0.1)(cli_n_mismatch / nrow(data))
 
-  cli_n_group_mismatch <- n_distinct(data_save$mismatch$id[[group]])
+  cli_n_group_mismatch <- n_distinct(data_id_mismatch[[group]])
   cli_p_group_mismatch <- label_percent(0.1)(cli_n_group_mismatch / n_distinct(data[[group]]))
 
   cli_n_files <- sum(str_detect(list.files(save_dir), "\\.\\w+"))
@@ -776,15 +808,23 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
     cli_li("Distinctes: {nrow(data_count)}")
     cli_end()
 
-  cli_text("\n\n")
-  cli_alert_info("{.strong Exclusions}")
-  cli_ul()
-    cli_li("Automatiques: {nrow(data_match_exclus$auto)}")
-    cli_li("Manuelles: {nrow(data_match_exclus$manual)}")
-    cli_end()
+  if (nrow(data_count_exclus) > 0) {
 
-  cli_text("\n\n")
-  cli_alert_info("{.strong Mismatch:} {cli_n_mismatch}")
+    cli_text("\n\n")
+    cli_alert_info("{.strong Exclusions}")
+    cli_ul()
+      cli_li("Automatiques: {nrow(data_match_exclus$auto)}")
+      cli_li("Manuelles: {nrow(data_match_exclus$manual)}")
+      cli_end()
+
+  }
+
+  if (mismatch_data) {
+
+    cli_text("\n\n")
+    cli_alert_info("{.strong Mismatch:} {cli_n_mismatch} {id}")
+
+  }
 
   cli_text("\n\n")
   cli_rule()
@@ -796,7 +836,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
     if (check_group) cli_li("{cli_n_group_base} {group} ({cli_p_group_base} {group})")
     cli_end()
 
-  if (cli_n_mismatch > 0) {
+  if (mismatch_data && cli_n_mismatch > 0) {
 
     cli_text("\n\n")
     cli_alert_success("{.strong {cli_n_mismatch} mismatch{?es}}")
