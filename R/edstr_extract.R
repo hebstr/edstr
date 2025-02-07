@@ -103,7 +103,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   }
 
-  concepts_parent <- names(concepts) |> str_remove("_.+") |> unique()
+  concepts_root <- names(concepts) |> str_remove("_.+") |> unique()
 
 ### ----------------------------------------------------------------------------
 
@@ -166,7 +166,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   data[c(id, group, text_input)] |>
     mutate(!!text_input :=
              get(text_input) |>
-               str_replace_all("\\.", " ") |>
+               str_replace_all("\\.|'", " ") |>
                str_split("\n")) |>
     unnest(text_input) |>
     mutate(!!text_input :=
@@ -333,7 +333,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   regex_replace <-
   c("e(?!$)" = "[eéèë]",
     "(?<=o)i" = "[iïî]",
-    "\\s" = "(<br/>)?\\\\s?-?\\\\s?(<br/>)?") |>
+    "\\s" = "(<br/>)?\\\\s?(-|')?\\\\s?(<br/>)?") |>
     append(regex_replace)
 
   regex_replace_tbl <-
@@ -366,31 +366,30 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   # LONG
   data_extract <-
   lst(base =
-        list2(data =
-                data |>
-                  mutate(extract_text =
-                           get(text_input) |>
-                             str_extract_all(data_regex) |>
-                             map_chr(~ paste0(., collapse = " ; "))),
-              concept =
-                data_id |>
-                  distinct(pick(id, group), concept) |>
-                  pivot_wider(names_from = concept,
-                              values_from = concept) |>
-                  mutate(across(any_of(names(concepts)), ~ ifelse(!is.na(.), 1, 0))),
-              extract =
-                data_id |>
-                  distinct(pick(id, group, text_input)) |>
-                  mutate(extract_unique = str_flatten(get(text_input), " ; "),
-                         .by = id,
-                         .keep = "unused") |>
-                  distinct()) |>
-          reduce(inner_join, by = c(id, group)) |>
-          rownames_to_column("n"),
+        lst(data =
+              data |>
+                mutate(extract_text =
+                         get(text_input) |>
+                           str_extract_all(data_regex) |>
+                           map_chr(~ paste0(., collapse = " ; "))),
+            concept =
+              data_id |>
+                distinct(pick(id, group), concept) |>
+                pivot_wider(names_from = concept,
+                            values_from = concept) |>
+                mutate(across(any_of(names(concepts)), ~ ifelse(!is.na(.), 1, 0))),
+            extract =
+              data_id |>
+                distinct(pick(id, group, text_input)) |>
+                mutate(extract_unique = str_flatten(get(text_input), " ; "),
+                       .by = id,
+                       .keep = "unused") |>
+                distinct()) |>
+          reduce(inner_join, by = c(id, group)),
       final = base)
 
   .intersect <-
-  names(concepts) |>
+  concepts_root |>
     map(~ data_extract$base |>
           filter(if_any(matches(.), ~ . == 1))) |>
     reduce(inner_join, by = id) |>
@@ -401,6 +400,8 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
     data_extract$final <- data_extract$base |> filter(get(id) %in% .intersect)
 
   }
+
+  data_extract$final <- data_extract$final |> rownames_to_column("n")
 
   not_empty_data <- nrow(data_extract$final) > 0
 
@@ -761,8 +762,8 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   toc()
   cli_text("\n\n")
 
-  n_concepts <- length(concepts_parent)
-  cli_concepts <- concepts_parent |> paste(collapse = " ET ")
+  n_concepts <- length(concepts_root)
+  cli_concepts <- concepts_root |> paste(collapse = " ET ")
 
   cli_p_final <- label_percent(0.1)(nrow(data) / nrow(data_init))
 
