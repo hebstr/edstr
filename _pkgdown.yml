@@ -28,10 +28,6 @@ reference:
   contents:
   - edstr_view
 
-- title: Annexe
-  contents:
-  - edstr_split
-
 articles:
 - title: ~
   navbar: ~
@@ -42,4 +38,3 @@ articles:
   - clean
   - extract
   - explore
-  - split

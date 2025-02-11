@@ -38,8 +38,7 @@ La fonction `edstr_clean()` dépend des paramètres définis avec `edstr_config(
 ```{r}
 edstr_config(dest_dir = "emla/data",
              dest_filename = "emla",
-             str = "str.RData",
-             split = "split/output/mix/mix_split.RData")
+             str = "str.RData")
 ```
 
 La fonction `edstr_clean` produit un dataframe portant le nom défini dans `edstr_config()` (argument `dest_filename`) suivi du suffixe `_clean`. Dans cet exemple, il sera donc nommé ``r glue("{.config$file}_clean")``.
