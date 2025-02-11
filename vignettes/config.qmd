@@ -12,7 +12,7 @@ vignette: >
   
 knitr:
   opts_knit: 
-    root.dir: S:/_CRPV_
+    root.dir: home/edjulien/CRPV
   opts_chunk:
     collapse: true
     comment: "#>"
@@ -31,10 +31,10 @@ library(edstr)
 ```
 
 ```{r}
-edstr_config(dest_dir = "emla/data",
-             dest_filename = "emla",
+edstr_config(dest_dir = "ains/ains_2018_01/data",
+             dest_filename = "ains_2018_01",
              str = "str.RData",
-             split = "split/output/mix/mix_split.RData")
+             concepts = "concepts_crpv.RData")
 ```
 
 ### Valeur
@@ -59,8 +59,8 @@ Seuls deux arguments sont indispensables :
 - Le nom à donner aux fichiers qui seront produits (`dest_filename`)
 
 ```{r}
-edstr_config(dest_dir = "emla/data",
-             dest_filename = "emla")
+edstr_config(dest_dir = "ains/ains_2018_01/data",
+             dest_filename = "ains_2018_01")
 ```
 
 Les éléments non créés seront toujours dans la liste, mais prendront la valeur `NULL`.

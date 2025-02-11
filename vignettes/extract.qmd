@@ -12,7 +12,7 @@ vignette: >
   
 knitr:
   opts_knit: 
-    root.dir: S:/_CRPV_
+    root.dir: home/edjulien/CRPV
   opts_chunk:
     collapse: true
     comment: "#>"
@@ -24,14 +24,10 @@ editor_options:
   chunk_output_type: console
 ---
 
-```{r, include = FALSE}
-knitr::opts_chunk$set(
-  eval =  FALSE,
-  collapse = TRUE,
-  comment = "#>"
-)
-```
-
 ```{r}
+#| include: false 
+
 library(edstr)
 ```
+
+blabla

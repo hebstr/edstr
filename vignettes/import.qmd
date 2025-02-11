@@ -1,25 +1,23 @@
 ---
 title: "Collecter avec edstr_import()"
-
 format: 
   html:
-    toc: true
     
+    toc: true
 vignette: >
   %\VignetteIndexEntry{Collecter avec edstr_import()}
   %\VignetteEncoding{UTF-8}
-  %\VignetteEngine{quarto::html}
   
+  %\VignetteEngine{quarto::html}
 knitr:
   opts_knit: 
-    root.dir: S:/_CRPV_
+    root.dir: home/edjulien/CRPV
   opts_chunk:
     collapse: true
     comment: "#>"
     echo: false
     message: false
     warning: false
-
 editor_options: 
   chunk_output_type: console
 ---
@@ -28,7 +26,6 @@ editor_options:
 #| include: false
 
 library(edstr)
-library(glue)
 ```
 
 ### Prérequis
@@ -36,10 +33,10 @@ library(glue)
 La fonction `edstr_import()` dépend des paramètres définis avec `edstr_config()` : celle-ci doit alors être exécutée en amont.
 
 ```{r}
-edstr_config(dest_dir = "emla/data",
-             dest_filename = "emla",
+edstr_config(dest_dir = "ains/ains_2018_01/data",
+             dest_filename = "ains_2018_01",
              str = "str.RData",
-             split = "split/output/mix/mix_split.RData")
+             concepts = "concepts_crpv.RData")
 ```
 
 La fonction `edstr_import()` produit un dataframe portant le nom défini dans `edstr_config()` (argument `dest_filename`) suivi du suffixe `_import`. Dans cet exemple, il sera donc nommé ``r glue("{.config$file}_import")``.
@@ -55,15 +52,18 @@ On peut procéder à l'importation avec `edstr_import()` en précisant a minima 
 
 Le dataframe importé est automatiquement sauvegardé en .RData dans le répertoire défini avec `edstr_config()` (argument `dest_dir`).
 
-```r
-edstr_import(query = "select * from test_urg",
-             connect_dir = "S:/_R_/database_connection",
+```{r}
+#| eval: false
+#| echo: true
+
+edstr_import(query = "select * from ains_2018_01",
              user = "w_etudes")
 ```
 
-```{r, echo = FALSE}
-edstr_import(query = "emla/emla_text.sql",
-             password = "h9$c9WnE5*")
+```{r}
+edstr_import(query = "select * from ains_2018_01",
+             password = "h9$c9WnE5*",
+             head = 1000)
 ```
 
 
