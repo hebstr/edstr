@@ -667,7 +667,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   if (not_empty_data) {
 
-    data_streamlit <-
+    data_output <-
     data_extract$final |>
       mutate(!!text_input := get(text_input) |> highlight()) |>
       mutate(by_pat = glue("({row_number()}/{max(row_number())})"),
@@ -675,7 +675,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
              .by = group, .before = group) |>
       select(-extract_unique)
 
-  } else data_streamlit <- NULL
+  } else data_output <- NULL
 
   cli_progress_done()
   cli_text("\n\n")
@@ -702,7 +702,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
        mismatch = data_mismatch,
        summary = data_summary,
        data = data_extract,
-       streamlit = data_streamlit)
+       output = data_output)
 
   assign(glue(save_files),
          data_save,
@@ -713,7 +713,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   if (not_empty_data) {
 
-    write_excel_csv(x = data_streamlit, file = glue("{save_extract}.csv"))
+    write_excel_csv(x = data_output, file = glue("{save_extract}.csv"))
 
   }
 
