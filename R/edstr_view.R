@@ -105,7 +105,7 @@ edstr_view <- \(data,
 
   match_id <- n_distinct(data_match[[id]])
 
-  if (nrow(data_match) == 0) cli_abort("{.strong No match}")
+  if (nrow(data_match) == 0) cli_abort("{.strong Aucune correspondance}")
 
   data_count <- data_match |> count(match, sort = TRUE)
 
