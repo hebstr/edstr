@@ -351,24 +351,49 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
     "\\s" = "(<br/>)?\\\\s?(-|')?\\\\s?(<br/>)?") |>
     append(regex_replace)
 
+  regex_wrap <- "(?i)\\b({x})\\b"
+
   regex_replace_df <-
   tibble(pattern = names(as.list(regex_replace)),
          replace = regex_replace)
 
-  data_regex <-
+  data_regex_replace <-
   data_count |>
-    mutate(!!text_input := str_replace_all(get(text_input), regex_replace)) |>
-    pull(text_input) |>
-    paste(collapse = "|")
+    arrange(concept) |>
+    mutate(!!text_input :=
+             str_replace_all(get(text_input), regex_replace))
 
-  data_regex <- glue("(?i)\\b({data_regex})\\b")
+  data_regex_str <-
+  glue(regex_wrap,
+       x =
+         data_regex_replace |>
+           pull(text_input) |>
+           paste(collapse = "|"))
+
+  data_regex_df <-
+  data_regex_replace |>
+    nest(text = text, .by = concept) |>
+    mutate(!!text_input :=
+             map_chr(get(text_input), ~ str_flatten(unlist(.), "|")),
+           !!text_input := glue(regex_wrap, x = get(text_input)))
+
+  data_regex_list <-
+  data_regex_df$text |>
+    as.list() |>
+    set_names(data_regex_df$concept)
 
   data_regex_match <-
-  edstr_view(data = data_match_df,
-             text_input = text_input,
-             str = data_regex,
-             id = id,
-             quiet = TRUE)
+  data_regex_list |>
+    imap(~ data_match_df |>
+           edstr_view(text_input = text_input,
+                      str = .x,
+                      id = id,
+                      quiet = TRUE) |>
+           mutate(concept = .y,
+                  .before = match)) |>
+    list_rbind()
+
+  data_regex_count <- data_regex_match |> count(concept, match, sort = TRUE)
 
   cli_progress_done()
   cli_text("\n\n")
@@ -379,25 +404,38 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   data_extract <-
   list(data =
-        data_match_df |>
-          mutate(extract_text =
-                   get(text_input) |>
-                     str_extract_all(data_regex) |>
-                     map_chr(paste, collapse = " ; ")),
-      concept =
-        data_id |>
-          distinct(pick(id, group), concept) |>
-          pivot_wider(names_from = concept,
-                      values_from = concept) |>
-          mutate(across(any_of(names(concepts)), ~ ifelse(!is.na(.), 1, 0))),
-      extract =
-        data_id |>
-          distinct(pick(id, group, text_input)) |>
-          nest(extract_unique = text_input) |>
-          mutate(extract_unique =
-                   map_chr(extract_unique, ~ str_flatten(unlist(.), " ; ")))) |>
+         data_match_df |>
+           mutate(extract_text =
+                    get(text_input) |>
+                      str_extract_all(data_regex_str) |>
+                      map_chr(paste, collapse = " ; ")),
+       extract_concept =
+         data_regex_list |>
+           imap(~ data_match_df |>
+                  mutate(extract_text = str_extract(get(text_input), .x),
+                         extract_concept = .y) |>
+                  drop_na(extract_text) |>
+                  select(id, group, extract_concept)) |>
+           list_rbind() |>
+           nest(extract_concept = extract_concept) |>
+           mutate(extract_concept =
+                    map_chr(extract_concept, ~ str_flatten(unlist(.), " ; "))),
+       concept =
+         data_id |>
+           distinct(pick(id, group), concept) |>
+           pivot_wider(names_from = concept,
+                       values_from = concept) |>
+           mutate(across(any_of(names(concepts)), ~ ifelse(!is.na(.), 1, 0))),
+       extract_unique =
+         data_id |>
+           distinct(pick(id, group, text_input)) |>
+           nest(extract_unique = text_input) |>
+           mutate(extract_unique =
+                    map_chr(extract_unique, ~ str_flatten(unlist(.), " ; ")))) |>
     reduce(inner_join, by = c(id, group)) |>
+    relocate(extract_concept, extract_text, .before = extract_unique) |>
     rownames_to_column("n")
+
 
   cli_progress_done()
   cli_text("\n\n")
@@ -427,9 +465,9 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   list(id = data_id_mismatch,
        regex =
          data_match |>
-           select(id, match = !!text_input) |>
+           select(id, concept, match = !!text_input) |>
            anti_join(y = data_regex_match_conv,
-                     by = c(id, "match")))
+                     by = c(id, "concept", "match")))
 
   cli_progress_done()
   cli_text("\n\n")
@@ -569,7 +607,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
     wb_workbook() |>
       wb_add_custom(sheet = if (concepts_intersect) "data ∩" else "data",
                     data = data_extract |> select(-text_input, -extract_text),
-                    concept_var = unique(data_count$concept),
+                    concept_var = c(unique(data_count$concept), "extract_concept"),
                     concept_color = concept_color,
                     text_var = "extract_unique",
                     text_color = text_color) |>
@@ -592,21 +630,23 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                     data = regex_replace_df,
                     halign = "left") |>
       wb_add_custom(sheet = "regex_final",
-                    data = tibble(regex = data_regex),
-                    width = 80,
+                    data = data_regex_df,
                     halign = "left") |>
       wb_add_custom(sheet = "regex_match",
                     data = data_regex_match,
+                    concept_color = concept_color,
                     text_var = "match",
                     text_color = text_color) |>
       wb_add_custom(sheet = "regex_mismatch",
                     data =
                       if (nrow(data_mismatch$regex) > 0) data_mismatch$regex
                       else add_row(data_mismatch$regex),
+                    concept_color = concept_color,
                     text_var = "match",
                     text_color = text_color) |>
       wb_add_custom(sheet = "regex_count",
-                    data = data_regex_match |> count(match, sort = TRUE),
+                    data = data_regex_count,
+                    concept_color = concept_color,
                     text_var = "match",
                     text_color = text_color)
 
@@ -619,27 +659,22 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   cli_progress_step("{.strong HTML output}")
 
-  highlight <- \(var) {
-
-    .css <-
-    css(color = text_color,
-        background.color = text_background,
-        font.weight = "bold",
-        font.family = "system-ui",
-        padding = "0.2rem",
-        border.radius = "5px")
-
-    var |>
-      str_replace_all(glue("(?={data_regex})"),
-                      glue("<span style='{.css}'>")) |>
-      str_replace_all(glue("(?<={data_regex})"),
-                      "</span>")
-
-  }
+  .css <-
+  css(color = text_color,
+      background.color = text_background,
+      font.weight = "bold",
+      font.family = "system-ui",
+      padding = "0.2rem",
+      border.radius = "5px")
 
   data_output <-
   data_extract |>
-    mutate(!!text_input := highlight(get(text_input))) |>
+    mutate(!!text_input :=
+             get(text_input) |>
+               str_replace_all(glue("(?={data_regex_str})"),
+                               glue("<span style='{.css}'>")) |>
+               str_replace_all(glue("(?<={data_regex_str})"),
+                               "</span>")) |>
     mutate(by_pat = glue("({row_number()}/{max(row_number())})"),
            by_pat = if_else(by_pat == "(1/1)", "", by_pat),
            .by = group, .before = group) |>
@@ -656,7 +691,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   list(regex =
          list(concepts = concepts_df,
               replace = regex_replace_df,
-              final = data_regex,
+              final = data_regex_df,
               match = data_regex_match),
        match =
          list(init = data_match,
