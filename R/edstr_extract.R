@@ -13,10 +13,11 @@
 #' @param concepts_intersect
 #' @param starts_with_only
 #' @param exclus_manual
-#' @param exclus_auto_except
+#' @param exclus_auto_escape
 #' @param regex_replace
 #' @param mismatch_data
-#' @param xlsx_save
+#' @param to_xlsx
+#' @param to_csv
 #' @param concept_color
 #' @param text_color
 #' @param text_background
@@ -41,10 +42,11 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                    concepts_intersect = FALSE,
                    starts_with_only = FALSE,
                    exclus_manual = NULL,
-                   exclus_auto_except = NULL,
+                   exclus_auto_escape = NULL,
                    regex_replace = NULL,
                    mismatch_data = FALSE,
-                   xlsx_save = TRUE,
+                   to_xlsx = TRUE,
+                   to_csv = TRUE,
                    concept_color = "#0099EE",
                    text_color = "red",
                    text_background = "#FFFF44",
@@ -103,7 +105,17 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   }
 
-  concepts_root <- names(concepts) |> str_remove("_.+") |> unique()
+  concepts_keys <- names(concepts)
+
+  concepts_names <- concepts |> imap(~ { if (is_named(.x)) names(.x) else .y })
+
+  concepts_root <- concepts_keys |> str_remove("_.+") |> unique()
+
+  if (length(concepts_root) == 1 && concepts_intersect) {
+
+    cli_abort("{.strong Pas d'intersection possible}")
+
+  }
 
 ### ----------------------------------------------------------------------------
 
@@ -206,7 +218,8 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   concepts_regex <- concepts |> map(~ glue("^({.}){concepts_regex_end}"))
 
   concepts_df <-
-  tibble(concept = names(concepts),
+  tibble(concept_key = concepts_keys,
+         concept_name = unlist(concepts_names),
          regex = unlist(concepts_regex))
 
   ngrams_extract <- \(x, n) {
@@ -238,21 +251,28 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
     imap(~ mutate(.x, ngrams = .y)) |>
     list_rbind()
 
+  .concepts_id <-
+  concepts_root |>
+    set_names() |>
+    map(~ data_match_init |>
+          distinct(pick(id, group), concept) |>
+          pivot_wider(names_from = concept,
+                      values_from = concept) |>
+          filter(if_any(matches(.), ~ !is.na(.))) |>
+          select(id, group))
+
   if (concepts_intersect) {
 
-    .match_id <-
-    concepts_root |>
-      map(~ data_match_init |>
-            distinct(pick(id, group), concept) |>
-            pivot_wider(names_from = concept,
-                        values_from = concept) |>
-            filter(if_any(matches(.), ~ !is.na(.))) |>
-            select(id)) |>
-      reduce(inner_join, by = id)
+    .match_id <- .concepts_id |> reduce(inner_join, by = c(id, group))
 
   } else .match_id <- data_match_init[id]
 
-  data_match <- data_match_init |> filter(get(id) %in% .match_id[[id]])
+  data_match <-
+  data_match_init |>
+    rename(concept_key = concept) |>
+    mutate(concept = concept_key |> map_chr(~ concepts_names[[.]]),
+           .after = concept_key) |>
+    filter(get(id) %in% .match_id[[id]])
 
   data_match_df <- data |> filter(get(id) %in% data_match[[id]])
 
@@ -273,9 +293,9 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   cli_progress_step("{.strong Exclusion}")
 
-  if (!is.null(exclus_auto_except)) {
+  if (!is.null(exclus_auto_escape)) {
 
-    data_match <- filter(data_match, !str_detect(get(text_input), exclus_auto_except))
+    data_match <- filter(data_match, !str_detect(get(text_input), exclus_auto_escape))
 
   }
 
@@ -296,7 +316,8 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
               end = "\\s{.}$",
               start_end = "{.}.+{.}$") |>
          imap(set_exclus_auto) |>
-         reduce(full_join, by = names(data_match)),
+         reduce(full_join, by = names(data_match)) |>
+         filter(ngrams > 2),
        manual =
          data_match |>
            filter(str_detect(get(text_input), exclus_manual %||% NA_character_))) |>
@@ -375,7 +396,8 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
     nest(text = text, .by = concept) |>
     mutate(!!text_input :=
              map_chr(get(text_input), ~ str_flatten(unlist(.), "|")),
-           !!text_input := glue(regex_wrap, x = get(text_input)))
+           !!text_input :=
+             glue(regex_wrap, x = get(text_input)))
 
   data_regex_list <-
   data_regex_df$text |>
@@ -405,27 +427,26 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   data_extract <-
   list(data =
          data_match_df |>
-           mutate(extract_text =
+           mutate(extract_all =
                     get(text_input) |>
                       str_extract_all(data_regex_str) |>
                       map_chr(paste, collapse = " ; ")),
-       extract_concept =
+       concept_name =
          data_regex_list |>
            imap(~ data_match_df |>
-                  mutate(extract_text = str_extract(get(text_input), .x),
-                         extract_concept = .y) |>
-                  drop_na(extract_text) |>
-                  select(id, group, extract_concept)) |>
+                  mutate(extract_all = str_extract(get(text_input), .x),
+                         concept = .y) |>
+                  drop_na(extract_all) |>
+                  select(id, group, concept)) |>
            list_rbind() |>
-           nest(extract_concept = extract_concept) |>
-           mutate(extract_concept =
-                    map_chr(extract_concept, ~ str_flatten(unlist(.), " ; "))),
-       concept =
+           nest(concept = concept) |>
+           mutate(concept = map_chr(concept, ~ str_flatten(unlist(.), " ; "))),
+       concept_dummy =
          data_id |>
-           distinct(pick(id, group), concept) |>
-           pivot_wider(names_from = concept,
-                       values_from = concept) |>
-           mutate(across(any_of(names(concepts)), ~ ifelse(!is.na(.), 1, 0))),
+           distinct(pick(id, group), concept_key) |>
+           pivot_wider(names_from = concept_key,
+                       values_from = concept_key) |>
+           mutate(across(matches(concepts_root), ~ ifelse(is.na(.), 0, 1))),
        extract_unique =
          data_id |>
            distinct(pick(id, group, text_input)) |>
@@ -433,9 +454,8 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
            mutate(extract_unique =
                     map_chr(extract_unique, ~ str_flatten(unlist(.), " ; ")))) |>
     reduce(inner_join, by = c(id, group)) |>
-    relocate(extract_concept, extract_text, .before = extract_unique) |>
+    relocate(concept, extract_all, .before = extract_unique) |>
     rownames_to_column("n")
-
 
   cli_progress_done()
   cli_text("\n\n")
@@ -444,13 +464,21 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   cli_progress_step("{.strong Mismatch}")
 
+  data_id_mismatch_base <- data[c(id, group)]
+
   if (mismatch_data) {
 
     data_id_mismatch <-
-    data[c(id, group, text_input)] |>
+    data_id_mismatch_base |>
       filter(!get(id) %in% data_match_init[[id]])
 
-  } else data_id_mismatch <- NULL
+  } else {
+
+    data_id_mismatch <-
+    data_id_mismatch_base |>
+      filter(get(id) %in% NA_character_)
+
+  }
 
   data_regex_match_conv <-
   data_regex_match |>
@@ -508,11 +536,11 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   unlink(file.path(save_dir, list.files(save_dir)), recursive = TRUE)
 
-### XLSX OUTPUT ----------------------------------------------------------------
+### XLSX DATA ------------------------------------------------------------------
 
-  if (xlsx_save) {
+  if (to_xlsx) {
 
-    cli_progress_step("{.strong XLSX output}")
+    cli_progress_step("{.strong Save to xlsx}")
 
     wb_add_custom <- \(x,
                        sheet,
@@ -603,23 +631,29 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
     }
 
+    .xlsx_mismatch <-
+      lst(data = data_mismatch$regex,
+          rows = if (nrow(data) > 0) data else add_row(data),
+          visible = if (nrow(data) > 0) "true" else "false")
+
     xlsx_output <-
     wb_workbook() |>
       wb_add_custom(sheet = if (concepts_intersect) "data ∩" else "data",
-                    data = data_extract |> select(-text_input, -extract_text),
-                    concept_var = c(unique(data_count$concept), "extract_concept"),
+                    data = data_extract |> select(-text_input, -extract_all),
+                    concept_var = c(data_id$concept_key, "concept"),
                     concept_color = concept_color,
                     text_var = "extract_unique",
                     text_color = text_color) |>
       wb_add_custom(sheet = "regex_concepts",
                     data = concepts_df,
+                    concept_var = names(concepts_df) |> str_subset("concept"),
                     concept_color = concept_color,
                     halign = "left") |>
       wb_add_custom(sheet = "match_concepts",
                     data = data_summary$concept,
                     concept_color = concept_color) |>
       wb_add_custom(sheet = "match_text",
-                    data = data_id,
+                    data = data_id |> select(-concept_key),
                     concept_color = concept_color,
                     text_color = text_color) |>
       wb_add_custom(sheet = "match_count",
@@ -631,6 +665,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                     halign = "left") |>
       wb_add_custom(sheet = "regex_final",
                     data = data_regex_df,
+                    concept_color = concept_color,
                     halign = "left") |>
       wb_add_custom(sheet = "regex_match",
                     data = data_regex_match,
@@ -638,54 +673,68 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                     text_var = "match",
                     text_color = text_color) |>
       wb_add_custom(sheet = "regex_mismatch",
-                    data =
-                      if (nrow(data_mismatch$regex) > 0) data_mismatch$regex
-                      else add_row(data_mismatch$regex),
+                    data = .xlsx_mismatch$rows,
                     concept_color = concept_color,
                     text_var = "match",
-                    text_color = text_color) |>
+                    text_color = text_color,
+                    visible = .xlsx_mismatch$visible) |>
       wb_add_custom(sheet = "regex_count",
                     data = data_regex_count,
                     concept_color = concept_color,
                     text_var = "match",
                     text_color = text_color)
 
+    data_xlsx <-
+    xlsx_output |>
+      wb_get_sheet_names() |>
+      map(~ xlsx_output |>
+            wb_to_df(sheet = .) |>
+            as_tibble())
+
+    xlsx_output |> wb_save(file = glue("{save_extract}.xlsx"))
+
     cli_progress_done()
     cli_text("\n\n")
 
-  }
+  } else data_xlsx <- NULL
 
-### HTML OUTPUT ----------------------------------------------------------------
+### CSV DATA -------------------------------------------------------------------
 
-  cli_progress_step("{.strong HTML output}")
+  if (to_csv) {
 
-  .css <-
-  css(color = text_color,
-      background.color = text_background,
-      font.weight = "bold",
-      font.family = "system-ui",
-      padding = "0.2rem",
-      border.radius = "5px")
+    cli_progress_step("{.strong Save to csv}")
 
-  data_output <-
-  data_extract |>
-    mutate(!!text_input :=
-             get(text_input) |>
-               str_replace_all(glue("(?={data_regex_str})"),
-                               glue("<span style='{.css}'>")) |>
-               str_replace_all(glue("(?<={data_regex_str})"),
-                               "</span>")) |>
-    mutate(by_pat = glue("({row_number()}/{max(row_number())})"),
-           by_pat = if_else(by_pat == "(1/1)", "", by_pat),
-           .by = group, .before = group) |>
-    select(-extract_unique)
+    .css <-
+    css(color = text_color,
+        background.color = text_background,
+        font.weight = "bold",
+        font.family = "system-ui",
+        padding = "0.2rem",
+        border.radius = "5px")
 
-  cli_progress_done()
-  cli_text("\n\n")
+    data_csv <-
+    data_extract |>
+      mutate(!!text_input :=
+               get(text_input) |>
+                 str_replace_all(glue("(?={data_regex_str})"),
+                                 glue("<span style='{.css}'>")) |>
+                 str_replace_all(glue("(?<={data_regex_str})"),
+                                 "</span>")) |>
+      mutate(by_pat = glue("({row_number()}/{max(row_number())})"),
+             by_pat = if_else(by_pat == "(1/1)", "", by_pat),
+             .by = group, .before = group) |>
+      select(-matches(concepts_root), -extract_unique)
 
-### SAVE DATA ------------------------------------------------------------------
+    data_csv |> write_excel_csv(file = glue("{save_extract}.csv"))
 
-  cli_progress_step("{.strong Save data}")
+    cli_progress_done()
+    cli_text("\n\n")
+
+  } else data_csv <- NULL
+
+### ASSIGN DATA ----------------------------------------------------------------
+
+  cli_progress_step("{.strong Save to RData}")
 
   data_save <-
   list(regex =
@@ -704,8 +753,10 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
               count = data_count_exclus),
        mismatch = data_mismatch,
        summary = data_summary,
-       data = data_extract,
-       output = data_output)
+       data =
+         list(extract = data_extract,
+              xlsx = data_xlsx,
+              csv = data_csv))
 
   assign(glue(save_files),
          data_save,
@@ -713,10 +764,6 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   save(list = glue(save_files),
        file = glue("{save_extract}.RData"))
-
-  write_excel_csv(x = data_output, file = glue("{save_extract}.csv"))
-
-  wb_save(wb = xlsx_output, file = glue("{save_extract}.xlsx"))
 
   cli_progress_done()
   cli_text("\n\n")
@@ -854,11 +901,11 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   cli_rule()
   cli_text("\n\n")
 
-  cli_alert_success("{.strong {cli_n_files} fichier{?s} enregistré{?s} vers {.path {here(save_dir)}}}")
+  cli_alert_success("{.strong {cli_n_files} fichier{?s} enregistré{?s} dans {.path {here(save_dir)}}}")
   cli_ul()
-    cli_li("RData: {col_red(glue('{save_files}.RData'))}")
-    cli_li("CSV output: {col_red(glue('{save_files}.csv'))}")
-    if (xlsx_save) cli_li("XLSX output: {col_red(glue('{save_files}.xlsx'))}")
+    cli_li("RData : {col_red(glue('{save_files}.RData'))}")
+    if (to_xlsx) cli_li("xlsx : {col_red(glue('{save_files}.xlsx'))}")
+    if (to_csv) cli_li("csv : {col_red(glue('{save_files}.csv'))}")
     cli_end()
 
   cli_text("\n\n")
