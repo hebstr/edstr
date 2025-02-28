@@ -566,7 +566,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
       .xlsx_output <-
       x |>
         wb_add_worksheet(sheet = sheet,
-                         zoom = 115,
+                         zoom = 105,
                          ...) |>
         wb_add_data_table(x = data,
                           na.strings = NULL) |>
@@ -720,9 +720,6 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                                  glue("<span style='{.css}'>")) |>
                  str_replace_all(glue("(?<={data_regex_str})"),
                                  "</span>")) |>
-      mutate(by_pat = glue("({row_number()}/{max(row_number())})"),
-             by_pat = if_else(by_pat == "(1/1)", "", by_pat),
-             .by = group, .before = group) |>
       select(-matches(concepts_root), -extract_unique)
 
     data_csv |> write_excel_csv(file = glue("{save_extract}.csv"))
