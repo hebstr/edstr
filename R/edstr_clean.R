@@ -4,7 +4,7 @@
 #' @param sample
 #' @param filter
 #' @param text_input
-#' @param clean
+#' @param replace
 #' @param load
 #'
 #' @return
@@ -16,7 +16,7 @@ edstr_clean <- \(data = glue("{with(config, file)}_import"),
                  sample = NULL,
                  filter = NULL,
                  text_input = with(config, text),
-                 clean = with(config_str, clean),
+                 replace = with(config, str),
                  load = FALSE) {
 
   if (!exists(".config_name")) {
@@ -25,8 +25,8 @@ edstr_clean <- \(data = glue("{with(config, file)}_import"),
 
   } else config <- get(.config_name)
 
-  config_str <- with(config, str)
-  config_dir <- with(config, dir)
+  config_str <- config$str
+  config_dir <- config$dir
   config_file <- glue("{with(config, file)}_clean")
   config_save <- glue("{config_dir}/{config_file}.RData")
 
@@ -41,8 +41,8 @@ edstr_clean <- \(data = glue("{with(config, file)}_import"),
 
     if (identical(data, file_import) && !exists(file_import)) {
 
-      cli_abort(c("{.strong {file_import}} doesn't exists!",
-                  "i" = "Create {.strong {file_import}} first with {.fn edstr_import}"))
+      cli_error_data(data = file_import,
+                     fun = "import")
 
     }
 
@@ -62,12 +62,12 @@ edstr_clean <- \(data = glue("{with(config, file)}_import"),
 
     cli_progress_step("Cleaning {.strong {file_import}}")
 
-    if (!is.list(clean)) clean <- list(clean)
+    if (!is.list(replace)) replace <- list(replace)
 
     data_clean <-
     data |>
       mutate(!!text_input :=
-               reduce(clean,
+               reduce(replace,
                       str_replace_all,
                       .init = get(text_input)))
 
@@ -91,9 +91,9 @@ edstr_clean <- \(data = glue("{with(config, file)}_import"),
 
   } else {
 
-    cli_load(config_dir,
-             config_file,
-             config_save)
+    cli_load(dir = config_dir,
+             file = config_file,
+             save = config_save)
 
   }
 

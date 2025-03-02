@@ -9,8 +9,8 @@
 #' @param group
 #' @param ngrams
 #' @param concepts
-#' @param concepts_collapse
-#' @param concepts_intersect
+#' @param collapse
+#' @param intersect
 #' @param starts_with_only
 #' @param exclus_manual
 #' @param exclus_auto_escape
@@ -21,8 +21,9 @@
 #' @param concept_color
 #' @param text_color
 #' @param text_background
-#' @param dir_suffix
+#' @param dirname_suffix
 #' @param filename_suffix
+#' @param load
 #'
 #' @return
 #' @export
@@ -38,9 +39,9 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                    group = "",
                    ngrams = 1,
                    concepts,
-                   concepts_collapse = FALSE,
-                   concepts_intersect = FALSE,
-                   starts_with_only = FALSE,
+                   collapse = FALSE,
+                   intersect = FALSE,
+                   starts_with_only = TRUE,
                    exclus_manual = NULL,
                    exclus_auto_escape = NULL,
                    regex_replace = NULL,
@@ -50,8 +51,9 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                    concept_color = "#0099EE",
                    text_color = "red",
                    text_background = "#FFFF44",
-                   dir_suffix = sample,
-                   filename_suffix = sample) {
+                   dirname_suffix = if (!is.null(sample)) glue("sample_{sample}") else NULL,
+                   filename_suffix = dirname_suffix,
+                   load = FALSE) {
 
   if (!is.null(seed)) set.seed(seed)
 
@@ -61,7 +63,40 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   } else config <- get(.config_name)
 
-  config_str <- with(config, str)
+  config_dir <- config$dir
+  config_str <- config$str
+  filename <- config$file
+  dirname <- "extract"
+
+  save_dir <- glue("{config_dir}/{dirname}")
+
+  if (!is.null(dirname_suffix)) save_dir <- glue("{save_dir}_{dirname_suffix}")
+
+  save_files <- glue("{filename}_{dirname}")
+
+  if (!is.null(filename_suffix)) save_files <- glue("{save_files}_{filename_suffix}")
+
+  if (!file.exists(save_dir) && !load) dir.create(path = save_dir)
+
+  save_extract <- glue("{save_dir}/{save_files}")
+
+  save_extract_rdata <- glue("{save_extract}.RData")
+
+  tic("Full steps")
+
+  cli_h1("edstr_extract")
+  cli_text("\n\n")
+
+  if (!load) {
+
+  if (!exists(data)) {
+
+    cli_error_data(data = data,
+                   fun = "clean")
+
+  }
+
+  if (is.character(data)) data <- get(data)
 
 ### CONCEPTS -------------------------------------------------------------------
 
@@ -91,17 +126,43 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   }
 
-  if (concepts_collapse) {
+  list_flatten_complete <- \(data) {
 
-    concepts <- concepts |> map(paste, collapse = "|")
+    data |>
+      pluck_depth() |>
+      seq() |>
+      reduce(~ list_flatten(.), .init = data)
+
+  }
+
+  if (collapse) {
+
+    if (length(concepts) == 1) {
+
+      cli_abort("Pas de regroupement possible si un seul concept est recherché")
+
+    }
+
+    if (pluck_depth(concepts) > 2) {
+
+      concepts <-
+      concepts |>
+        map(~ . |>
+              list_flatten_complete() |>
+              paste(collapse = "|"))
+
+    } else {
+
+      concepts <-
+      concepts |>
+        paste(collapse = "|") |>
+        set_names("<concept>")
+
+    }
 
   } else {
 
-    concepts <-
-    concepts |>
-      pluck_depth() |>
-      seq() |>
-      reduce(~ list_flatten(.), .init = concepts)
+    concepts <- list_flatten_complete(concepts)
 
   }
 
@@ -111,15 +172,16 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   concepts_root <- concepts_keys |> str_remove("_.+") |> unique()
 
-  if (length(concepts_root) == 1 && concepts_intersect) {
+  if (length(concepts_root) == 1 && intersect) {
 
-    cli_abort("{.strong Pas d'intersection possible}")
+    cli_abort("Pas d'intersection possible si un seul concept est recherché")
 
   }
 
-### ----------------------------------------------------------------------------
+  str_concepts_comma <- str_flatten_comma(concepts_root)
+  str_concepts_inter <- glue("[{paste(concepts_root, collapse = ' ET ')}]")
 
-  if (is.character(data)) data <- get(data)
+### ID -------------------------------------------------------------------------
 
   data_init <- data
 
@@ -141,26 +203,6 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
            .after = all_of(id))
 
   }
-
-  tic("Full steps")
-
-  cli_h1("edstr_extract")
-  cli_text("\n\n")
-
-### SAVE PARAMS ----------------------------------------------------------------
-
-  filename <- config$file
-  dirname <- glue("{filename}_extract")
-  save_dir <- glue("{config$dir}/{dirname}")
-  save_files <- dirname
-
-  if (!is.null(dir_suffix)) save_dir <- glue("{save_dir}_{dir_suffix}")
-
-  if (!is.null(filename_suffix)) save_files <- glue("{dirname}_{filename_suffix}")
-
-  if (!file.exists(glue(save_dir))) dir.create(path = glue(save_dir))
-
-  save_extract <- glue("{save_dir}/{save_files}")
 
 ### FILTERS --------------------------------------------------------------------
 
@@ -213,7 +255,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   cli_progress_step("{.strong Matching}")
 
-  concepts_regex_end <- if (starts_with_only) "" else "\\S*$"
+  concepts_regex_end <- if (starts_with_only) "\\S*$" else ""
 
   concepts_regex <- concepts |> map(~ glue("^({.}){concepts_regex_end}"))
 
@@ -261,7 +303,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
           filter(if_any(matches(.), ~ !is.na(.))) |>
           select(id, group))
 
-  if (concepts_intersect) {
+  if (intersect) {
 
     .match_id <- .concepts_id |> reduce(inner_join, by = c(id, group))
 
@@ -274,13 +316,18 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
            .after = concept_key) |>
     filter(get(id) %in% .match_id[[id]])
 
+  data_match_init_df <-
+  data |>
+    select(-text_input) |>
+    filter(get(id) %in% data_match_init[[id]])
+
   data_match_df <- data |> filter(get(id) %in% data_match[[id]])
 
   rm(data_ngrams); invisible(gc())
 
   if (nrow(data_match) == 0) {
 
-    abort_intersect <- if (concepts_intersect) " à l'intersection" else ""
+    abort_intersect <- if (intersect) " à l'intersection" else ""
 
     cli_abort("{.strong Aucune correspondance{abort_intersect}}")
 
@@ -638,7 +685,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
     xlsx_output <-
     wb_workbook() |>
-      wb_add_custom(sheet = if (concepts_intersect) "data ∩" else "data",
+      wb_add_custom(sheet = if (intersect) "data ∩" else "data",
                     data = data_extract |> select(-text_input, -extract_all),
                     concept_var = c(data_id$concept_key, "concept"),
                     concept_color = concept_color,
@@ -751,16 +798,18 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
        mismatch = data_mismatch,
        summary = data_summary,
        data =
-         list(extract = data_extract,
+         list(base = data |> select(-text_input),
+              match = data_match_init_df,
+              extract = data_extract,
               xlsx = data_xlsx,
               csv = data_csv))
 
-  assign(glue(save_files),
+  assign(save_files,
          data_save,
          envir = .GlobalEnv)
 
-  save(list = glue(save_files),
-       file = glue("{save_extract}.RData"))
+  save(list = save_files,
+       file = save_extract_rdata)
 
   cli_progress_done()
   cli_text("\n\n")
@@ -810,10 +859,8 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   cli_text("\n\n")
 
   n_concepts <- length(concepts_root)
-  str_concepts <- str_flatten_comma(concepts_root)
-  cli_concepts <- glue("[{paste(concepts_root, collapse = ' ET ')}]")
 
-  cli_intersect <- if (concepts_intersect) " à l'intersection {cli_concepts}" else ""
+  cli_intersect <- if (intersect) " à l'intersection {str_concepts_inter}" else ""
 
   cli_n_id <- nrow(data_id |> filter(get(id) %in% .match_id[[id]]))
   cli_p_id <- label_percent(0.1)(nrow(data) / nrow(data_init))
@@ -871,7 +918,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   cli_rule()
   cli_text("\n\n")
 
-  cli_alert_success("{.strong {n_concepts} concept{?s} parent{?s} :} {str_concepts}")
+  cli_alert_success("{.strong {n_concepts} concept{?s} parent{?s} :} {str_concepts_comma}")
   cli_text("\n\n")
 
   cli_alert_success("{.strong {cli_n_id} correspondance{?s}{glue(cli_intersect)}}")
@@ -898,7 +945,10 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   cli_rule()
   cli_text("\n\n")
 
-  cli_alert_success("{.strong {cli_n_files} fichier{?s} enregistré{?s} dans {.path {here(save_dir)}}}")
+  cli_alert_info("{.strong Dossier de destination : {.path {here(save_dir)}}}")
+  cli_text("\n\n")
+
+  cli_alert_success("{.strong {cli_n_files} fichier{?s} enregistré{?s}}")
   cli_ul()
     cli_li("RData : {col_red(glue('{save_files}.RData'))}")
     if (to_xlsx) cli_li("xlsx : {col_red(glue('{save_files}.xlsx'))}")
@@ -909,5 +959,13 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   cli_rule()
 
   invisible(gc())
+
+  } else {
+
+    cli_load(dir = save_dir,
+             file = save_files,
+             save = save_extract_rdata)
+
+  }
 
 }

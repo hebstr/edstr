@@ -147,9 +147,9 @@ edstr_import <- \(dest_dir = NULL,
 
   } else {
 
-    cli_load(config_dir,
-             config_file,
-             config_save)
+    cli_load(dir = config_dir,
+             file = config_file,
+             save = config_save)
 
   }
 

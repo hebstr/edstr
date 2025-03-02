@@ -2,13 +2,12 @@
 #'
 #' @param data
 #' @param config
-#' @param config_str
 #' @param text_input
 #' @param filter
 #' @param replace
 #' @param str
 #' @param case_sensitive
-#' @param limits
+#' @param starts_with_only
 #' @param ngram_max
 #' @param id
 #' @param raw
@@ -23,13 +22,12 @@
 #'
 edstr_view <- \(data,
                 config = get(.config_name),
-                config_str = with(config, str),
                 text_input = with(config, text),
                 filter = NULL,
                 replace = NULL,
                 str = NULL,
                 case_sensitive = FALSE,
-                limits = c("asis", "start-end", "start", "end", "sentence"),
+                starts_with_only = FALSE,
                 ngram_max = NULL,
                 id = NULL,
                 raw = FALSE,
@@ -47,8 +45,6 @@ edstr_view <- \(data,
   } else str_name <- ""
 
   config_file <- glue("{with(config, file)}_view{str_name}")
-
-  limits <- arg_match(limits)
 
   if (!quiet) {
 
@@ -91,11 +87,7 @@ edstr_view <- \(data,
 
   if (!case_sensitive) str <- enstr("(?i)", "")
 
-  switch(limits,
-         "start-end" = str <- enstr("\\w*"),
-         "start" = str <- enstr("", "\\w*"),
-         "end" = str <- enstr("\\w*", ""),
-         "sentence" = str <- enstr("(?<=<p>).*", ".*(?=</p>)"))
+  if (starts_with_only) str <- enstr("", "\\S*")
 
   data_match <-
   data |>

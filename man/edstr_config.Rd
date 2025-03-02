@@ -7,7 +7,7 @@
 edstr_config(
   dest_dir,
   dest_filename,
-  config_dir = "../R/config",
+  config_dir = NULL,
   config_name = ".config",
   text = "text",
   str = NULL,

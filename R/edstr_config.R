@@ -15,7 +15,7 @@
 #'
 edstr_config <- \(dest_dir,
                   dest_filename,
-                  config_dir = "../R/config",
+                  config_dir = NULL,
                   config_name = ".config",
                   text = "text",
                   str = NULL,
@@ -23,7 +23,8 @@ edstr_config <- \(dest_dir,
 
   dest_dir <- glue(dest_dir)
   dest_filename <- glue(dest_filename)
-  config_dir <- glue(config_dir)
+  config_dir <- if (!is.null(config_dir)) glue(config_dir) else NULL
+  text <- glue(text)
 
   if (!is.null(str)) {
 
@@ -39,22 +40,15 @@ edstr_config <- \(dest_dir,
 
   } else concepts_data <- NULL
 
-  if (!is.null(text)) {
-
-    text <- glue(text)
-
-  } else text <- NULL
-
-### MANAGE DIRECTORY -----------------------------------------------------------
+### DIRECTORY ------------------------------------------------------------------
 
   if (!file.exists(dest_dir)) {
 
     dir.create(path = dest_dir, recursive = TRUE)
-    dir_status <- "New"
 
-  } else dir_status <- "Existing"
+  }
 
-### ASSIGNMENT -----------------------------------------------------------------
+### ASSIGN ---------------------------------------------------------------------
 
   assign(config_name,
          list(dir = str_remove(dest_dir, "/+$"),
@@ -80,28 +74,27 @@ edstr_config <- \(dest_dir,
   cli_h1("edstr_config")
   cli_text("\n\n")
 
-  cli_alert_success("{.strong Working directory:} {.path {here()}}")
-
+  cli_alert_success("{.strong Répertoire de projet:} {.path {here()}}")
   cli_text("\n\n")
-  cli_alert_info("{.strong Destination}")
+
+  cli_alert_success("{.strong Config}")
   cli_ul()
   cli_ul()
-    cli_li("{dir_status} directory: {.path {normalize_dir(dirname)}}")
-    cli_li("Filename: {filename}")
+    if (!is.null(config_dir)) cli_li("Dossier source : {.path {normalize_dir(config_dir)}}")
+    cli_li("Objet : {config_name}")
   cli_end()
-
   cli_text("\n\n")
-  cli_alert_success("{.strong Config directory:} {.path {normalize_dir(config_dir)}}")
 
-  cli_text("\n\n")
-  cli_alert_success("{.strong Config file:} {config_name}")
+  cli_alert_success("{.strong Assignations}")
   cli_ul()
-    cli_li("text: {text}")
-    cli_li("str: {str}")
-    cli_li("concepts: {concepts}")
-    cli_end()
-
+    cli_li("Dossier de destination : {.path {normalize_dir(dirname)}}")
+    cli_li("Nom de fichier : {filename}")
+    cli_li("Variable texte : {text}")
+    if (!is.null(str_data)) cli_li("Règles de nettoyage : {str}")
+    if (!is.null(concepts_data)) cli_li("Liste de concepts : {concepts}")
+  cli_end()
   cli_text("\n\n")
+
   cli_rule()
 
 }

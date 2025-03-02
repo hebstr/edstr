@@ -45,10 +45,23 @@ cli_error_config <- \(dest_dir = NULL,
 
   } else {
 
-    cli_abort(c("Config file doesn't exists!",
-                "i" = "Create it first with {.fn edstr_config}"))
+    cli_abort(c("Le fichier de configuration n'existe pas",
+                "i" =
+                  "Créer ce fichier dans un premier temps avec {.fn edstr_config},
+                  ou bien indiquer un répertoire par défaut avec {.field dest_dir}
+                  et un nom de fichier par défaut avec {.field dest_filename}"))
 
   }
+
+}
+
+
+cli_error_data <- \(data, fun) {
+
+  cli_abort(c("Le fichier {.strong {data}} n'est pas chargé",
+            "i" =
+              "Créer/charger le fichier {.strong {data}} dans un premier
+              temps avec {.fn edstr_{glue(fun)}} ou bien utiliser un autre fichier"))
 
 }
 
@@ -79,26 +92,36 @@ cli_save <- \(data,
 }
 
 
-cli_load <- \(config_dir,
-              config_file,
-              config_save) {
+cli_load <- \(dir, file, save) {
 
-  if (!file.exists(config_save)) {
+  if (!file.exists(dir)) {
 
-    cli_abort(c("{.strong {config_file}} not found in {.path {here(config_dir)}}",
+    cli_abort(c("Le fichier {.strong {file}} ne peut être chargé car le dossier
+                {.path {here(dir)}} n'existe pas",
                 "i" =
-                  "Create {.strong {config_file}} first with {.field load = FALSE}
-                  or change directory in {.fn edstr_config} with {.field dest_dir}"))
+                  "Créer le fichier {.strong {file}} dans un premier temps avec
+                  {.field load = FALSE} ou bien charger un autre fichier"))
 
   }
 
-  cli_progress_step("Loading {.strong {config_file}}")
+  if (!file.exists(save)) {
 
-  load(config_save, envir = .GlobalEnv)
+    cli_abort(c(" Le fichier {.strong {file}} n'est pas retrouvé dans le dossier
+                {.path {here(dir)}}",
+                "i" =
+                  "Créer le fichier {.strong {file}} dans un premier temps avec
+                  {.field load = FALSE} ou bien changer le répertoire par défaut
+                  dans {.fn edstr_config} avec {.field dest_dir}"))
+
+  }
+
+  cli_progress_step("Chargement du fichier {.strong {file}}")
+
+  load(save, envir = .GlobalEnv)
 
   cli_progress_done()
 
-  cli_alert_success("{.strong {config_file}} loaded from {.path {here(config_save)}}")
+  cli_alert_success("Ficher {.strong {file}} chargé depuis {.path {here(save)}}")
   cli_text("\n\n")
   cli_rule()
 

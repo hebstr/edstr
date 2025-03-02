@@ -14,9 +14,9 @@ edstr_extract(
   group = "",
   ngrams = 1,
   concepts,
-  concepts_collapse = FALSE,
-  concepts_intersect = FALSE,
-  starts_with_only = FALSE,
+  collapse = FALSE,
+  intersect = FALSE,
+  starts_with_only = TRUE,
   exclus_manual = NULL,
   exclus_auto_escape = NULL,
   regex_replace = NULL,
@@ -26,12 +26,13 @@ edstr_extract(
   concept_color = "#0099EE",
   text_color = "red",
   text_background = "#FFFF44",
-  dir_suffix = sample,
-  filename_suffix = sample
+  dirname_suffix = if (!is.null(sample)) glue("sample_{sample}") else NULL,
+  filename_suffix = dirname_suffix,
+  load = FALSE
 )
 }
 \arguments{
-\item{filename_suffix}{}
+\item{load}{}
 }
 \description{
 Title
