@@ -27,17 +27,22 @@ edstr_import <- \(dest_dir = NULL,
                   query = NULL,
                   head = NULL,
                   to_lower = TRUE,
+                  disconnect = TRUE,
                   load = FALSE) {
 
-  if (!exists(".config_name")) {
+  if (!control) {
 
-    config <- cli_error_config(dest_dir, dest_filename)
+    if (!exists(".config_name")) {
 
-  } else config <- get(.config_name)
+      config <- cli_error_config(dest_dir, dest_filename)
 
-  config_dir <- with(config, dir)
-  config_file <- glue("{with(config, file)}_import")
-  config_save <- glue("{config_dir}/{config_file}.RData")
+    } else config <- get(.config_name)
+
+    config_dir <- with(config, dir)
+    config_file <- glue("{with(config, file)}_import")
+    config_save <- glue("{config_dir}/{config_file}.RData")
+
+  }
 
   connect_dir <- glue(connect_dir)
   query <- glue(query)
@@ -52,7 +57,7 @@ edstr_import <- \(dest_dir = NULL,
 ### CONNECT --------------------------------------------------------------------
 
     RJDBC::JDBC(driverClass = "oracle.jdbc.OracleDriver",
-                classPath = "/opt/oracle/instantclient_23_7/ojdbc17.jar")
+                classPath = glue("{connect_dir}/ojdbc17.jar")) # "/opt/oracle/instantclient_23_7/ojdbc17.jar"
 
     tns <- read_lines(glue("{connect_dir}/{tns}.txt"))
     adress <- glue("jdbc:oracle:thin:@{tns}")
@@ -128,22 +133,25 @@ edstr_import <- \(dest_dir = NULL,
 
       cli_text("\n\n")
       cli_progress_step("Control (user: {.strong {user}})")
+      cli_text("\n\n")
 
       data_import <- tbl(conn, sql(query)) |> collect()
 
+      return(data_import)
+
       cli_progress_done()
-      cli_text("\n\n")
-      toc()
-      cli_text("\n\n")
-
-      print(data_import)
-
-      cli_text("\n\n")
-      cli_rule()
 
     }
 
-    DatabaseConnector::disconnect(conn)
+    if (disconnect) {
+
+      DatabaseConnector::disconnect(conn)
+
+    } else {
+
+      assign("conn", conn, envir = .GlobalEnv)
+
+    }
 
   } else {
 
