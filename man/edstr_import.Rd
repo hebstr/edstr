@@ -15,6 +15,7 @@ edstr_import(
   query = NULL,
   head = NULL,
   to_lower = TRUE,
+  disconnect = TRUE,
   load = FALSE
 )
 }

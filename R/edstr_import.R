@@ -10,6 +10,7 @@
 #' @param query
 #' @param head
 #' @param to_lower
+#' @param disconnect
 #' @param load
 #'
 #' @return
