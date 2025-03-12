@@ -1,11 +1,10 @@
 #' Title
 #'
+#' @param config_name
 #' @param dest_dir
 #' @param dest_filename
-#' @param config_dir
-#' @param config_name
 #' @param text
-#' @param str
+#' @param replace
 #' @param concepts
 #'
 #' @return
@@ -13,32 +12,20 @@
 #'
 #' @examples
 #'
-edstr_config <- \(dest_dir,
+edstr_config <- \(config_name = ".config",
+                  dest_dir,
                   dest_filename,
-                  config_dir = NULL,
-                  config_name = ".config",
-                  text = "text",
-                  str = NULL,
+                  text = "texte",
+                  replace = NULL,
                   concepts = NULL) {
 
   dest_dir <- glue(dest_dir)
   dest_filename <- glue(dest_filename)
-  config_dir <- if (!is.null(config_dir)) glue(config_dir) else NULL
   text <- glue(text)
 
-  if (!is.null(str)) {
+  if (!is.null(replace)) replace <- get(load(replace))
 
-    str <- load(file.path(config_dir, str))
-    str_data <- get(str)
-
-  } else str_data <- NULL
-
-  if (!is.null(concepts)) {
-
-    concepts <- load(file.path(config_dir, concepts))
-    concepts_data <- get(concepts)
-
-  } else concepts_data <- NULL
+  if (!is.null(concepts)) concepts <- get(load(concepts))
 
 ### DIRECTORY ------------------------------------------------------------------
 
@@ -50,12 +37,15 @@ edstr_config <- \(dest_dir,
 
 ### ASSIGN ---------------------------------------------------------------------
 
+  config_list <-
+  list(dir = dest_dir |> str_remove("/+$") |> normalize_dir(),
+       file = dest_filename,
+       text = text,
+       replace = replace,
+       concepts = concepts)
+
   assign(config_name,
-         list(dir = str_remove(dest_dir, "/+$"),
-              file = dest_filename,
-              text = text,
-              str = str_data,
-              concepts = concepts_data),
+         config_list,
          envir = .GlobalEnv)
 
   assign(".config_name",
@@ -64,34 +54,31 @@ edstr_config <- \(dest_dir,
 
 ### CLI ------------------------------------------------------------------------
 
-  dirname <- with(get(config_name), dir)
-  filename <- col_red(with(get(config_name), file))
-  config_name <- col_red(config_name)
-  text <- col_red(text)
-  str <- col_red(str)
-  concepts <- col_red(concepts)
+  .col <- \(x) col_blue(glue(x))
+
+  cli_config_name <- .col(config_name)
+  cli_dirname <- .col("{config_name}$dir ==")
+  cli_filename <- .col("{config_name}$file == '{dest_filename}'")
+  cli_text <- .col("{config_name}$text == '{text}'")
+  cli_replace <- .col("{config_name}$replace")
+  cli_concepts <- .col("{config_name}$concepts")
+
+  cli <-
 
   cli_h1("edstr_config")
   cli_text("\n\n")
 
-  cli_alert_success("{.strong Répertoire de projet:} {.path {here()}}")
+  cli_alert_info("{.strong Répertoire par défaut :} {.path {here()}}")
   cli_text("\n\n")
 
-  cli_alert_success("{.strong Config}")
+  cli_alert_success("{.strong Objet assigné dans l'environnement global : {cli_config_name}}")
   cli_ul()
   cli_ul()
-    if (!is.null(config_dir)) cli_li("Dossier source : {.path {normalize_dir(config_dir)}}")
-    cli_li("Objet : {config_name}")
-  cli_end()
-  cli_text("\n\n")
-
-  cli_alert_success("{.strong Assignations}")
-  cli_ul()
-    cli_li("Dossier de destination : {.path {normalize_dir(dirname)}}")
-    cli_li("Nom de fichier : {filename}")
-    cli_li("Variable texte : {text}")
-    if (!is.null(str_data)) cli_li("Règles de nettoyage : {str}")
-    if (!is.null(concepts_data)) cli_li("Liste de concepts : {concepts}")
+    cli_li("Emplacement : {cli_dirname} {.path {config_list$dir}}")
+    cli_li("Nom de fichier : {cli_filename}")
+    cli_li("Variable texte : {cli_text}")
+    if (!is.null(replace)) cli_li("Règles de remplacement (optionnel) : {cli_replace}")
+    if (!is.null(concepts)) cli_li("Liste de concepts (optionnel) : {cli_concepts}")
   cli_end()
   cli_text("\n\n")
 

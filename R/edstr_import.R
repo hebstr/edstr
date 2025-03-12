@@ -1,7 +1,5 @@
 #' Title
 #'
-#' @param dest_dir
-#' @param dest_filename
 #' @param connect_dir
 #' @param tns
 #' @param user
@@ -10,6 +8,9 @@
 #' @param query
 #' @param head
 #' @param to_lower
+#' @param disconnect
+#' @param dest_dir
+#' @param dest_filename
 #' @param load
 #'
 #' @return
@@ -17,9 +18,7 @@
 #'
 #' @examples
 #'
-edstr_import <- \(dest_dir = NULL,
-                  dest_filename = NULL,
-                  connect_dir = "../R/dbconnect",
+edstr_import <- \(connect_dir = "../R/dbconnect",
                   tns = "tns",
                   user = "w_etudes",
                   password = getPass::getPass(),
@@ -28,6 +27,8 @@ edstr_import <- \(dest_dir = NULL,
                   head = NULL,
                   to_lower = TRUE,
                   disconnect = TRUE,
+                  dest_dir = NULL,
+                  dest_filename = NULL,
                   load = FALSE) {
 
   if (!control) {
@@ -38,7 +39,7 @@ edstr_import <- \(dest_dir = NULL,
 
     } else config <- get(.config_name)
 
-    config_dir <- with(config, dir)
+    config_dir <- config$dir
     config_file <- glue("{with(config, file)}_import")
     config_save <- glue("{config_dir}/{config_file}.RData")
 

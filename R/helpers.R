@@ -68,10 +68,9 @@ cli_error_data <- \(data, fun) {
 
 cli_save <- \(data,
               config_file,
-              config_save,
-              prop_import = NULL) {
+              config_save) {
 
-  cli_progress_step("Saving {.strong {config_file}}")
+  cli_progress_step("Enregistrement du fichier {.strong {config_file}}")
 
   assign(config_file, data, envir = .GlobalEnv)
 
@@ -79,12 +78,12 @@ cli_save <- \(data,
 
   cli_progress_done()
 
-  cli_alert_success("{.strong {config_file}} saved in {.path {here(config_save)}}")
+  cli_alert_success("Fichier {.strong {config_file}} enregistré dans {.path {here(config_save)}}")
   cli_text("\n\n")
   cli_alert_info("{.strong Dimensions}")
   cli_ul()
-    cli_li("{nrow(data)} documents {prop_import}")
-    cli_li("{ncol(data)} features")
+    cli_li("{nrow(data)} documents")
+    cli_li("{ncol(data)} variables")
     cli_end()
   cli_text("\n\n")
   cli_rule()
@@ -92,7 +91,12 @@ cli_save <- \(data,
 }
 
 
-cli_load <- \(dir, file, save) {
+cli_load <- \(dir,
+              file,
+              save,
+              quiet = FALSE) {
+
+  if (!quiet) {
 
   if (!file.exists(dir)) {
 
@@ -124,5 +128,11 @@ cli_load <- \(dir, file, save) {
   cli_alert_success("Ficher {.strong {file}} chargé depuis {.path {here(save)}}")
   cli_text("\n\n")
   cli_rule()
+
+  } else {
+
+    return(get(load(save)))
+
+  }
 
 }

@@ -16,7 +16,7 @@ edstr_clean <- \(data = glue("{with(config, file)}_import"),
                  sample = NULL,
                  filter = NULL,
                  text_input = with(config, text),
-                 replace = with(config, str),
+                 replace = with(config, replace),
                  load = FALSE) {
 
   if (!exists(".config_name")) {
@@ -25,7 +25,6 @@ edstr_clean <- \(data = glue("{with(config, file)}_import"),
 
   } else config <- get(.config_name)
 
-  config_str <- config$str
   config_dir <- config$dir
   config_file <- glue("{with(config, file)}_clean")
   config_save <- glue("{config_dir}/{config_file}.RData")
@@ -60,7 +59,7 @@ edstr_clean <- \(data = glue("{with(config, file)}_import"),
 
 ### CLEAN ----------------------------------------------------------------------
 
-    cli_progress_step("Cleaning {.strong {file_import}}")
+    cli_progress_step("Nettoyage du fichier {.strong {file_import}}")
 
     if (!is.list(replace)) replace <- list(replace)
 
@@ -71,23 +70,13 @@ edstr_clean <- \(data = glue("{with(config, file)}_import"),
                       str_replace_all,
                       .init = get(text_input)))
 
-    prop_import <- nrow(data_clean) / nrow(data_total)
-
-    if (prop_import < 1) {
-
-      prop_import <- label_percent(0.1)(prop_import)
-      prop_import <- glue("({prop_import} of {file_import})")
-
-    } else prop_import <- NULL
-
     cli_progress_done()
 
 ### CLI ------------------------------------------------------------------------
 
     cli_save(data_clean,
              config_file,
-             config_save,
-             prop_import)
+             config_save)
 
   } else {
 

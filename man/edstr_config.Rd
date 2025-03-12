@@ -5,12 +5,11 @@
 \title{Title}
 \usage{
 edstr_config(
+  config_name = ".config",
   dest_dir,
   dest_filename,
-  config_dir = NULL,
-  config_name = ".config",
-  text = "text",
-  str = NULL,
+  text = "texte",
+  replace = NULL,
   concepts = NULL
 )
 }

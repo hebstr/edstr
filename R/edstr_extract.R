@@ -23,7 +23,10 @@
 #' @param text_background
 #' @param dirname_suffix
 #' @param filename_suffix
+#' @param dest_dir
+#' @param dest_filename
 #' @param load
+#' @param quiet
 #'
 #' @return
 #' @export
@@ -53,18 +56,20 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                    text_background = "#FFFF44",
                    dirname_suffix = if (!is.null(sample)) glue("sample_{sample}") else NULL,
                    filename_suffix = dirname_suffix,
-                   load = FALSE) {
+                   dest_dir = NULL,
+                   dest_filename = NULL,
+                   load = FALSE,
+                   quiet = FALSE) {
 
   if (!is.null(seed)) set.seed(seed)
 
   if (!exists(".config_name")) {
 
-    config <- cli_error_config()
+    config <- cli_error_config(dest_dir, dest_filename)
 
   } else config <- get(.config_name)
 
   config_dir <- config$dir
-  config_str <- config$str
   filename <- config$file
   dirname <- "extract"
 
@@ -204,17 +209,15 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   }
 
-### FILTERS --------------------------------------------------------------------
+### FILTER ---------------------------------------------------------------------
 
   if (!is.null(sample)) data <- data[sample(nrow(data), sample), ]
 
-  filter <- enexpr(filter)
+  if (!is.null(filter)) data <- filter(data, !!enexpr(filter))
 
-  if (!is.null(filter)) data <- filter(data, !!filter)
+### FORMAT ---------------------------------------------------------------------
 
-### REPLACE --------------------------------------------------------------------
-
-  cli_progress_step("{.strong Replace}")
+  cli_progress_step("{.strong Formatage du texte source}")
 
   data_replace <-
   data[c(id, group, text_input)] |>
@@ -233,9 +236,9 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   cli_progress_done()
   cli_text("\n\n")
 
-### TOKENIZE -------------------------------------------------------------------
+### TOKENISATION ---------------------------------------------------------------
 
-  cli_progress_step("{.strong Tokenize}")
+  cli_progress_step("{.strong Tokenisation du texte source}")
 
   data_ngrams <-
   ngrams |>
@@ -251,9 +254,9 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   rm(data_replace); invisible(gc())
 
-### MATCHING -------------------------------------------------------------------
+### MATCHING TOKEN -------------------------------------------------------------
 
-  cli_progress_step("{.strong Matching}")
+  cli_progress_step("{.strong Matching du texte tokenisé}")
 
   concepts_regex_end <- if (starts_with_only) "\\S*$" else ""
 
@@ -338,7 +341,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
 ### EXCLUSIONS -----------------------------------------------------------------
 
-  cli_progress_step("{.strong Exclusion}")
+  cli_progress_step("{.strong Exclusions}")
 
   if (!is.null(exclus_auto_escape)) {
 
@@ -409,9 +412,9 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   cli_progress_done()
   cli_text("\n\n")
 
-### REGEX ----------------------------------------------------------------------
+### MATCHING SOURCE ------------------------------------------------------------
 
-  cli_progress_step("{.strong Regex}")
+  cli_progress_step("{.strong Matching du texte source}")
 
   regex_replace <-
   c("e(?!$)" = "[eéèë]",
@@ -440,14 +443,14 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   data_regex_df <-
   data_regex_replace |>
-    nest(text = text, .by = concept) |>
+    nest(!!text_input := all_of(text_input), .by = concept) |>
     mutate(!!text_input :=
              map_chr(get(text_input), ~ str_flatten(unlist(.), "|")),
            !!text_input :=
              glue(regex_wrap, x = get(text_input)))
 
   data_regex_list <-
-  data_regex_df$text |>
+  data_regex_df[[text_input]] |>
     as.list() |>
     set_names(data_regex_df$concept)
 
@@ -463,6 +466,46 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
     list_rbind()
 
   data_regex_count <- data_regex_match |> count(concept, match, sort = TRUE)
+
+  cli_progress_done()
+  cli_text("\n\n")
+
+### MISMATCH -------------------------------------------------------------------
+
+  cli_progress_step("{.strong Mismatch entre texte source et tokenisé}")
+
+  data_id_mismatch_base <- data[c(id, group)]
+
+  if (mismatch_data) {
+
+    data_id_mismatch <-
+    data_id_mismatch_base |>
+      filter(!get(id) %in% data_match_init[[id]])
+
+  } else {
+
+    data_id_mismatch <-
+    data_id_mismatch_base |>
+      filter(get(id) %in% NA_character_)
+
+  }
+
+  data_regex_match_conv <-
+  data_regex_match |>
+    mutate(match =
+             match |>
+               iconv(from = "UTF-8", to = "ASCII//TRANSLIT") |>
+               tolower() |>
+               str_replace_all(c("-(<br/>)?|-?<br/>" = " ",
+                                 "\\s+" = " ")))
+
+  data_mismatch <-
+  list(id = data_id_mismatch,
+       regex =
+         data_match |>
+           select(id, concept, match = !!text_input) |>
+           anti_join(y = data_regex_match_conv,
+                     by = c(id, "concept", "match")))
 
   cli_progress_done()
   cli_text("\n\n")
@@ -502,54 +545,15 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                     map_chr(extract_unique, ~ str_flatten(unlist(.), " ; ")))) |>
     reduce(inner_join, by = c(id, group)) |>
     relocate(concept, extract_all, .before = extract_unique) |>
+    arrange(pick(group, id)) |>
     rownames_to_column("n")
 
   cli_progress_done()
   cli_text("\n\n")
 
-### MISMATCH -------------------------------------------------------------------
+### RESUME ---------------------------------------------------------------------
 
-  cli_progress_step("{.strong Mismatch}")
-
-  data_id_mismatch_base <- data[c(id, group)]
-
-  if (mismatch_data) {
-
-    data_id_mismatch <-
-    data_id_mismatch_base |>
-      filter(!get(id) %in% data_match_init[[id]])
-
-  } else {
-
-    data_id_mismatch <-
-    data_id_mismatch_base |>
-      filter(get(id) %in% NA_character_)
-
-  }
-
-  data_regex_match_conv <-
-  data_regex_match |>
-    mutate(match =
-             match |>
-               iconv(from = "UTF-8", to = "ASCII//TRANSLIT") |>
-               tolower() |>
-               str_replace_all(c("-(<br/>)?|-?<br/>" = " ",
-                                 "\\s+" = " ")))
-
-  data_mismatch <-
-  list(id = data_id_mismatch,
-       regex =
-         data_match |>
-           select(id, concept, match = !!text_input) |>
-           anti_join(y = data_regex_match_conv,
-                     by = c(id, "concept", "match")))
-
-  cli_progress_done()
-  cli_text("\n\n")
-
-### SUMMARY --------------------------------------------------------------------
-
-  cli_progress_step("{.strong Summary}")
+  cli_progress_step("{.strong Résumé}")
 
   set_summary <- \(var) {
 
@@ -587,7 +591,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   if (to_xlsx) {
 
-    cli_progress_step("{.strong Save to xlsx}")
+    cli_progress_step("{.strong Enregistrement du .xlsx}")
 
     wb_add_custom <- \(x,
                        sheet,
@@ -749,7 +753,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   if (to_csv) {
 
-    cli_progress_step("{.strong Save to csv}")
+    cli_progress_step("{.strong Enregistrement du .csv}")
 
     .css <-
     css(color = text_color,
@@ -778,7 +782,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
 ### ASSIGN DATA ----------------------------------------------------------------
 
-  cli_progress_step("{.strong Save to RData}")
+  cli_progress_step("{.strong Enregistrement du .RData}")
 
   data_save <-
   list(regex =
@@ -882,6 +886,8 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   cli_n_files <- sum(str_detect(list.files(save_dir), "\\.\\w+"))
 
+  cli_col <- \(x) col_blue(glue(x))
+
   cli_alert_info("{.strong Documents}")
   cli_ul()
   cli_ul()
@@ -910,7 +916,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   if (mismatch_data) {
 
     cli_text("\n\n")
-    cli_alert_info("{.strong Mismatch:} {cli_n_mismatch} {id}")
+    cli_alert_info("{.strong Mismatch :} {cli_n_mismatch} {id}")
 
   }
 
@@ -945,14 +951,11 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   cli_rule()
   cli_text("\n\n")
 
-  cli_alert_info("{.strong Dossier de destination : {.path {here(save_dir)}}}")
-  cli_text("\n\n")
-
-  cli_alert_success("{.strong {cli_n_files} fichier{?s} enregistré{?s}}")
+  cli_alert_success("{.strong {cli_n_files} fichier{?s} enregistré{?s} dans {.path {here(save_dir)}}}")
   cli_ul()
-    cli_li("RData : {col_red(glue('{save_files}.RData'))}")
-    if (to_xlsx) cli_li("xlsx : {col_red(glue('{save_files}.xlsx'))}")
-    if (to_csv) cli_li("csv : {col_red(glue('{save_files}.csv'))}")
+    cli_li("RData : {cli_col('{save_files}.RData')}")
+    if (to_xlsx) cli_li("xlsx : {cli_col('{save_files}.xlsx')}")
+    if (to_csv) cli_li("csv : {cli_col('{save_files}.csv')}")
     cli_end()
 
   cli_text("\n\n")
@@ -964,7 +967,8 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
     cli_load(dir = save_dir,
              file = save_files,
-             save = save_extract_rdata)
+             save = save_extract_rdata,
+             quiet = quiet)
 
   }
 

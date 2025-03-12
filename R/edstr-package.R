@@ -14,6 +14,7 @@
 #' @importFrom cli cli_rule
 #' @importFrom cli cli_text
 #' @importFrom cli cli_ul
+#' @importFrom cli col_blue
 #' @importFrom cli col_br_red
 #' @importFrom cli col_green
 #' @importFrom cli col_red

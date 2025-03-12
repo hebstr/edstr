@@ -5,8 +5,6 @@
 \title{Title}
 \usage{
 edstr_import(
-  dest_dir = NULL,
-  dest_filename = NULL,
   connect_dir = "../R/dbconnect",
   tns = "tns",
   user = "w_etudes",
@@ -16,6 +14,8 @@ edstr_import(
   head = NULL,
   to_lower = TRUE,
   disconnect = TRUE,
+  dest_dir = NULL,
+  dest_filename = NULL,
   load = FALSE
 )
 }

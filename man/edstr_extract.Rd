@@ -28,11 +28,14 @@ edstr_extract(
   text_background = "#FFFF44",
   dirname_suffix = if (!is.null(sample)) glue("sample_{sample}") else NULL,
   filename_suffix = dirname_suffix,
-  load = FALSE
+  dest_dir = NULL,
+  dest_filename = NULL,
+  load = FALSE,
+  quiet = FALSE
 )
 }
 \arguments{
-\item{load}{}
+\item{quiet}{}
 }
 \description{
 Title
