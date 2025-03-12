@@ -1,4 +1,4 @@
-#' Nettoyer des chaines de caractères par remplacement de patterns
+#' Title
 #'
 #' @param data
 #' @param sample
