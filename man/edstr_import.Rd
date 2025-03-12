@@ -14,11 +14,8 @@ edstr_import(
   head = NULL,
   to_lower = TRUE,
   disconnect = TRUE,
-<<<<<<< HEAD
   dest_dir = NULL,
   dest_filename = NULL,
-=======
->>>>>>> 77f1a801891455b938f5b1cfd3eead1306ecfb07
   load = FALSE
 )
 }

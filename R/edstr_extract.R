@@ -213,7 +213,9 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   if (!is.null(sample)) data <- data[sample(nrow(data), sample), ]
 
-  if (!is.null(filter)) data <- filter(data, !!enexpr(filter))
+  filter <- enexpr(filter)
+
+  if (!is.null(filter)) data <- filter(data, !!filter)
 
 ### FORMAT ---------------------------------------------------------------------
 

@@ -2,7 +2,7 @@
 % Please edit documentation in R/edstr_clean.R
 \name{edstr_clean}
 \alias{edstr_clean}
-\title{Nettoyer des chaines de caractères par remplacement de patterns}
+\title{Title}
 \usage{
 edstr_clean(
   data = glue("{with(config, file)}_import"),
@@ -17,5 +17,5 @@ edstr_clean(
 \item{load}{}
 }
 \description{
-Nettoyer des chaines de caractères par remplacement de patterns
+Title
 }

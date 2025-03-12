@@ -68,7 +68,7 @@ edstr_config <- \(config_name = ".config",
   cli_h1("edstr_config")
   cli_text("\n\n")
 
-  cli_alert_info("{.strong Répertoire par défaut :} {.path {here()}}")
+  cli_alert_info("{.strong Répertoire par défaut : {.path {here()}}}")
   cli_text("\n\n")
 
   cli_alert_success("{.strong Objet assigné dans l'environnement global : {cli_config_name}}")
