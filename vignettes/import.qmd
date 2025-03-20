@@ -2,16 +2,14 @@
 title: "Collecter avec edstr_import()"
 format: 
   html:
-    
     toc: true
+    
 vignette: >
   %\VignetteIndexEntry{Collecter avec edstr_import()}
   %\VignetteEncoding{UTF-8}
-  
   %\VignetteEngine{quarto::html}
+  
 knitr:
-  opts_knit: 
-    root.dir: home/edjulien/CRPV
   opts_chunk:
     collapse: true
     comment: "#>"

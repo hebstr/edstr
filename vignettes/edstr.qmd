@@ -11,8 +11,6 @@ vignette: >
   %\VignetteEngine{quarto::html}
   
 knitr:
-  opts_knit: 
-    root.dir: home/edjulien/CRPV
   opts_chunk:
     collapse: true
     comment: "#>"

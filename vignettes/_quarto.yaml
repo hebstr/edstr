@@ -1,3 +1,7 @@
 project:
   render:
   - '*.qmd'
+
+knitr:
+  opts_dir:
+    root: ~/Document

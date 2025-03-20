@@ -11,8 +11,6 @@ vignette: >
   %\VignetteEngine{quarto::html}
   
 knitr:
-  opts_knit: 
-    root.dir: home/edjulien/CRPV
   opts_chunk:
     collapse: true
     comment: "#>"
@@ -37,7 +35,7 @@ La fonction `edstr_clean()` dépend des paramètres définis avec `edstr_config(
 ```{r}
 edstr_config(dest_dir = "ains/ains_2018_01/data",
              dest_filename = "ains_2018_01",
-             str = "str.RData",
+             replace = "str.RData",
              concepts = "concepts_crpv.RData")
 ```
 
