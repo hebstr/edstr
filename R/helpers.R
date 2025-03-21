@@ -47,9 +47,9 @@ cli_error_config <- \(dest_dir = NULL,
 
     cli_abort(c("Le fichier de configuration n'existe pas",
                 "i" =
-                  "Créer ce fichier dans un premier temps avec {.fn edstr_config},
-                  ou bien indiquer un répertoire par défaut avec {.field dest_dir}
-                  et un nom de fichier par défaut avec {.field dest_filename}"))
+                  "Cr\u00e9er ce fichier dans un premier temps avec {.fn edstr_config},
+                  ou bien indiquer un r\u00e9pertoire par d\u00e9faut avec {.field dest_dir}
+                  et un nom de fichier par d\u00e9faut avec {.field dest_filename}"))
 
   }
 
@@ -58,9 +58,9 @@ cli_error_config <- \(dest_dir = NULL,
 
 cli_error_data <- \(data, fun) {
 
-  cli_abort(c("Le fichier {.strong {data}} n'est pas chargé",
+  cli_abort(c("Le fichier {.strong {data}} n'est pas charg\u00e9",
             "i" =
-              "Créer/charger le fichier {.strong {data}} dans un premier
+              "Cr\u00e9er/charger le fichier {.strong {data}} dans un premier
               temps avec {.fn edstr_{glue(fun)}} ou bien utiliser un autre fichier"))
 
 }
@@ -78,7 +78,7 @@ cli_save <- \(data,
 
   cli_progress_done()
 
-  cli_alert_success("Fichier {.strong {config_file}} enregistré dans {.path {here(config_save)}}")
+  cli_alert_success("Fichier {.strong {config_file}} enregistr\u00e9 dans {.path {here(config_save)}}")
   cli_text("\n\n")
   cli_alert_info("{.strong Dimensions}")
   cli_ul()
@@ -100,21 +100,21 @@ cli_load <- \(dir,
 
   if (!file.exists(dir)) {
 
-    cli_abort(c("Le fichier {.strong {file}} ne peut être chargé car le dossier
+    cli_abort(c("Le fichier {.strong {file}} ne peut \u00eatre charg\u00e9 car le dossier
                 {.path {here(dir)}} n'existe pas",
                 "i" =
-                  "Créer le fichier {.strong {file}} dans un premier temps avec
+                  "Cr\u00e9er le fichier {.strong {file}} dans un premier temps avec
                   {.field load = FALSE} ou bien charger un autre fichier"))
 
   }
 
   if (!file.exists(save)) {
 
-    cli_abort(c(" Le fichier {.strong {file}} n'est pas retrouvé dans le dossier
+    cli_abort(c(" Le fichier {.strong {file}} n'est pas retrouv\u00e9 dans le dossier
                 {.path {here(dir)}}",
                 "i" =
-                  "Créer le fichier {.strong {file}} dans un premier temps avec
-                  {.field load = FALSE} ou bien changer le répertoire par défaut
+                  "Cr\u00e9er le fichier {.strong {file}} dans un premier temps avec
+                  {.field load = FALSE} ou bien changer le r\u00e9pertoire par d\u00e9faut
                   dans {.fn edstr_config} avec {.field dest_dir}"))
 
   }
@@ -125,7 +125,7 @@ cli_load <- \(dir,
 
   cli_progress_done()
 
-  cli_alert_success("Ficher {.strong {file}} chargé depuis {.path {here(save)}}")
+  cli_alert_success("Ficher {.strong {file}} charg\u00e9 depuis {.path {here(save)}}")
   cli_text("\n\n")
   cli_rule()
 

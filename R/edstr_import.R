@@ -1,37 +1,37 @@
-#' Title
+#' extract
 #'
-#' @param connect_dir
-#' @param tns
-#' @param user
-#' @param password
-#' @param control
-#' @param query
-#' @param head
-#' @param to_lower
-#' @param disconnect
-#' @param dest_dir
-#' @param dest_filename
-#' @param load
+#' @param query query
+#' @param head head
+#' @param to_lower to_lower
+#' @param user user
+#' @param password password
+#' @param connect_dir connect_dir
+#' @param tns tns
+#' @param disconnect disconnect
+#' @param dest_dir dest_dirname
+#' @param dest_filename dest_filename
+#' @param collect collect
+#' @param load load
 #'
-#' @return
+#' @return value
 #' @export
 #'
-#' @examples
+#' @examples example
 #'
-edstr_import <- \(connect_dir = "../R/dbconnect",
-                  tns = "tns",
-                  user = "w_etudes",
-                  password = getPass::getPass(),
-                  control = FALSE,
-                  query = NULL,
+edstr_import <- \(query = NULL,
                   head = NULL,
                   to_lower = TRUE,
+                  user = "w_etudes",
+                  password = getPass::getPass(),
+                  connect_dir = "../R/connect",
+                  tns = "tns",
                   disconnect = TRUE,
                   dest_dir = NULL,
                   dest_filename = NULL,
+                  collect = TRUE,
                   load = FALSE) {
 
-  if (!control) {
+  if (collect) {
 
     if (!exists(".config_name")) {
 
@@ -63,7 +63,7 @@ edstr_import <- \(connect_dir = "../R/dbconnect",
     tns <- read_lines(glue("{connect_dir}/{tns}.txt"))
     adress <- glue("jdbc:oracle:thin:@{tns}")
 
-    conn <-
+    connection <-
     DatabaseConnector::connect(dbms = "oracle",
                                pathToDriver = connect_dir,
                                connectionString = adress,
@@ -103,14 +103,16 @@ edstr_import <- \(connect_dir = "../R/dbconnect",
 
     }
 
+    get_query <- \(x = connection, y = query) tbl(x, sql(y))
+
 ### IMPORT ---------------------------------------------------------------------
 
-    if (!control) {
+    if (collect) {
 
       cli_text("\n\n")
       cli_progress_step("Import (user: {.strong {user}})")
 
-      data_import <- tbl(conn, sql(query)) |> collect()
+      data_import <- get_query() |> collect()
 
       if (to_lower) {
 
@@ -130,27 +132,23 @@ edstr_import <- \(connect_dir = "../R/dbconnect",
       toc()
       cli_text("\n\n")
 
+    } else if (!is.null(head)) {
+
+      return(get_query() |> collect())
+
     } else {
 
-      cli_text("\n\n")
-      cli_progress_step("Control (user: {.strong {user}})")
-      cli_text("\n\n")
-
-      data_import <- tbl(conn, sql(query)) |> collect()
-
-      return(data_import)
-
-      cli_progress_done()
+      return(get_query())
 
     }
 
     if (disconnect) {
 
-      DatabaseConnector::disconnect(conn)
+      DatabaseConnector::disconnect(connection)
 
     } else {
 
-      assign("conn", conn, envir = .GlobalEnv)
+      assign("connection", connection, envir = .GlobalEnv)
 
     }
 

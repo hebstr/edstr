@@ -1,31 +1,12 @@
 ---
 title: "Exploration du texte avec edstr_view()"
 
-format: 
-  html:
-    toc: true
-    
 vignette: >
   %\VignetteIndexEntry{Exploration adu texte vec edstr_view()}
-  %\VignetteEncoding{UTF-8}
   %\VignetteEngine{quarto::html}
-  
-knitr:
-  opts_chunk:
-    collapse: true
-    comment: "#>"
-    echo: false
-    message: false
-    warning: false
-
-editor_options: 
-  chunk_output_type: console
+  %\VignetteEncoding{UTF-8}
 ---
 
-```{r}
-#| include: false 
-
-library(edstr)
-```
+{{< include _setup.qmd >}}
 
 Test `edstr_view`

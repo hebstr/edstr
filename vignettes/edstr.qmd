@@ -1,41 +1,27 @@
 ---
 title: "Vue d'ensemble"
 
-format: 
-  html:
-    toc: true
-    
 vignette: >
   %\VignetteIndexEntry{Vue d'ensemble}
-  %\VignetteEncoding{UTF-8}
   %\VignetteEngine{quarto::html}
-  
-knitr:
-  opts_chunk:
-    collapse: true
-    comment: "#>"
-    echo: false
-    message: false
-    warning: false
-
-editor_options: 
-  chunk_output_type: console
+  %\VignetteEncoding{UTF-8}
 ---
+
+{{< include _setup.qmd >}}
 
 Exemple de la détection des fractures de l'extrémité supérieure du fémur (FESF).
 
 Le script correspondant :
 
-```r
-script
+```{r}
+# script
 ```
 
 Le contenu suivant explicite brièvement le résultat de chaque fonction afin de montrer le process global.
 
 Pour plus de détails sur une fonction, se référer à la page correspondante dans la partie "Articles".
 
-
-### Charger le package
+# Charger le package
 
 Le package `edstr` doit être chargé dans l'environnement.
 
@@ -43,8 +29,7 @@ Le package `edstr` doit être chargé dans l'environnement.
 library(edstr)
 ```
 
-
-### Définir une configuration par défaut avec `edstr_config()`
+# Définir une configuration par défaut avec `edstr_config()`
 
 `edstr_config()` définit des paramètres communs aux fonctions suivantes.
 
@@ -52,8 +37,7 @@ library(edstr)
 #edstr_config()
 ```
 
-
-### Importer avec `edstr_import()`
+# Importer avec `edstr_import()`
 
 Réalise l'importation de la table [nom] depuis la base et son enregistrement selon les paramètres définis dans `edstr_config()`.
 
@@ -61,8 +45,7 @@ Réalise l'importation de la table [nom] depuis la base et son enregistrement se
 #edstr_import()
 ```
 
-
-### Nettoyage avec `edstr_clean()`
+# Nettoyage avec `edstr_clean()`
 
 Réalise le nettoyage du texte présent dans la table importée et son enregistrement selon les paramètres définis dans `edstr_config()`.
 
@@ -72,8 +55,7 @@ Prend automatiquement en input la table importée avec `edstr_import()`.
 #edstr_clean()
 ```
 
-
-### Extraction avec `edstr_extract()`
+# Extraction avec `edstr_extract()`
 
 Réalise une extraction à partir du texte présent dans la table nettoyée et son enregistrement selon les paramètres définis dans `edstr_config()`.
 
@@ -82,6 +64,3 @@ Prend automatiquement en input la table nettoyée avec `edstr_clean()`.
 ```{r}
 #edstr_extract()
 ```
-
-
-

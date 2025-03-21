@@ -1,40 +1,23 @@
 ---
 title: "Collecter avec edstr_import()"
-format: 
-  html:
-    toc: true
-    
+
 vignette: >
   %\VignetteIndexEntry{Collecter avec edstr_import()}
-  %\VignetteEncoding{UTF-8}
   %\VignetteEngine{quarto::html}
-  
-knitr:
-  opts_chunk:
-    collapse: true
-    comment: "#>"
-    echo: false
-    message: false
-    warning: false
-editor_options: 
-  chunk_output_type: console
+  %\VignetteEncoding{UTF-8}
 ---
 
-```{r}
-#| include: false
+{{< include _setup.qmd >}}
 
-library(edstr)
-```
-
-### Prérequis
+# Prérequis
 
 La fonction `edstr_import()` dépend des paramètres définis avec `edstr_config()` : celle-ci doit alors être exécutée en amont.
 
 ```{r}
-edstr_config(dest_dir = "ains/ains_2018_01/data",
-             dest_filename = "ains_2018_01",
-             str = "str.RData",
-             concepts = "concepts_crpv.RData")
+edstr_config(dest_dir = "_demo/ains/data_sample",
+             dest_filename = "ains_sample",
+             replace = "_demo/config/str.RData",
+             concepts = "_demo/config/concepts_ains.RData")
 ```
 
 La fonction `edstr_import()` produit un dataframe portant le nom défini dans `edstr_config()` (argument `dest_filename`) suivi du suffixe `_import`. Dans cet exemple, il sera donc nommé ``r glue("{.config$file}_import")``.
@@ -44,28 +27,37 @@ Il peut être produit de deux façons :
   - Importation d'un dataframe depuis une base de données
   - Chargement d'un dataframe déjà importé
 
-### Importation d'un dataframe
+# Importation d'un dataframe
 
 On peut procéder à l'importation avec `edstr_import()` en précisant a minima la requête et les paramètres de connexion de la base.
 
 Le dataframe importé est automatiquement sauvegardé en .RData dans le répertoire défini avec `edstr_config()` (argument `dest_dir`).
 
+## Mode collecte et sauvegarde automatique
+
 ```{r}
 #| eval: false
-#| echo: true
 
-edstr_import(query = "select * from ains_2018_01",
-             user = "w_etudes")
+edstr_import(query = "select * from ains",
+             connect_dir = "_demo/connect",
+             user = "w_etudes",
+             password = pwd,
+             collect = FALSE)
 ```
+
+## Mode sans collecte
 
 ```{r}
-edstr_import(query = "select * from ains_2018_01",
-             password = "h9$c9WnE5*",
-             head = 1000)
+#| eval: false
+
+edstr_import(query = "select * from ains",
+             connect_dir = "_demo/connect",
+             user = "w_etudes",
+             password = pwd,
+             head = 500)
 ```
 
-
-### Chargement d'un dataframe déjà importé
+# Chargement d'un dataframe déjà importé
 
 Si un dataframe est déjà importé dans le dossier `r .config$dir`, celui-ci peut être simplement chargé avec l'argument `load = TRUE`.
 

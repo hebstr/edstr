@@ -2,26 +2,55 @@
 % Please edit documentation in R/edstr_import.R
 \name{edstr_import}
 \alias{edstr_import}
-\title{Title}
+\title{extract}
 \usage{
 edstr_import(
-  connect_dir = "../R/dbconnect",
-  tns = "tns",
-  user = "w_etudes",
-  password = getPass::getPass(),
-  control = FALSE,
   query = NULL,
   head = NULL,
   to_lower = TRUE,
+  user = "w_etudes",
+  password = getPass::getPass(),
+  connect_dir = "../R/connect",
+  tns = "tns",
   disconnect = TRUE,
   dest_dir = NULL,
   dest_filename = NULL,
+  collect = TRUE,
   load = FALSE
 )
 }
 \arguments{
-\item{load}{}
+\item{query}{query}
+
+\item{head}{head}
+
+\item{to_lower}{to_lower}
+
+\item{user}{user}
+
+\item{password}{password}
+
+\item{connect_dir}{connect_dir}
+
+\item{tns}{tns}
+
+\item{disconnect}{disconnect}
+
+\item{dest_dir}{dest_dirname}
+
+\item{dest_filename}{dest_filename}
+
+\item{collect}{collect}
+
+\item{load}{load}
+}
+\value{
+value
 }
 \description{
-Title
+extract
+}
+\examples{
+example
+
 }

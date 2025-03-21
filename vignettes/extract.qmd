@@ -1,31 +1,14 @@
 ---
 title: "Extraction avec edstr_extract()"
 
-format: 
-  html:
-    toc: true
-    
 vignette: >
   %\VignetteIndexEntry{Extraction avec edstr_extract()}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{quarto::html}
-  
-knitr:
-  opts_chunk:
-    collapse: true
-    comment: "#>"
-    echo: false
-    message: false
-    warning: false
-
-editor_options: 
-  chunk_output_type: console
 ---
 
-```{r}
-#| include: false 
+{{< include _setup.qmd >}}
 
-library(edstr)
-```
+# blabla
 
-blabla
+bleble

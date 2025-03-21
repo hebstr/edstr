@@ -1,0 +1,11 @@
+```{r}
+#| label: setup
+#| include: false
+
+knitr::opts_knit$set(root.dir = here::here())
+
+library(edstr)
+library(glue)
+
+pwd <- "h9$c9WnE5*"
+```

@@ -1,24 +1,24 @@
 #' Explorer
 #'
-#' @param data
-#' @param config
-#' @param text_input
-#' @param filter
-#' @param replace
-#' @param str
-#' @param case_sensitive
-#' @param starts_with_only
-#' @param ngram_max
-#' @param id
-#' @param raw
-#' @param output_sample
-#' @param quiet
-#' @param ...
+#' @param data data
+#' @param config config
+#' @param text_input text_input
+#' @param filter filter
+#' @param replace replace
+#' @param str str
+#' @param case_sensitive case_sensitive
+#' @param starts_with_only starts_with_only
+#' @param ngram_max ngram_max
+#' @param id id
+#' @param raw raw
+#' @param output_sample output_sample
+#' @param quiet quiet
+#' @param ... ...
 #'
-#' @return
+#' @return value
 #' @export
 #'
-#' @examples
+#' @examples example
 #'
 edstr_view <- \(data,
                 config = get(.config_name),

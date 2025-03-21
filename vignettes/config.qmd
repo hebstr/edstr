@@ -1,41 +1,22 @@
 ---
 title: "Définir une configuration par défaut avec edstr_config()"
 
-format: 
-  html:
-    toc: true
-    
 vignette: >
   %\VignetteIndexEntry{Définir une configuration par défaut avec edstr_config()}
-  %\VignetteEncoding{UTF-8}
   %\VignetteEngine{quarto::html}
-  
-knitr:
-  opts_chunk:
-    collapse: true
-    comment: "#>"
-    echo: false
-    message: false
-    warning: false
-
-editor_options: 
-  chunk_output_type: console
+  %\VignetteEncoding{UTF-8}
 ---
 
-```{r}
-#| include: false
-
-library(edstr)
-```
+{{< include _setup.qmd >}}
 
 ```{r}
-edstr_config(dest_dir = "ains/ains_2018_01/data",
-             dest_filename = "ains_2018_01",
-             str = "str.RData",
-             concepts = "concepts_crpv.RData")
+edstr_config(dest_dir = "_demo/ains/data_sample",
+             dest_filename = "ains_sample",
+             replace = "_demo/config/str.RData",
+             concepts = "_demo/config/concepts_ains.RData")
 ```
 
-### Valeur
+# Valeur
 
 La fonction produit une liste, nommée par défaut `.config`, qui contient les informations suivantes :
 
@@ -48,8 +29,7 @@ La fonction produit une liste, nommée par défaut `.config`, qui contient les i
 
 Ces valeurs sont fournies par défaut aux fonctions en aval, mais elles peuvent être modifiées manuellement pour une fonction donnée.
 
-
-### Configuration minimale
+# Configuration minimale
 
 Seuls deux arguments sont indispensables : 
 
@@ -57,8 +37,8 @@ Seuls deux arguments sont indispensables :
 - Le nom à donner aux fichiers qui seront produits (`dest_filename`)
 
 ```{r}
-edstr_config(dest_dir = "ains/ains_2018_01/data",
-             dest_filename = "ains_2018_01")
+edstr_config(dest_dir = "_demo/ains/data_sample",
+             dest_filename = "ains_sample")
 ```
 
 Les éléments non créés seront toujours dans la liste, mais prendront la valeur `NULL`.

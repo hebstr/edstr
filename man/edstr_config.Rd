@@ -2,7 +2,7 @@
 % Please edit documentation in R/edstr_config.R
 \name{edstr_config}
 \alias{edstr_config}
-\title{Title}
+\title{config}
 \usage{
 edstr_config(
   config_name = ".config",
@@ -14,8 +14,25 @@ edstr_config(
 )
 }
 \arguments{
-\item{concepts}{}
+\item{config_name}{config_name}
+
+\item{dest_dir}{dest_dirname}
+
+\item{dest_filename}{dest_filename}
+
+\item{text}{text}
+
+\item{replace}{replace}
+
+\item{concepts}{concepts}
+}
+\value{
+value
 }
 \description{
-Title
+config
+}
+\examples{
+example
+
 }

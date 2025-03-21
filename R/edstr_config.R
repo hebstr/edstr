@@ -1,16 +1,16 @@
-#' Title
+#' config
 #'
-#' @param config_name
-#' @param dest_dir
-#' @param dest_filename
-#' @param text
-#' @param replace
-#' @param concepts
+#' @param config_name config_name
+#' @param dest_dir dest_dirname
+#' @param dest_filename dest_filename
+#' @param text text
+#' @param replace replace
+#' @param concepts concepts
 #'
-#' @return
+#' @return value
 #' @export
 #'
-#' @examples
+#' @examples example
 #'
 edstr_config <- \(config_name = ".config",
                   dest_dir,
@@ -68,16 +68,16 @@ edstr_config <- \(config_name = ".config",
   cli_h1("edstr_config")
   cli_text("\n\n")
 
-  cli_alert_info("{.strong Répertoire par défaut : {.path {here()}}}")
+  cli_alert_info("{.strong R\u00e9pertoire par d\u00e9faut : {.path {here()}}}")
   cli_text("\n\n")
 
-  cli_alert_success("{.strong Objet assigné dans l'environnement global : {cli_config_name}}")
+  cli_alert_success("{.strong Objet assign\u00e9 dans l'environnement global : {cli_config_name}}")
   cli_ul()
   cli_ul()
     cli_li("Emplacement : {cli_dirname} {.path {config_list$dir}}")
     cli_li("Nom de fichier : {cli_filename}")
     cli_li("Variable texte : {cli_text}")
-    if (!is.null(replace)) cli_li("Règles de remplacement (optionnel) : {cli_replace}")
+    if (!is.null(replace)) cli_li("R\u00e8gles de remplacement (optionnel) : {cli_replace}")
     if (!is.null(concepts)) cli_li("Liste de concepts (optionnel) : {cli_concepts}")
   cli_end()
   cli_text("\n\n")

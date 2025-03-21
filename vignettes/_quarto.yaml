@@ -2,6 +2,24 @@ project:
   render:
   - '*.qmd'
 
+lang: fr
+
+date: last-modified
+
 knitr:
-  opts_dir:
-    root: ~/Document
+  opts_chunk:
+    collapse: false
+    comment: "#>"
+    echo: true
+    message: true
+    warning: false
+
+format:
+  html:
+    toc: true
+    toc-depth: 4
+    toc-expand: true
+    number-sections: true
+    number-depth: 4
+    callout-appearance: simple
+    monofont: fira code

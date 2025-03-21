@@ -2,7 +2,7 @@
 % Please edit documentation in R/edstr_clean.R
 \name{edstr_clean}
 \alias{edstr_clean}
-\title{Title}
+\title{clean}
 \usage{
 edstr_clean(
   data = glue("{with(config, file)}_import"),
@@ -14,8 +14,24 @@ edstr_clean(
 )
 }
 \arguments{
-\item{load}{}
+\item{data}{data}
+
+\item{sample}{sample}
+
+\item{filter}{filter}
+
+\item{text_input}{text_input}
+
+\item{replace}{replace}
+
+\item{load}{load}
+}
+\value{
+value
 }
 \description{
-Title
+clean
+}
+\examples{
+example
 }

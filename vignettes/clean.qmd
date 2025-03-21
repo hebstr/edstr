@@ -1,42 +1,23 @@
 ---
 title: "Nettoyage du texte avec edstr_clean()"
-  
-format: 
-  html:
-    toc: true
-    
+
 vignette: >
   %\VignetteIndexEntry{Nettoyage du texte avec edstr_clean()}
-  %\VignetteEncoding{UTF-8}
   %\VignetteEngine{quarto::html}
-  
-knitr:
-  opts_chunk:
-    collapse: true
-    comment: "#>"
-    echo: false
-    message: false
-    warning: false
-
-editor_options: 
-  chunk_output_type: console
+  %\VignetteEncoding{UTF-8}
 ---
 
-```{r}
-#| include: false
+{{< include _setup.qmd >}}
 
-library(edstr)
-```
-
-### Prérequis
+# Prérequis test
 
 La fonction `edstr_clean()` dépend des paramètres définis avec `edstr_config()` : celle-ci doit alors être exécutée en amont.
 
 ```{r}
-edstr_config(dest_dir = "ains/ains_2018_01/data",
-             dest_filename = "ains_2018_01",
-             replace = "str.RData",
-             concepts = "concepts_crpv.RData")
+edstr_config(dest_dir = "_demo/ains/data_sample",
+             dest_filename = "ains_sample",
+             replace = "_demo/config/str.RData",
+             concepts = "_demo/config/concepts_ains.RData")
 ```
 
 La fonction `edstr_clean` produit un dataframe portant le nom défini dans `edstr_config()` (argument `dest_filename`) suivi du suffixe `_clean`. Dans cet exemple, il sera donc nommé ``r glue("{.config$file}_clean")``.
@@ -46,7 +27,7 @@ Il peut être produit de deux façons :
   - Nettoyage d'un dataframe chargé dans l'environnement
   - Chargement d'un dataframe déjà nettoyé
 
-### Nettoyage d'un dataframe
+# Nettoyage d'un dataframe
 
 Admettons qu'un dataframe est déjà importé dans le dossier ``r .config$dir`` avec `edstr_import()`.
 Il peut être simplement chargé avec la fonction l'argument `load = TRUE`.
@@ -60,10 +41,10 @@ On peut ensuite procéder à son nettoyage avec `edstr_clean()`, en appliquant a
 Le dataframe nettoyé est automatiquement sauvegardé en .RData dans le répertoire défini avec `edstr_config()` (argument `dest_dir`).
 
 ```{r}
-edstr_clean(clean = .config$str$clean)
+edstr_clean(replace = .config$replace)
 ```
 
-### Chargement d'un dataframe
+# Chargement d'un dataframe
 
 Si un dataframe nettoyé est déjà créé et présent dans le dossier `r .config$dir`, celui-ci peut être simplement chargé avec l'argument `load = TRUE`.
 

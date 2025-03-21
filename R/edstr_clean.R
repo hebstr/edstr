@@ -1,17 +1,16 @@
-#' Title
+#' clean
 #'
-#' @param data
-#' @param sample
-#' @param filter
-#' @param text_input
-#' @param replace
-#' @param load
+#' @param data data
+#' @param sample sample
+#' @param filter filter
+#' @param text_input text_input
+#' @param replace replace
+#' @param load load
 #'
-#' @return
+#' @returns value
 #' @export
 #'
-#' @examples
-#'
+#' @examples example
 edstr_clean <- \(data = glue("{with(config, file)}_import"),
                  sample = NULL,
                  filter = NULL,
