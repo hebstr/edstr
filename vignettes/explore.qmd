@@ -2,7 +2,7 @@
 title: "Exploration du texte avec edstr_view()"
 
 vignette: >
-  %\VignetteIndexEntry{Exploration adu texte vec edstr_view()}
+  %\VignetteIndexEntry{Exploration du texte avec edstr_view()}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
 ---
