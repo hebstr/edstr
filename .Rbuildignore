@@ -8,5 +8,5 @@
 ^doc$
 ^Meta$
 ^vignettes/*_files$
-^\.quarto$
-^_extensions$
+^vignettes/\.quarto$
+^vignettes/_*\.qmd$
