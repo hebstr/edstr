@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Collecter avec edstr_import() • edstr</title>
+<title>edstr_import() : collection des données • edstr</title>
 <script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/Fira_Code-0.4.9/font.css" rel="stylesheet">
@@ -13,7 +13,7 @@
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><script src="import_files/libs/quarto-html/popper.min.js"></script><script src="import_files/libs/quarto-html/tippy.umd.min.js"></script><link href="import_files/libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="import_files/libs/quarto-html/light-border.css" rel="stylesheet">
-<!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Collecter avec edstr_import()">
+<!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="edstr_import() : collection des données">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -41,12 +41,12 @@
     <li><h6 class="dropdown-header" data-toc-skip>Configuration par défaut</h6></li>
     <li><a class="dropdown-item" href="../articles/config.html">edstr_config() : configuration par défaut</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Process</h6></li>
-    <li><a class="dropdown-item" href="../articles/import.html">Collecter avec edstr_import()</a></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Traitement du texte</h6></li>
+    <li><a class="dropdown-item" href="../articles/import.html">edstr_import() : collection des données</a></li>
     <li><a class="dropdown-item" href="../articles/clean.html">edstr_clean() : nettoyage du texte</a></li>
     <li><a class="dropdown-item" href="../articles/extract.html">edstr_extract() : extraction du texte</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Annexe</h6></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Recherche dans le texte</h6></li>
     <li><a class="dropdown-item" href="../articles/explore.html">edstr_view() : rechercher dans le texte</a></li>
   </ul>
 </li>
@@ -73,12 +73,12 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
 
-      <h1>Collecter avec edstr_import()</h1>
+      <h1>edstr_import() : collection des données</h1>
 
 
-      <p class="date">2025-03-21</p>
+      <p class="date">2025-03-23</p>
 
-      <small class="dont-index">Source: <a href="https://codeberg.org/hebstr/edstr/src/branch/main/vignettes/import.qmd"><code>vignettes/import.qmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://codeberg.org/hebstr/edstr/src/branch/main/vignettes/import.qmd" class="external-link"><code>vignettes/import.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
     </div>
 
@@ -100,7 +100,7 @@
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ── edstr_config ────────────────────────────────────────────────────────────────</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ℹ Répertoire par défaut : '/tmp/RtmpZgiB2A/pkgdown-quarto-17bfa67df8603'</span></span>
+<span><span class="co">#&gt; ℹ Répertoire par défaut : '/tmp/RtmpLVNzgR/pkgdown-quarto-2364043f4cad8'</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ✔ Objet assigné dans l'environnement global : .config</span></span>
 <span><span class="co">#&gt;   • Emplacement : .config$dir ==</span></span>
@@ -155,7 +155,7 @@
 <span><span class="co">#&gt; ── edstr_import ────────────────────────────────────────────────────────────────</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ℹ Chargement du fichier ains_sample_import</span></span>
-<span><span class="co">#&gt; ✔ Chargement du fichier ains_sample_import [42ms]</span></span>
+<span><span class="co">#&gt; ✔ Chargement du fichier ains_sample_import [40ms]</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ✔ Ficher ains_sample_import chargé depuis '/home/julien/Documents/pro/r_pkg/edstr/_demo/ains/data_sample/ains_sample_import.RData'</span></span>
 <span><span class="co">#&gt; </span></span>

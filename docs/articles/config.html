@@ -41,12 +41,12 @@
     <li><h6 class="dropdown-header" data-toc-skip>Configuration par défaut</h6></li>
     <li><a class="dropdown-item" href="../articles/config.html">edstr_config() : configuration par défaut</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Process</h6></li>
-    <li><a class="dropdown-item" href="../articles/import.html">Collecter avec edstr_import()</a></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Traitement du texte</h6></li>
+    <li><a class="dropdown-item" href="../articles/import.html">edstr_import() : collection des données</a></li>
     <li><a class="dropdown-item" href="../articles/clean.html">edstr_clean() : nettoyage du texte</a></li>
     <li><a class="dropdown-item" href="../articles/extract.html">edstr_extract() : extraction du texte</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Annexe</h6></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Recherche dans le texte</h6></li>
     <li><a class="dropdown-item" href="../articles/explore.html">edstr_view() : rechercher dans le texte</a></li>
   </ul>
 </li>
@@ -76,9 +76,9 @@
       <h1>edstr_config() : configuration par défaut</h1>
 
 
-      <p class="date">2025-03-22</p>
+      <p class="date">2025-03-23</p>
 
-      <small class="dont-index">Source: <a href="https://codeberg.org/hebstr/edstr/src/branch/main/vignettes/config.qmd"><code>vignettes/config.qmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://codeberg.org/hebstr/edstr/src/branch/main/vignettes/config.qmd" class="external-link"><code>vignettes/config.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
     </div>
 
@@ -87,7 +87,7 @@
 
 
 
-    <section class="section level2" data-number="1"><h2 data-number="1" id="valeur">
+    <section class="level2" data-number="1"><h2 data-number="1" id="valeur">
 <span class="header-section-number">1</span> Valeur<a class="anchor" aria-label="anchor" href="#valeur"></a>
 </h2>
 <p>La fonction produit une liste, nommée par défaut <code>.config</code>, qui contient les informations suivantes :</p>
@@ -106,7 +106,7 @@
 <code>text</code> : nom de la variable contenant le texte à traiter, qui n’est pas censée changer au cours du process.</li>
 </ul>
 <p>Ces valeurs sont fournies par défaut aux fonctions en aval, mais elles peuvent être modifiées manuellement pour une fonction donnée.</p>
-</section><section class="section level2" data-number="2"><h2 data-number="2" id="configuration-minimale">
+</section><section class="level2" data-number="2"><h2 data-number="2" id="configuration-minimale">
 <span class="header-section-number">2</span> Configuration minimale<a class="anchor" aria-label="anchor" href="#configuration-minimale"></a>
 </h2>
 <p>Seuls deux arguments sont indispensables :</p>
@@ -121,7 +121,7 @@
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ── edstr_config ────────────────────────────────────────────────────────────────</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ℹ Répertoire par défaut : '/tmp/RtmpDu4Ne4/pkgdown-quarto-19ec16c81a814'</span></span>
+<span><span class="co">#&gt; ℹ Répertoire par défaut : '/tmp/RtmpLVNzgR/pkgdown-quarto-2364043f4cad8'</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ✔ Objet assigné dans l'environnement global : .config</span></span>
 <span><span class="co">#&gt;   • Emplacement : .config$dir ==</span></span>
@@ -252,7 +252,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }
   }
 });
-</script></main>
+</script></main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside>
 </div>
 
 

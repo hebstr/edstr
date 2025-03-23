@@ -8,3 +8,5 @@
 ^doc$
 ^Meta$
 ^vignettes/*_files$
+^\.quarto$
+^_extensions$

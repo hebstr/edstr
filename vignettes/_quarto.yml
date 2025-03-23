@@ -15,5 +15,4 @@ knitr:
     collapse: true
     message: true
     warning: false
-    cache: true
     out.width: 100%

@@ -9,7 +9,7 @@ vignette: >
 
 {{< include _setup.qmd >}}
 
-# préparation
+## préparation
 
 prep
 
@@ -20,7 +20,11 @@ edstr_config(dest_dir = "_demo/ains/data_sample",
 edstr_clean(load = TRUE)
 ```
 
-# Recherche dans le texte
+```{r}
+ls()
+```
+
+## Recherche dans le texte
 
 explore
 
@@ -31,15 +35,9 @@ edstr_view(data = ains_sample_clean,
            output_sample = 0)
 ```
 
-::: {.panel-tabset}
+assignation 
 
-### one
-
-match
-
-### one
-
-count
-
-:::
+```{r}
+ls()
+```
 

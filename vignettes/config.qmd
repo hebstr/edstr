@@ -9,7 +9,7 @@ vignette: >
 
 {{< include _setup.qmd >}}
 
-# Valeur
+## Valeur
 
 La fonction produit une liste, nommée par défaut `.config`, qui contient les informations suivantes :
 
@@ -22,7 +22,7 @@ La fonction produit une liste, nommée par défaut `.config`, qui contient les i
 
 Ces valeurs sont fournies par défaut aux fonctions en aval, mais elles peuvent être modifiées manuellement pour une fonction donnée.
 
-# Configuration minimale
+## Configuration minimale
 
 Seuls deux arguments sont indispensables : 
 

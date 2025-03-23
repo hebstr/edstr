@@ -41,12 +41,12 @@
     <li><h6 class="dropdown-header" data-toc-skip>Configuration par défaut</h6></li>
     <li><a class="dropdown-item" href="../articles/config.html">edstr_config() : configuration par défaut</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Process</h6></li>
-    <li><a class="dropdown-item" href="../articles/import.html">Collecter avec edstr_import()</a></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Traitement du texte</h6></li>
+    <li><a class="dropdown-item" href="../articles/import.html">edstr_import() : collection des données</a></li>
     <li><a class="dropdown-item" href="../articles/clean.html">edstr_clean() : nettoyage du texte</a></li>
     <li><a class="dropdown-item" href="../articles/extract.html">edstr_extract() : extraction du texte</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Annexe</h6></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Recherche dans le texte</h6></li>
     <li><a class="dropdown-item" href="../articles/explore.html">edstr_view() : rechercher dans le texte</a></li>
   </ul>
 </li>
@@ -78,7 +78,7 @@
 
       <p class="date">2025-03-23</p>
 
-      <small class="dont-index">Source: <a href="https://codeberg.org/hebstr/edstr/src/branch/main/vignettes/explore.qmd"><code>vignettes/explore.qmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://codeberg.org/hebstr/edstr/src/branch/main/vignettes/explore.qmd" class="external-link"><code>vignettes/explore.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
     </div>
 
@@ -87,7 +87,7 @@
 
 
 
-    <section class="section level2" data-number="1"><h2 data-number="1" id="préparation">
+    <section class="level2" data-number="1"><h2 data-number="1" id="préparation">
 <span class="header-section-number">1</span> préparation<a class="anchor" aria-label="anchor" href="#pr%C3%A9paration"></a>
 </h2>
 <p>prep</p>
@@ -98,7 +98,7 @@
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ── edstr_config ────────────────────────────────────────────────────────────────</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ℹ Répertoire par défaut : '/tmp/RtmpBOel2X/pkgdown-quarto-1c2354a215b1a'</span></span>
+<span><span class="co">#&gt; ℹ Répertoire par défaut : '/tmp/RtmpLVNzgR/pkgdown-quarto-2364043f4cad8'</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ✔ Objet assigné dans l'environnement global : .config</span></span>
 <span><span class="co">#&gt;   • Emplacement : .config$dir ==</span></span>
@@ -113,18 +113,23 @@
 <span><span class="co">#&gt; ── edstr_clean ─────────────────────────────────────────────────────────────────</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ℹ Chargement du fichier ains_sample_clean</span></span>
-<span><span class="co">#&gt; ✔ Chargement du fichier ains_sample_clean [73ms]</span></span>
+<span><span class="co">#&gt; ✔ Chargement du fichier ains_sample_clean [67ms]</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ✔ Ficher ains_sample_clean chargé depuis '/home/julien/Documents/pro/r_pkg/edstr/_demo/ains/data_sample/ains_sample_clean.RData'</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ────────────────────────────────────────────────────────────────────────────────</span></span></code></pre></div>
 </div>
-</section><section class="section level2" data-number="2"><h2 data-number="2" id="recherche-dans-le-texte">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/ls.html" class="external-link">ls</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "ains_sample_clean" "pwd"</span></span></code></pre></div>
+</div>
+</section><section class="level2" data-number="2"><h2 data-number="2" id="recherche-dans-le-texte">
 <span class="header-section-number">2</span> Recherche dans le texte<a class="anchor" aria-label="anchor" href="#recherche-dans-le-texte"></a>
 </h2>
 <p>explore</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/edstr_view.html">edstr_view</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">ains_sample_clean</span>,</span>
 <span>           str <span class="op">=</span> <span class="st">"cellul\\w*"</span>,</span>
 <span>           id <span class="op">=</span> <span class="st">"id_entrepot"</span>,</span>
@@ -134,272 +139,7 @@
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ℹ Creating ains_sample_view</span></span>
 <span><span class="co">#&gt; $sample</span></span>
-<span><span class="co">#&gt; [1] │ &lt;!DOCTYPE html&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang=""&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;head&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;title&gt;/data/ehop/5_tmp/html/26776773&lt;/title&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;meta name="generator" content="pdftohtml 0.36"/&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;meta name="date" content="2019-01-02T14:56:40+00:00"/&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;style type="text/css"&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;!--</span></span>
-<span><span class="co">#&gt;     │ .xflip {</span></span>
-<span><span class="co">#&gt;     │  -moz-transform: scaleX(-1);</span></span>
-<span><span class="co">#&gt;     │  -webkit-transform: scaleX(-1);</span></span>
-<span><span class="co">#&gt;     │  -o-transform: scaleX(-1);</span></span>
-<span><span class="co">#&gt;     │  transform: scaleX(-1);</span></span>
-<span><span class="co">#&gt;     │  filter: fliph;</span></span>
-<span><span class="co">#&gt;     │ }</span></span>
-<span><span class="co">#&gt;     │ .yflip {</span></span>
-<span><span class="co">#&gt;     │  -moz-transform: scaleY(-1);</span></span>
-<span><span class="co">#&gt;     │  -webkit-transform: scaleY(-1);</span></span>
-<span><span class="co">#&gt;     │  -o-transform: scaleY(-1);</span></span>
-<span><span class="co">#&gt;     │  transform: scaleY(-1);</span></span>
-<span><span class="co">#&gt;     │  filter: flipv;</span></span>
-<span><span class="co">#&gt;     │ }</span></span>
-<span><span class="co">#&gt;     │ .xyflip {</span></span>
-<span><span class="co">#&gt;     │  -moz-transform: scaleX(-1) scaleY(-1);</span></span>
-<span><span class="co">#&gt;     │  -webkit-transform: scaleX(-1) scaleY(-1);</span></span>
-<span><span class="co">#&gt;     │  -o-transform: scaleX(-1) scaleY(-1);</span></span>
-<span><span class="co">#&gt;     │  transform: scaleX(-1) scaleY(-1);</span></span>
-<span><span class="co">#&gt;     │  filter: fliph + flipv;</span></span>
-<span><span class="co">#&gt;     │ }</span></span>
-<span><span class="co">#&gt;     │ --&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;/style&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;/head&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;body bgcolor=#262730 vlink=#777777 link=#777777&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;!-- Page 1 --&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;a name="1"&gt;&lt;/a&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;style type="text/css"&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;!--</span></span>
-<span><span class="co">#&gt;     │ {\t}p {margin: 0; padding: 0;}{\t}.ft10{font-size:12px;font-family:Times;color:#777777;}</span></span>
-<span><span class="co">#&gt;     │ {\t}.ft11{font-size:17px;font-family:Times;color:#777777;}</span></span>
-<span><span class="co">#&gt;     │ {\t}.ft12{font-size:17px;font-family:Times;color:#777777;}</span></span>
-<span><span class="co">#&gt;     │ {\t}.ft13{font-size:15px;font-family:Times;color:#777777;}</span></span>
-<span><span class="co">#&gt;     │ {\t}.ft14{font-size:15px;font-family:Times;color:#777777;}</span></span>
-<span><span class="co">#&gt;     │ {\t}.ft15{font-size:15px;font-family:Times;color:#777777;}</span></span>
-<span><span class="co">#&gt;     │ {\t}.ft16{font-size:14px;font-family:Times;color:#777777;}</span></span>
-<span><span class="co">#&gt;     │ {\t}.ft17{font-size:14px;font-family:Times;color:#777777;}</span></span>
-<span><span class="co">#&gt;     │ {\t}.ft18{font-size:10px;font-family:Times;color:#777777;}</span></span>
-<span><span class="co">#&gt;     │ {\t}.ft19{font-size:8px;font-family:Times;color:#777777;}</span></span>
-<span><span class="co">#&gt;     │ {\t}.ft110{font-size:10px;font-family:Times;color:#777777;}</span></span>
-<span><span class="co">#&gt;     │ {\t}.ft111{font-size:10px;font-family:Times;color:#777777;}</span></span>
-<span><span class="co">#&gt;     │ {\t}.ft112{font-size:10px;font-family:Times;color:#777777;}</span></span>
-<span><span class="co">#&gt;     │ {\t}.ft113{font-size:17px;font-family:Times;color:#777777;}</span></span>
-<span><span class="co">#&gt;     │ --&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;/style&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;div id="page1-div" style="border: 0.5rem solid #262730; border-radius:15px; background-color:white;position:relative;width:1071px;height:1515px;"&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1420px;left:303px;white-space:nowrap" class="ft10"&gt;HOPITAL CLAUDE HURIEZ - rue Michel Polonovski – 59037 Lille Cedex &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1437px;left:485px;white-space:nowrap" class="ft10"&gt;www.chru-lille.fr &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1454px;left:536px;white-space:nowrap" class="ft10"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1470px;left:536px;white-space:nowrap" class="ft11"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1493px;left:536px;white-space:nowrap" class="ft11"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:65px;left:53px;white-space:nowrap" class="ft11"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:190px;left:409px;white-space:nowrap" class="ft11"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:190px;left:716px;white-space:nowrap" class="ft11"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:208px;left:409px;white-space:nowrap" class="ft11"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:146px;left:83px;white-space:nowrap" class="ft12"&gt;&lt;b&gt;Service des Maladies du Sang &lt;/b&gt;&lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:169px;left:137px;white-space:nowrap" class="ft13"&gt;Hôpital Claude Huriez &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:190px;left:133px;white-space:nowrap" class="ft14"&gt;&lt;i&gt;&lt;b&gt;Professeur T. FACON &lt;/b&gt;&lt;/i&gt;&lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:211px;left:53px;white-space:nowrap" class="ft13"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:231px;left:225px;white-space:nowrap" class="ft12"&gt;&lt;b&gt; &lt;/b&gt;&lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:232px;left:409px;white-space:nowrap" class="ft11"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:232px;left:679px;white-space:nowrap" class="ft11"&gt;Lil e, le 02/01/2019 &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:255px;left:845px;white-space:nowrap" class="ft11"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:278px;left:539px;white-space:nowrap" class="ft15"&gt;&lt;b&gt;MONSIEUR LE DOCTEUR BUYSSCHAERT Arnaud &lt;/b&gt;&lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:299px;left:539px;white-space:nowrap" class="ft15"&gt;&lt;b&gt;616 AVENUE DE LA LIBERATION &lt;/b&gt;&lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:320px;left:539px;white-space:nowrap" class="ft15"&gt;&lt;b&gt; &lt;/b&gt;&lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:340px;left:539px;white-space:nowrap" class="ft15"&gt;&lt;b&gt;[CP] BRUAY LA BUISSIERE&lt;/b&gt;&lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:339px;left:789px;white-space:nowrap" class="ft12"&gt;&lt;b&gt; &lt;/b&gt;&lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:361px;left:539px;white-space:nowrap" class="ft11"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:384px;left:539px;white-space:nowrap" class="ft12"&gt;&lt;b&gt; &lt;/b&gt;&lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:302px;left:53px;white-space:nowrap" class="ft11"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:302px;left:81px;white-space:nowrap" class="ft16"&gt;MP / &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:299px;left:119px;white-space:nowrap" class="ft11"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:324px;left:87px;white-space:nowrap" class="ft16"&gt;N° de Dossier Sillage : &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:321px;left:240px;white-space:nowrap" class="ft11"&gt;2012010137 &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:344px;left:81px;white-space:nowrap" class="ft16"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:362px;left:81px;white-space:nowrap" class="ft16"&gt;Séjour du : 10/12/2018 au 10/12/2018 &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:381px;left:81px;white-space:nowrap" class="ft16"&gt;MME [NOM] ép [NOM] [PRENOM] &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:399px;left:81px;white-space:nowrap" class="ft11"&gt;100 RUE DU BOIS MONCHEL &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:422px;left:81px;white-space:nowrap" class="ft11"&gt;LOTISSEMENT BOIS LA DESSOUS [CP] BRUAY &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:445px;left:81px;white-space:nowrap" class="ft16"&gt;LA BUISSIERE &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:464px;left:81px;white-space:nowrap" class="ft16"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:482px;left:172px;white-space:nowrap" class="ft15"&gt;&lt;b&gt;UAM &lt;/b&gt;&lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:503px;left:71px;white-space:nowrap" class="ft17"&gt;&lt;b&gt;Allogreffes de &lt;cellules&gt; souches &lt;/b&gt;&lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:521px;left:122px;white-space:nowrap" class="ft17"&gt;&lt;b&gt;Hématopoïétiques&lt;/b&gt;&lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:521px;left:263px;white-space:nowrap" class="ft17"&gt;&lt;b&gt; &lt;/b&gt;&lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:540px;left:53px;white-space:nowrap" class="ft18"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:555px;left:53px;white-space:nowrap" class="ft18"&gt;Pr I.YAKOUB-AGHA &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:555px;left:219px;white-space:nowrap" class="ft18"&gt;03 20 44 55 51 &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:569px;left:53px;white-space:nowrap" class="ft18"&gt;Dr V. COITEUX &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:569px;left:219px;white-space:nowrap" class="ft18"&gt;03.20.44 43 48 &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:584px;left:53px;white-space:nowrap" class="ft18"&gt;Dr L. MAGRO &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:584px;left:219px;white-space:nowrap" class="ft18"&gt;03 20 44 56 73 &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:598px;left:53px;white-space:nowrap" class="ft18"&gt;Dr J. GAUTHIER &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:598px;left:219px;white-space:nowrap" class="ft18"&gt;[TELEPHONE] &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:611px;left:53px;white-space:nowrap" class="ft18"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:612px;left:219px;white-space:nowrap" class="ft19"&gt;(Poste 29609) &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:625px;left:53px;white-space:nowrap" class="ft110"&gt;&lt;i&gt;Secrétariat : &lt;/i&gt;&lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:640px;left:53px;white-space:nowrap" class="ft18"&gt;E. BAILLIE &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:640px;left:219px;white-space:nowrap" class="ft18"&gt;03 20 44 55 51 &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:654px;left:53px;white-space:nowrap" class="ft18"&gt;C. DE TAEYE &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:654px;left:219px;white-space:nowrap" class="ft18"&gt;[TELEPHONE] &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:667px;left:53px;white-space:nowrap" class="ft18"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:668px;left:219px;white-space:nowrap" class="ft19"&gt;(Poste 39527) &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:681px;left:53px;white-space:nowrap" class="ft18"&gt;FAX &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:681px;left:219px;white-space:nowrap" class="ft18"&gt;[TELEPHONE] &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:695px;left:53px;white-space:nowrap" class="ft18"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:710px;left:53px;white-space:nowrap" class="ft110"&gt;&lt;i&gt;Coordinatrice :&lt;/i&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:724px;left:53px;white-space:nowrap" class="ft18"&gt;A. WALLART &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:724px;left:219px;white-space:nowrap" class="ft18"&gt;[TELEPHONE] &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:737px;left:53px;white-space:nowrap" class="ft18"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:739px;left:219px;white-space:nowrap" class="ft19"&gt;(Poste 30550) &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:751px;left:53px;white-space:nowrap" class="ft19"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:764px;left:53px;white-space:nowrap" class="ft19"&gt;Référente qualité : &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:764px;left:219px;white-space:nowrap" class="ft19"&gt;[TELEPHONE] &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:776px;left:53px;white-space:nowrap" class="ft19"&gt;Mme s. BALCAEN &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:789px;left:53px;white-space:nowrap" class="ft18"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:789px;left:219px;white-space:nowrap" class="ft18"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:803px;left:53px;white-space:nowrap" class="ft18"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:818px;left:53px;white-space:nowrap" class="ft110"&gt;&lt;i&gt;Postes de Soins&lt;/i&gt; &lt;i&gt;:&lt;/i&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:832px;left:53px;white-space:nowrap" class="ft18"&gt;Secteur Stérile Greffe &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:832px;left:219px;white-space:nowrap" class="ft18"&gt;03 20 44 59 62 &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:845px;left:53px;white-space:nowrap" class="ft18"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:846px;left:219px;white-space:nowrap" class="ft19"&gt;(Poste 35292) &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:859px;left:53px;white-space:nowrap" class="ft18"&gt;Post-Greffe &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:859px;left:219px;white-space:nowrap" class="ft18"&gt;03 20 44 59 62 &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:872px;left:53px;white-space:nowrap" class="ft18"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:873px;left:219px;white-space:nowrap" class="ft19"&gt;(Poste 33636) &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:886px;left:53px;white-space:nowrap" class="ft18"&gt;Hôpital de Jour &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:886px;left:219px;white-space:nowrap" class="ft18"&gt;03 20 44 68 34 &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:900px;left:53px;white-space:nowrap" class="ft18"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:915px;left:53px;white-space:nowrap" class="ft18"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:929px;left:53px;white-space:nowrap" class="ft110"&gt;&lt;i&gt;Cadre Supérieur de Santé :&lt;b&gt; &lt;/b&gt;&lt;/i&gt;&lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:944px;left:53px;white-space:nowrap" class="ft18"&gt;Mme M. BOTTIN &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:944px;left:219px;white-space:nowrap" class="ft18"&gt;[TELEPHONE] &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:958px;left:53px;white-space:nowrap" class="ft18"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:973px;left:53px;white-space:nowrap" class="ft110"&gt;&lt;i&gt;Cadres de Santé :&lt;/i&gt;&lt;b&gt; &lt;/b&gt;&lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:987px;left:53px;white-space:nowrap" class="ft18"&gt;Mme F. PERRAUDIN &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1002px;left:53px;white-space:nowrap" class="ft18"&gt;Secteur Stérile Greffe &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1016px;left:53px;white-space:nowrap" class="ft18"&gt;Secteur Post-Greffe [TELEPHONE] &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1031px;left:53px;white-space:nowrap" class="ft19"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1031px;left:219px;white-space:nowrap" class="ft19"&gt;(Poste 32350) &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1043px;left:53px;white-space:nowrap" class="ft18"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1058px;left:53px;white-space:nowrap" class="ft18"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1058px;left:219px;white-space:nowrap" class="ft18"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1072px;left:53px;white-space:nowrap" class="ft18"&gt;Mme V. DUPONT &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1072px;left:219px;white-space:nowrap" class="ft18"&gt;[TELEPHONE] &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1087px;left:53px;white-space:nowrap" class="ft18"&gt;Hôpital de Jour &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1088px;left:219px;white-space:nowrap" class="ft19"&gt;(Poste 29570)&lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1087px;left:287px;white-space:nowrap" class="ft18"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1101px;left:53px;white-space:nowrap" class="ft18"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1114px;left:53px;white-space:nowrap" class="ft18"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1116px;left:219px;white-space:nowrap" class="ft19"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1128px;left:53px;white-space:nowrap" class="ft19"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1141px;left:53px;white-space:nowrap" class="ft18"&gt;Mme LEBECQUE [TELEPHONE] &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1155px;left:53px;white-space:nowrap" class="ft18"&gt;Secteur conventionnel &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1155px;left:219px;white-space:nowrap" class="ft18"&gt;(poste 32289) &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1169px;left:53px;white-space:nowrap" class="ft18"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1184px;left:53px;white-space:nowrap" class="ft18"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1198px;left:53px;white-space:nowrap" class="ft18"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1213px;left:53px;white-space:nowrap" class="ft110"&gt;&lt;i&gt;Onco-psychologue&lt;/i&gt; &lt;i&gt;:&lt;/i&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1227px;left:53px;white-space:nowrap" class="ft18"&gt;Mme M. BERTOUX &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1242px;left:53px;white-space:nowrap" class="ft18"&gt;AINAOUI &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1242px;left:219px;white-space:nowrap" class="ft18"&gt;03 20 44 55 51 &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1256px;left:53px;white-space:nowrap" class="ft18"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1271px;left:53px;white-space:nowrap" class="ft18"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1285px;left:53px;white-space:nowrap" class="ft110"&gt;&lt;i&gt;Assistante Sociale&lt;/i&gt; &lt;i&gt;:&lt;/i&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1300px;left:53px;white-space:nowrap" class="ft18"&gt;Melle V. BARON &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1300px;left:219px;white-space:nowrap" class="ft18"&gt;03 20 44 42 69 &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1314px;left:192px;white-space:nowrap" class="ft15"&gt;&lt;b&gt; &lt;/b&gt;&lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:482px;left:345px;white-space:nowrap" class="ft11"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:505px;left:345px;white-space:nowrap" class="ft11"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:528px;left:345px;white-space:nowrap" class="ft11"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:551px;left:345px;white-space:nowrap" class="ft11"&gt;Mon Cher Confrère, &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:573px;left:345px;white-space:nowrap" class="ft11"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:596px;left:345px;white-space:nowrap" class="ft11"&gt;Je revois ce jour Madame &lt;b&gt;[PRENOM] [NOM] épouse [NOM]&lt;/b&gt;, née le &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:619px;left:345px;white-space:nowrap" class="ft11"&gt;24.05.1951, 6 ans après son allogreffe de &lt;cellules&gt; souches &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:642px;left:345px;white-space:nowrap" class="ft11"&gt;hématopoïétiques périphériques à partir d'un donneur non apparenté HLA &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:664px;left:345px;white-space:nowrap" class="ft11"&gt;compatible 10/10. &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:687px;left:345px;white-space:nowrap" class="ft11"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:710px;left:345px;white-space:nowrap" class="ft11"&gt;Je rappel e que la patiente a reçu le 14.12.2012 une allogreffe dans le cadre &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:733px;left:345px;white-space:nowrap" class="ft11"&gt;du traitement d'une LAM avec un conditionnement d'intensité réduite de type &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:755px;left:345px;white-space:nowrap" class="ft12"&gt;&lt;b&gt;SLAVIN&lt;/b&gt; avec une prophylaxie de la GVH par photochimiothérapie extra-&lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:778px;left:345px;white-space:nowrap" class="ft11"&gt;corporelle. &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:801px;left:345px;white-space:nowrap" class="ft11"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:824px;left:345px;white-space:nowrap" class="ft11"&gt;El e n'était pas à risque CMV ni côté donneur, ni côté receveur. &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:847px;left:345px;white-space:nowrap" class="ft11"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:869px;left:345px;white-space:nowrap" class="ft11"&gt;El e a fait une GVH aiguë de grade 1 cutanée le 25.01.2013 qui était résolue &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:892px;left:345px;white-space:nowrap" class="ft11"&gt;le 21.02.2013. Une GVH chronique touchant la bouche et la peau le &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:915px;left:345px;white-space:nowrap" class="ft11"&gt;21.06.2013 actuellement résolutive. &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:938px;left:345px;white-space:nowrap" class="ft11"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:960px;left:609px;white-space:nowrap" class="ft12"&gt;&lt;b&gt;BILAN ACTUEL &lt;/b&gt;&lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:983px;left:345px;white-space:nowrap" class="ft11"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1006px;left:345px;white-space:nowrap" class="ft11"&gt;Je vois une patiente en bon état général. El e n'a pas présenté de &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1029px;left:345px;white-space:nowrap" class="ft11"&gt;complication particulière depuis la dernière consultation. Son examen &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1052px;left:345px;white-space:nowrap" class="ft11"&gt;clinique est dans les limites de la normale. &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1074px;left:345px;white-space:nowrap" class="ft11"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1097px;left:345px;white-space:nowrap" class="ft11"&gt;En ce qui concerne les complications, elle me parle de la survenue à &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1120px;left:345px;white-space:nowrap" class="ft11"&gt;répétition de l'herpès labial. Je ne préfère pas qu'elle soit vaccinée contre le &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1143px;left:345px;white-space:nowrap" class="ft11"&gt;VZV mais je préconise que cette patiente puisse avoir d'avance, au moins &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1165px;left:345px;white-space:nowrap" class="ft11"&gt;un tube de &lt;i&gt;&lt;b&gt;ZOVIRAX&lt;/b&gt;&lt;/i&gt; crème, pour une application locale 2 à 3 fois/jour dès &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1188px;left:345px;white-space:nowrap" class="ft11"&gt;le début des symptômes. &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1211px;left:345px;white-space:nowrap" class="ft11"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1234px;left:345px;white-space:nowrap" class="ft11"&gt;El e a été vaccinée contre la grippe saisonnière. &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1256px;left:345px;white-space:nowrap" class="ft11"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1279px;left:345px;white-space:nowrap" class="ft11"&gt;ECOG = 0. Pas de GVH. Pas de cancer secondaire, pas de rechute de la &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1302px;left:345px;white-space:nowrap" class="ft11"&gt;maladie sous-jacente. &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1325px;left:345px;white-space:nowrap" class="ft11"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1348px;left:345px;white-space:nowrap" class="ft11"&gt;Son bilan biologique est dans les limites de la normale hormis une hyper-&lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;/div&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;!-- Page 2 --&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;a name="2"&gt;&lt;/a&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;style type="text/css"&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;!--</span></span>
-<span><span class="co">#&gt;     │ {\t}p {margin: 0; padding: 0;}--&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;/style&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;div id="page2-div" style="border: 0.5rem solid #262730; border-radius:15px; background-color:white;position:relative;width:1071px;height:1515px;"&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1420px;left:303px;white-space:nowrap" class="ft20"&gt;HOPITAL CLAUDE HURIEZ - rue Michel Polonovski – 59037 Lille Cedex &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1437px;left:485px;white-space:nowrap" class="ft20"&gt;www.chru-lille.fr &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1454px;left:536px;white-space:nowrap" class="ft20"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1470px;left:536px;white-space:nowrap" class="ft21"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:1493px;left:536px;white-space:nowrap" class="ft21"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:65px;left:345px;white-space:nowrap" class="ft21"&gt;cholestérolémie qui a nécessité la mise sous &lt;i&gt;&lt;b&gt;STATINE&lt;/b&gt;&lt;/i&gt;. &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:88px;left:345px;white-space:nowrap" class="ft21"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:111px;left:632px;white-space:nowrap" class="ft22"&gt;&lt;b&gt;AU TOTAL &lt;/b&gt;&lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:133px;left:345px;white-space:nowrap" class="ft21"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:156px;left:345px;white-space:nowrap" class="ft21"&gt;Dans ces conditions, je crois qu'il est tout à fait légitime de maintenir &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:179px;left:345px;white-space:nowrap" class="ft21"&gt;l'abstention thérapeutique sous surveil ance. &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:202px;left:345px;white-space:nowrap" class="ft21"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:225px;left:345px;white-space:nowrap" class="ft21"&gt;Quant à moi, je souhaite la revoir en consultation externe dans 1 an, pour un &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:247px;left:345px;white-space:nowrap" class="ft21"&gt;nouveau contrôle ou avant cette date si nécessaire. Un bilan biologique sera &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:270px;left:345px;white-space:nowrap" class="ft21"&gt;effectué, comme d'habitude, avant ma prochaine consultation. &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:293px;left:345px;white-space:nowrap" class="ft21"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:316px;left:345px;white-space:nowrap" class="ft21"&gt;Je vous prie de croire, Mon Cher Confrère, à l'assurance de mes sentiments &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:338px;left:345px;white-space:nowrap" class="ft21"&gt;les meil eurs. &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:361px;left:345px;white-space:nowrap" class="ft21"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:384px;left:345px;white-space:nowrap" class="ft21"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:407px;left:345px;white-space:nowrap" class="ft21"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:430px;left:345px;white-space:nowrap" class="ft21"&gt; &lt;i&gt;&lt;b&gt;Professeur I. YAKOUB-AGHA &lt;/b&gt;&lt;/i&gt;&lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:452px;left:345px;white-space:nowrap" class="ft21"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:475px;left:1019px;white-space:nowrap" class="ft21"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:498px;left:53px;white-space:nowrap" class="ft21"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:520px;left:128px;white-space:nowrap" class="ft20"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:537px;left:128px;white-space:nowrap" class="ft20"&gt;Lettre adressée à : &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:553px;left:128px;white-space:nowrap" class="ft20"&gt;Mr LE DOCTEUR BUYSSCHAERT ARNAUD 616 AVENUE DE LA LIBERATION [CP] BRUAY LA BUISSIERE &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:574px;left:128px;white-space:nowrap" class="ft20"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:590px;left:128px;white-space:nowrap" class="ft20"&gt;Copie à : &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:607px;left:128px;white-space:nowrap" class="ft20"&gt;Mme LE DOCTEUR LEGROUX-GEROT ISABELLE SERVICE DE RHUMATOLOGIE HOPITAL ROGER SALENGRO 59037 &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:624px;left:128px;white-space:nowrap" class="ft20"&gt;LILLE CEDEX &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:640px;left:128px;white-space:nowrap" class="ft20"&gt;Mr LE DOCTEUR LIONET ARNAUD POLE DE NEPHROLOGIE HOPITAL HURIEZ 59037 LILLE CEDEX &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:660px;left:128px;white-space:nowrap" class="ft20"&gt;Mr LE DOCTEUR WALLYN FREDERIC HOPITAL ALBERT CALMETTE ENDOSCOPIE RESPIRATOIRE 59037 LILLE CEDEX &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:681px;left:128px;white-space:nowrap" class="ft29"&gt; &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;p style="position:absolute;top:693px;left:128px;white-space:nowrap" class="ft20"&gt;Lettre au patient. &lt;/p&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;/div&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;/body&gt;</span></span>
-<span><span class="co">#&gt;     │ &lt;/html&gt;</span></span>
-<span><span class="co">#&gt;     │ </span></span>
+<span><span class="co">#&gt; NULL</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $count</span></span>
 <span><span class="co">#&gt; # A tibble: 11 × 2</span></span>
@@ -416,33 +156,24 @@
 <span><span class="co">#&gt;  9 Cellules        1</span></span>
 <span><span class="co">#&gt; 10 cellulite       1</span></span>
 <span><span class="co">#&gt; 11 cellulo         1</span></span>
-<span><span class="co">#&gt; ✔ Creating ains_sample_view [232ms]</span></span>
+<span><span class="co">#&gt; ✔ Creating ains_sample_view [194ms]</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ── edstr_view ──────────────────────────────────────────────────────────────────</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ℹ Documents : 500 id_entrepot</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ℹ Correspondances</span></span>
-<span><span class="co">#&gt; • Totales : 57 parmi 29 id_entrepot (5.8% id_entrepot)</span></span>
-<span><span class="co">#&gt; • Distinctes : 11</span></span>
+<span><span class="co">#&gt;   • Totales : 57 parmi 29 id_entrepot (5.8% id_entrepot)</span></span>
+<span><span class="co">#&gt;   • Distinctes : 11</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ────────────────────────────────────────────────────────────────────────────────</span></span>
 <span><span class="co">#&gt; </span></span></code></pre></div>
 </div>
-<div class="panel-tabset">
-<ul id="tabset-1" class="panel-tabset-tabby">
-<li><a data-tabby-default="" href="#tabset-1-1">one</a></li>
-<li><a href="#tabset-1-2">one</a></li>
-</ul>
-<ul class="nav nav-tabs" id="NA" role="tablist"><li role="presentation" class="nav-item"><button data-bs-toggle="tab" data-bs-target="#NA" id="NA-tab" type="button" role="tab" aria-controls="NA" aria-selected="true" class="active nav-link">
-<p>match</p>
-</button></li></ul>
-<div class="tab-content"><div class="active  tab-pane" id="NA" role="tabpanel" aria-labelledby="NA-tab">
-
-<div id="tabset-1-2">
-<p>count</p>
-</div>
-</div></div>
+<p>assignation</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/ls.html" class="external-link">ls</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "ains_sample_clean" "ains_sample_view"  "pwd"</span></span></code></pre></div>
 </div>
 </section><script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
@@ -545,7 +276,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }
   }
 });
-</script></main>
+</script></main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside>
 </div>
 
 

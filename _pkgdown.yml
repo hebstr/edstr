@@ -1,4 +1,4 @@
-url: https://codeberg.org/hebstr/edstr/
+url: https://cpd000001.chrul.net/9000
 
 template:
   bootstrap: 5
@@ -18,13 +18,13 @@ reference:
   contents:
   - edstr_config
 
-- title: Process
+- title: Traitement du texte
   contents:
   - edstr_import
   - edstr_clean
   - edstr_extract
 
-- title: Annexe
+- title: Recharche dans le texte
   contents:
   - edstr_view
 
@@ -35,13 +35,13 @@ articles:
   - config
 
 - title: ~
-  navbar: Process
+  navbar: Traitement du texte
   contents:
   - import
   - clean
   - extract
 
 - title: ~
-  navbar: Annexe
+  navbar: Recherche dans le texte
   contents:
   - explore

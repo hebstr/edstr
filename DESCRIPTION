@@ -1,10 +1,10 @@
 Package: edstr
-Title: edstr
+Title: Exploration de données textuelles de routine dans l'EDS
 Version: 0.1.0
 Authors@R: 
     person("EDS", "INCLUDE", , "ju.diez@protonmail.com", role = c("aut", "cre"))
 Description: Collecter, nettoyer et extraire des données textuelles de routine depuis l'EDS.
-URL: https://codeberg.org/hebstr/edstr
+URL: https://cpd000001.chrul.net/9000
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

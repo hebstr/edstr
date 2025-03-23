@@ -41,12 +41,12 @@
     <li><h6 class="dropdown-header" data-toc-skip>Configuration par défaut</h6></li>
     <li><a class="dropdown-item" href="../articles/config.html">edstr_config() : configuration par défaut</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Process</h6></li>
-    <li><a class="dropdown-item" href="../articles/import.html">Collecter avec edstr_import()</a></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Traitement du texte</h6></li>
+    <li><a class="dropdown-item" href="../articles/import.html">edstr_import() : collection des données</a></li>
     <li><a class="dropdown-item" href="../articles/clean.html">edstr_clean() : nettoyage du texte</a></li>
     <li><a class="dropdown-item" href="../articles/extract.html">edstr_extract() : extraction du texte</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Annexe</h6></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Recherche dans le texte</h6></li>
     <li><a class="dropdown-item" href="../articles/explore.html">edstr_view() : rechercher dans le texte</a></li>
   </ul>
 </li>
@@ -78,7 +78,7 @@
 
       <p class="date">2025-03-23</p>
 
-      <small class="dont-index">Source: <a href="https://codeberg.org/hebstr/edstr/src/branch/main/vignettes/extract.qmd"><code>vignettes/extract.qmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://codeberg.org/hebstr/edstr/src/branch/main/vignettes/extract.qmd" class="external-link"><code>vignettes/extract.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
     </div>
 
@@ -100,7 +100,7 @@
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ── edstr_config ────────────────────────────────────────────────────────────────</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ℹ Répertoire par défaut : '/tmp/Rtmp2EvPTQ/pkgdown-quarto-1b04a147a1ede'</span></span>
+<span><span class="co">#&gt; ℹ Répertoire par défaut : '/tmp/RtmpLVNzgR/pkgdown-quarto-2364043f4cad8'</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ✔ Objet assigné dans l'environnement global : .config</span></span>
 <span><span class="co">#&gt;   • Emplacement : .config$dir ==</span></span>
@@ -118,7 +118,7 @@
 <span><span class="co">#&gt; ── edstr_import ────────────────────────────────────────────────────────────────</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ℹ Chargement du fichier ains_sample_import</span></span>
-<span><span class="co">#&gt; ✔ Chargement du fichier ains_sample_import [40ms]</span></span>
+<span><span class="co">#&gt; ✔ Chargement du fichier ains_sample_import [38ms]</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ✔ Ficher ains_sample_import chargé depuis '/home/julien/Documents/pro/r_pkg/edstr/_demo/ains/data_sample/ains_sample_import.RData'</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -129,7 +129,7 @@
 <span><span class="co">#&gt; ── edstr_clean ─────────────────────────────────────────────────────────────────</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ℹ Chargement du fichier ains_sample_clean</span></span>
-<span><span class="co">#&gt; ✔ Chargement du fichier ains_sample_clean [67ms]</span></span>
+<span><span class="co">#&gt; ✔ Chargement du fichier ains_sample_clean [66ms]</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ✔ Ficher ains_sample_clean chargé depuis '/home/julien/Documents/pro/r_pkg/edstr/_demo/ains/data_sample/ains_sample_clean.RData'</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -150,34 +150,34 @@
 <span><span class="co">#&gt; ── edstr_extract ───────────────────────────────────────────────────────────────</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Formatage du texte source</span></span>
-<span><span class="co">#&gt; ✔ Formatage du texte source [1.1s]</span></span>
+<span><span class="co">#&gt; ✔ Formatage du texte source [1s]</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Tokenisation du texte source</span></span>
-<span><span class="co">#&gt; ✔ Tokenisation du texte source [1.2s]</span></span>
+<span><span class="co">#&gt; ✔ Tokenisation du texte source [1.1s]</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Matching du texte tokenisé</span></span>
 <span><span class="co">#&gt; ✔ Matching du texte tokenisé [5.3s]</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Exclusions</span></span>
-<span><span class="co">#&gt; ✔ Exclusions [530ms]</span></span>
+<span><span class="co">#&gt; ✔ Exclusions [511ms]</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Matching du texte source</span></span>
-<span><span class="co">#&gt; ✔ Matching du texte source [590ms]</span></span>
+<span><span class="co">#&gt; ✔ Matching du texte source [582ms]</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Mismatch entre texte source et tokenisé</span></span>
 <span><span class="co">#&gt; ✔ Mismatch entre texte source et tokenisé [41ms]</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Extraction</span></span>
-<span><span class="co">#&gt; ✔ Extraction [135ms]</span></span>
+<span><span class="co">#&gt; ✔ Extraction [141ms]</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Résumé</span></span>
-<span><span class="co">#&gt; ✔ Résumé [103ms]</span></span>
+<span><span class="co">#&gt; ✔ Résumé [100ms]</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Enregistrement du .xlsx</span></span>
-<span><span class="co">#&gt; ✔ Enregistrement du .xlsx [2.6s]</span></span>
+<span><span class="co">#&gt; ✔ Enregistrement du .xlsx [2.4s]</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Enregistrement du .csv</span></span>
-<span><span class="co">#&gt; ✔ Enregistrement du .csv [1.3s]</span></span>
+<span><span class="co">#&gt; ✔ Enregistrement du .csv [1.2s]</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Enregistrement du .RData</span></span>
 <span><span class="co">#&gt; ✔ Enregistrement du .RData [53ms]</span></span>
@@ -354,7 +354,7 @@
 <span><span class="co">#&gt; # A tibble: 0 × 3</span></span>
 <span><span class="co">#&gt; # ℹ 3 variables: id_entrepot &lt;dbl&gt;, concept &lt;chr&gt;, match &lt;chr&gt;</span></span>
 <span><span class="co">#&gt; ────────────────────────────────────────────────────────────────────────────────</span></span>
-<span><span class="co">#&gt; Full steps: 13.877 sec elapsed</span></span>
+<span><span class="co">#&gt; Full steps: 13.391 sec elapsed</span></span>
 <span><span class="co">#&gt;</span></span>
 <span><span class="co">#&gt; ℹ Documents</span></span>
 <span><span class="co">#&gt;   • Total : 500 id_entrepot</span></span>
@@ -375,7 +375,7 @@
 <span><span class="co">#&gt;</span></span>
 <span><span class="co">#&gt; ────────────────────────────────────────────────────────────────────────────────</span></span>
 <span><span class="co">#&gt;</span></span>
-<span><span class="co">#&gt; ✔ 3 fichiers enregistrés dans '/home/julien/Documents/pro/r_pkg/edstr/_demo/ains/data_sample/extract'</span></span>
+<span><span class="co">#&gt; ✔ 3 fichiers enregistrés dans le dossier '/home/julien/Documents/pro/r_pkg/edstr/_demo/ains/data_sample/extract'</span></span>
 <span><span class="co">#&gt;   • RData : ains_sample_extract.RData</span></span>
 <span><span class="co">#&gt;   • xlsx : ains_sample_extract.xlsx</span></span>
 <span><span class="co">#&gt;   • csv : ains_sample_extract.csv</span></span>

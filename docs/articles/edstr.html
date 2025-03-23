@@ -41,12 +41,12 @@
     <li><h6 class="dropdown-header" data-toc-skip>Configuration par défaut</h6></li>
     <li><a class="dropdown-item" href="../articles/config.html">edstr_config() : configuration par défaut</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Process</h6></li>
-    <li><a class="dropdown-item" href="../articles/import.html">Collecter avec edstr_import()</a></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Traitement du texte</h6></li>
+    <li><a class="dropdown-item" href="../articles/import.html">edstr_import() : collection des données</a></li>
     <li><a class="dropdown-item" href="../articles/clean.html">edstr_clean() : nettoyage du texte</a></li>
     <li><a class="dropdown-item" href="../articles/extract.html">edstr_extract() : extraction du texte</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Annexe</h6></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Recherche dans le texte</h6></li>
     <li><a class="dropdown-item" href="../articles/explore.html">edstr_view() : rechercher dans le texte</a></li>
   </ul>
 </li>
@@ -78,7 +78,7 @@
 
       <p class="date">2025-03-22</p>
 
-      <small class="dont-index">Source: <a href="https://codeberg.org/hebstr/edstr/src/branch/main/vignettes/edstr.qmd"><code>vignettes/edstr.qmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://codeberg.org/hebstr/edstr/src/branch/main/vignettes/edstr.qmd" class="external-link"><code>vignettes/edstr.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
     </div>
 
@@ -115,10 +115,10 @@
 <section class="level2" data-number="1"><h2 data-number="1" id="charger-le-package">
 <span class="header-section-number">1</span> Charger le package<a class="anchor" aria-label="anchor" href="#charger-le-package"></a>
 </h2>
-<p>Le package <a href="https://codeberg.org/hebstr/edstr">edstr</a> doit être chargé dans l’environnement.</p>
+<p>Le package <a href="https://cpd000001.chrul.net/9000">edstr</a> doit être chargé dans l’environnement.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://codeberg.org/hebstr/edstr">edstr</a></span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://cpd000001.chrul.net/9000">edstr</a></span><span class="op">)</span></span></code></pre></div>
 </div>
 </section><section class="level2" data-number="2"><h2 data-number="2" id="configuration-par-défaut">
 <span class="header-section-number">2</span> Configuration par défaut<a class="anchor" aria-label="anchor" href="#configuration-par-d%C3%A9faut"></a>
@@ -131,7 +131,7 @@
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ── edstr_config ────────────────────────────────────────────────────────────────</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ℹ Répertoire par défaut : '/tmp/RtmpZgiB2A/pkgdown-quarto-17bfa67df8603'</span></span>
+<span><span class="co">#&gt; ℹ Répertoire par défaut : '/tmp/RtmpLVNzgR/pkgdown-quarto-2364043f4cad8'</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ✔ Objet assigné dans l'environnement global : .config</span></span>
 <span><span class="co">#&gt;   • Emplacement : .config$dir ==</span></span>
@@ -153,7 +153,7 @@
 <span><span class="co">#&gt; ── edstr_import ────────────────────────────────────────────────────────────────</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ℹ Chargement du fichier ains_sample_import</span></span>
-<span><span class="co">#&gt; ✔ Chargement du fichier ains_sample_import [46ms]</span></span>
+<span><span class="co">#&gt; ✔ Chargement du fichier ains_sample_import [40ms]</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ✔ Ficher ains_sample_import chargé depuis '/home/julien/Documents/pro/r_pkg/edstr/_demo/ains/data_sample/ains_sample_import.RData'</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -171,7 +171,7 @@
 <span><span class="co">#&gt; ── edstr_clean ─────────────────────────────────────────────────────────────────</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ℹ Chargement du fichier ains_sample_clean</span></span>
-<span><span class="co">#&gt; ✔ Chargement du fichier ains_sample_clean [69ms]</span></span>
+<span><span class="co">#&gt; ✔ Chargement du fichier ains_sample_clean [66ms]</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ✔ Ficher ains_sample_clean chargé depuis '/home/julien/Documents/pro/r_pkg/edstr/_demo/ains/data_sample/ains_sample_clean.RData'</span></span>
 <span><span class="co">#&gt; </span></span>

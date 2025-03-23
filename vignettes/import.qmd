@@ -1,8 +1,8 @@
 ---
-title: "Collecter avec edstr_import()"
+title: "edstr_import() : collection des données"
 
 vignette: >
-  %\VignetteIndexEntry{Collecter avec edstr_import()}
+  %\VignetteIndexEntry{edstr_import() : collection des données}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
 ---

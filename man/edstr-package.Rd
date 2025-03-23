@@ -4,14 +4,14 @@
 \name{edstr-package}
 \alias{edstr}
 \alias{edstr-package}
-\title{edstr: edstr}
+\title{edstr: Exploration de données textuelles de routine dans l'EDS}
 \description{
 Collecter, nettoyer et extraire des données textuelles de routine depuis l'EDS.
 }
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://codeberg.org/hebstr/edstr}
+  \item \url{https://cpd000001.chrul.net/9000}
 }
 
 }
