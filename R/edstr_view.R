@@ -125,21 +125,29 @@ edstr_view <- \(data,
 
 ### OUTPUT SAMPLE ---------------------------------------------------------------
 
-    output_sample_max <- if (match_id > output_sample) "(max)" else NULL
+    if (output_sample > 0) {
 
-    data_output_sample <-
-    data |>
-      filter(get(id) %in% data_match[[id]]) |>
-      slice(1:output_sample) |>
-      pull(text_input) |>
-      str_view(str, ...)
-
-    if (raw & !is.null(filter)) {
+      output_sample_max <- if (match_id > output_sample) "(max)" else NULL
 
       data_output_sample <-
       data |>
-        filter(!!filter) |>
-        pull(text_input)
+        filter(get(id) %in% data_match[[id]]) |>
+        slice(1:output_sample) |>
+        pull(text_input) |>
+        str_view(str, ...)
+
+      if (raw & !is.null(filter)) {
+
+        data_output_sample <-
+        data |>
+          filter(!!filter) |>
+          pull(text_input)
+
+      }
+
+    } else {
+
+      data_output_sample <- NULL
 
     }
 
@@ -159,6 +167,7 @@ edstr_view <- \(data,
     cli_text("\n\n")
 
     cli_alert_info("{.strong Correspondances}")
+    cli_ul()
     cli_ul()
       cli_li("Totales : {nrow(data_match)} parmi {match_id} {id} ({cli_p_match} {id})")
       cli_li("Distinctes : {nrow(data_count)}")

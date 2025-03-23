@@ -1,5 +1,6 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
+<!-- # pkgdown <img src="man/figures/logo.png" align="right"/> -->
 
 # edstr
 
@@ -9,14 +10,14 @@
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 <!-- badges: end -->
 
-Le but de edstr est de fournir un ensemble de fonctions réalisant un
+Le but de {edstr} est de fournir un ensemble de fonctions réalisant un
 process reproductible d’importation, de nettoyage, et d’extraction de
 données textuelles de routine.
 
 ## Installation
 
-Avec une connexion internet, le package en développement peut être
-installé comme suit :
+Avec une connexion <span class="concept-color">internet</span>, le
+package en développement peut être installé comme suit :
 
 ``` r
 # install.packages("devtools")
@@ -33,9 +34,7 @@ install.packages("G:/Data/_R_/packages/edstr_0.1.0.zip", repos = NULL)
 
 ## Résumé
 
-img
-
-Une vue d’ensemble du process est détaillée dans `vignette("edstr")`.
+Une vue d’ensemble du process est présentée dans `vignette("edstr")`.
 
 ### Configuration initiale
 

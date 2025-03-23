@@ -1,0 +1,14 @@
+pandoc: '3.2'
+pkgdown: 2.1.1
+pkgdown_sha: ~
+articles:
+  clean: clean.html
+  config: config.html
+  edstr: edstr.html
+  explore: explore.html
+  extract: extract.html
+  import: import.html
+last_built: 2025-03-23T00:00Z
+urls:
+  reference: https://codeberg.org/hebstr/edstr/reference
+  article: https://codeberg.org/hebstr/edstr/articles

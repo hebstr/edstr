@@ -1,20 +1,13 @@
 ---
-title: "Définir une configuration par défaut avec edstr_config()"
+title: "edstr_config() : configuration par défaut"
 
 vignette: >
-  %\VignetteIndexEntry{Définir une configuration par défaut avec edstr_config()}
+  %\VignetteIndexEntry{edstr_config() : configuration par défaut}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
 ---
 
 {{< include _setup.qmd >}}
-
-```{r}
-edstr_config(dest_dir = "_demo/ains/data_sample",
-             dest_filename = "ains_sample",
-             replace = "_demo/config/str.RData",
-             concepts = "_demo/config/concepts_ains.RData")
-```
 
 # Valeur
 

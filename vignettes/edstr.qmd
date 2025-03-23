@@ -13,49 +13,50 @@ Exemple de la détection des fractures de l'extrémité supérieure du fémur (F
 
 Le script correspondant :
 
-```{r}
-# script
+```{.r include="../_demo/ains/ains.R"}
 ```
 
 Le contenu suivant explicite brièvement le résultat de chaque fonction afin de montrer le process global.
 
 Pour plus de détails sur une fonction, se référer à la page correspondante dans la partie "Articles".
 
-# Charger le package
+## Charger le package
 
-Le package `edstr` doit être chargé dans l'environnement.
+Le package `{edstr}` doit être chargé dans l'environnement.
 
 ```{r}
 library(edstr)
 ```
 
-# Définir une configuration par défaut avec `edstr_config()`
+## Configuration par défaut
 
-`edstr_config()` définit des paramètres communs aux fonctions suivantes.
+La fonction `edstr_config()` définit des paramètres communs aux fonctions suivantes.
 
 ```{r}
-#edstr_config()
+edstr_config(dest_dir = "_demo/ains/data_sample",
+             dest_filename = "ains_sample")
 ```
 
-# Importer avec `edstr_import()`
+## Collection des données 
 
 Réalise l'importation de la table [nom] depuis la base et son enregistrement selon les paramètres définis dans `edstr_config()`.
 
-```{r}
-#edstr_import()
+```{r error=TRUE}
+edstr_import(query = "select * from ains",
+             load = TRUE)
 ```
 
-# Nettoyage avec `edstr_clean()`
+## Nettoyage des données
 
 Réalise le nettoyage du texte présent dans la table importée et son enregistrement selon les paramètres définis dans `edstr_config()`.
 
 Prend automatiquement en input la table importée avec `edstr_import()`.
 
-```{r}
-#edstr_clean()
+```{r error=TRUE}
+edstr_clean(load = TRUE) 
 ```
 
-# Extraction avec `edstr_extract()`
+## Extraction avec `edstr_extract()`
 
 Réalise une extraction à partir du texte présent dans la table nettoyée et son enregistrement selon les paramètres définis dans `edstr_config()`.
 

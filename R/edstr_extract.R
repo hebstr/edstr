@@ -943,7 +943,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   cli_rule()
   cli_text("\n\n")
 
-  cli_alert_success("{.strong {cli_n_files} fichier{?s} enregistr\u00e9{?s} dans {.path {here(save_dir)}}}")
+  cli_alert_success("{.strong {cli_n_files} fichier{?s} enregistr\u00e9{?s} dans le dossier {.path {here(save_dir)}}}")
   cli_ul()
     cli_li("RData : {cli_col('{save_files}.RData')}")
     if (to_xlsx) cli_li("xlsx : {cli_col('{save_files}.xlsx')}")

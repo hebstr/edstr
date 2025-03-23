@@ -2,7 +2,7 @@ Package: edstr
 Title: edstr
 Version: 0.1.0
 Authors@R: 
-    person("IN", "CLUDE", , "ju.diez@protonmail.com", role = c("aut", "cre"))
+    person("EDS", "INCLUDE", , "ju.diez@protonmail.com", role = c("aut", "cre"))
 Description: Collecter, nettoyer et extraire des données textuelles de routine depuis l'EDS.
 URL: https://codeberg.org/hebstr/edstr
 License: GPL (>= 3)
@@ -39,4 +39,4 @@ Suggests:
     rmarkdown,
     quarto
 VignetteBuilder: 
-    quarto
+    knitr

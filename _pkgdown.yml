@@ -2,11 +2,11 @@ url: https://codeberg.org/hebstr/edstr/
 
 template:
   bootstrap: 5
-  bootswatch: cerulean
   bslib:
     primary: "#0099EE"
-    navbar-bg: "#0099EE"
-    headings-color: "#0099EE"
+    secondary: "#CC0C00"
+    code_font: {google: "Fira Code"}
+  light-switch: true
 
 repo:
   url:
@@ -14,27 +14,34 @@ repo:
     source: https://codeberg.org/hebstr/edstr/src/branch/main/
 
 reference:
-- title: Configuration initiale
+- title: Configuration par défaut
   contents:
   - edstr_config
 
-- title: Production
+- title: Process
   contents:
   - edstr_import
   - edstr_clean
   - edstr_extract
 
-- title: Exploration
+- title: Annexe
   contents:
   - edstr_view
 
 articles:
 - title: ~
-  navbar: ~
+  navbar: Configuration par défaut
   contents:
-  - edstr
   - config
+
+- title: ~
+  navbar: Process
+  contents:
   - import
   - clean
   - extract
+
+- title: ~
+  navbar: Annexe
+  contents:
   - explore

@@ -16,7 +16,7 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: IN CLUDE \email{ju.diez@protonmail.com}
+\strong{Maintainer}: EDS INCLUDE \email{ju.diez@protonmail.com}
 
 }
 \keyword{internal}

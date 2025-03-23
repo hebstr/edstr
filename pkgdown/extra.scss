@@ -1,0 +1,28 @@
+@font-face {
+  font-family: "Luciole";
+  src:
+    local("Luciole-Regular"),
+    url('resources/fonts/Luciole_webfonts/Luciole-Regular/Luciole-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: fallback;
+}
+
+body {
+  text-align: justify !important;
+  font-family: "Luciole";
+}
+
+.cb1 {
+  font-weight: bold;
+  color: $primary;
+}
+
+.cb2 {
+  font-weight: bold;
+  color: $secondary;
+}
+
+[data-bs-theme="dark"] pre code span.co {
+  font-style: normal !important;
+}

@@ -1,15 +1,15 @@
 ---
-title: "Nettoyage du texte avec edstr_clean()"
+title: "edstr_clean() : nettoyage du texte"
 
 vignette: >
-  %\VignetteIndexEntry{Nettoyage du texte avec edstr_clean()}
+  %\VignetteIndexEntry{edstr_clean() : nettoyage du texte}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
 ---
 
 {{< include _setup.qmd >}}
 
-# Prérequis test
+## Prérequis test
 
 La fonction `edstr_clean()` dépend des paramètres définis avec `edstr_config()` : celle-ci doit alors être exécutée en amont.
 
@@ -27,7 +27,7 @@ Il peut être produit de deux façons :
   - Nettoyage d'un dataframe chargé dans l'environnement
   - Chargement d'un dataframe déjà nettoyé
 
-# Nettoyage d'un dataframe
+## Nettoyage d'un dataframe
 
 Admettons qu'un dataframe est déjà importé dans le dossier ``r .config$dir`` avec `edstr_import()`.
 Il peut être simplement chargé avec la fonction l'argument `load = TRUE`.
@@ -44,7 +44,7 @@ Le dataframe nettoyé est automatiquement sauvegardé en .RData dans le réperto
 edstr_clean(replace = .config$replace)
 ```
 
-# Chargement d'un dataframe
+## Chargement d'un dataframe
 
 Si un dataframe nettoyé est déjà créé et présent dans le dossier `r .config$dir`, celui-ci peut être simplement chargé avec l'argument `load = TRUE`.
 

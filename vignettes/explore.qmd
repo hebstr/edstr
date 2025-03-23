@@ -1,12 +1,45 @@
 ---
-title: "Exploration du texte avec edstr_view()"
+title: "edstr_view() : rechercher dans le texte"
 
 vignette: >
-  %\VignetteIndexEntry{Exploration du texte avec edstr_view()}
+  %\VignetteIndexEntry{edstr_view() : rechercher dans le texte}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
 ---
 
 {{< include _setup.qmd >}}
 
-Test `edstr_view`
+# préparation
+
+prep
+
+```{r}
+edstr_config(dest_dir = "_demo/ains/data_sample",
+             dest_filename = "ains_sample")
+
+edstr_clean(load = TRUE)
+```
+
+# Recherche dans le texte
+
+explore
+
+```{r}
+edstr_view(data = ains_sample_clean,
+           str = "cellul\\w*",
+           id = "id_entrepot",
+           output_sample = 0)
+```
+
+::: {.panel-tabset}
+
+### one
+
+match
+
+### one
+
+count
+
+:::
+

@@ -35,10 +35,12 @@ edstr_config <- \(config_name = ".config",
 
   }
 
+  dest_dir_norm <- dest_dir |> str_remove("/+$") |> normalize_dir()
+
 ### ASSIGN ---------------------------------------------------------------------
 
   config_list <-
-  list(dir = dest_dir |> str_remove("/+$") |> normalize_dir(),
+  list(dir = dest_dir_norm,
        file = dest_filename,
        text = text,
        replace = replace,
@@ -62,8 +64,6 @@ edstr_config <- \(config_name = ".config",
   cli_text <- .col("{config_name}$text == '{text}'")
   cli_replace <- .col("{config_name}$replace")
   cli_concepts <- .col("{config_name}$concepts")
-
-  cli <-
 
   cli_h1("edstr_config")
   cli_text("\n\n")

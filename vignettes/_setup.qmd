@@ -1,8 +1,9 @@
 ```{r}
 #| label: setup
 #| include: false
+#| cache: false
 
-knitr::opts_knit$set(root.dir = here::here())
+knitr::opts_knit$set(root.dir = "~/Documents/pro/r_pkg/edstr")
 
 library(edstr)
 library(glue)
