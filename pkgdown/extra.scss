@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&display=swap');
+
 @font-face {
   font-family: "Luciole";
   src:
@@ -20,12 +22,13 @@
 
 body {
   text-align: justify !important;
-  font-family: "Luciole";
   font-size: 0.95rem !important;
+  font-family: "Luciole";
 }
 
 h2, h3, h4, h5 {
   font-weight: bold;
+  font-size: 1.4rem;
 }
 
 .cb1 {
@@ -36,6 +39,12 @@ h2, h3, h4, h5 {
 .cb2 {
   font-weight: bold;
   color: $secondary;
+}
+
+dt {
+  font-family: "Fira Code";
+  font-weight: bold;
+  font-size: 1.05rem;
 }
 
 [data-bs-theme="dark"] pre code span.co {
