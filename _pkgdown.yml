@@ -6,6 +6,7 @@ template:
     primary: "#0099EE"
     secondary: "#CC0C00"
     code_font: {google: "Fira Code"}
+    font_scale: 0.9
   light-switch: true
 
 repo:

@@ -8,9 +8,24 @@
   font-display: fallback;
 }
 
+@font-face {
+  font-family: "Luciole";
+  src:
+    local("Luciole-Bold"),
+    url('https://codeberg.org/hebstr/r_doc/raw/branch/main/Luciole_webfonts/Luciole-Bold/Luciole-Bold.ttf') format('truetype');
+  font-weight: bold;
+  font-style: bold;
+  font-display: fallback;
+}
+
 body {
   text-align: justify !important;
   font-family: "Luciole";
+  font-size: 0.95rem !important;
+}
+
+h2, h3, h4, h5 {
+  font-weight: bold;
 }
 
 .cb1 {
