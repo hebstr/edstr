@@ -72,7 +72,7 @@ cli_save <- \(data,
 
   cli_progress_step("Enregistrement du fichier {.strong {config_file}}")
 
-  assign(config_file, data, envir = rlang::caller_env())
+  assign(config_file, data, envir = rlang::global_env())
 
   save(list = config_file, file = config_save)
 
@@ -121,7 +121,7 @@ cli_load <- \(dir,
 
   cli_progress_step("Chargement du fichier {.strong {file}}")
 
-  load(save, envir = rlang::caller_env())
+  load(save, envir = rlang::global_env())
 
   cli_progress_done()
 
