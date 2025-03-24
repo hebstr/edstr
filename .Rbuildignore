@@ -9,4 +9,5 @@
 ^Meta$
 ^vignettes/*_files$
 ^vignettes/\.quarto$
-^vignettes/_*\.qmd$
+^vignettes/_*
+

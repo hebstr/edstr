@@ -39,4 +39,4 @@ Suggests:
     rmarkdown,
     quarto
 VignetteBuilder: 
-    knitr
+    quarto
