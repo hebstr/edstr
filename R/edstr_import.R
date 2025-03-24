@@ -148,7 +148,9 @@ edstr_import <- \(query = NULL,
 
     } else {
 
-      assign("connection", connection, envir = .GlobalEnv)
+      assign("connection",
+             connection,
+             envir = rlang::caller_env())
 
     }
 

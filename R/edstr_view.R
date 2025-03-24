@@ -1,16 +1,14 @@
 #' Explorer
 #'
 #' @param data data
-#' @param config config
 #' @param text_input text_input
 #' @param filter filter
 #' @param replace replace
-#' @param str str
+#' @param pattern pattern
 #' @param case_sensitive case_sensitive
 #' @param starts_with_only starts_with_only
-#' @param ngram_max ngram_max
+#' @param token_max token_max
 #' @param id id
-#' @param raw raw
 #' @param output_sample output_sample
 #' @param quiet quiet
 #' @param ... ...
@@ -21,30 +19,34 @@
 #' @examples example
 #'
 edstr_view <- \(data,
-                config = get(.config_name),
-                text_input = with(config, text),
+                text_input = NULL,
                 filter = NULL,
                 replace = NULL,
-                str = NULL,
+                pattern = NULL,
                 case_sensitive = FALSE,
                 starts_with_only = FALSE,
-                ngram_max = NULL,
+                token_max = NULL,
                 id = NULL,
-                raw = FALSE,
                 output_sample = 5,
                 quiet = FALSE,
                 ...) {
 
-  if (is.character(data)) data <- get(data)
-  if (is.character(config)) config <- get(config)
+  if (!quiet && !exists(".config_name")) {
 
-  if (!is.null(names(str))) {
+      cli_abort(c("Le fichier de configuration n'existe pas",
+                  "i" =
+                    "Cr\u00e9er ce fichier dans un premier temps avec {.fn edstr_config},
+                    ou bien {.field quiet == TRUE}"))
 
-    str_name <- glue("_{names(str)}")
+  } else if (exists(".config_name")) {
 
-  } else str_name <- ""
+    config <- get(.config_name)
 
-  config_file <- glue("{with(config, file)}_view{str_name}")
+    config_file <- glue("{with(config, file)}_view")
+
+    if (is.null(text_input)) text_input <- with(config, text)
+
+  }
 
   if (!quiet) {
 
@@ -76,22 +78,22 @@ edstr_view <- \(data,
 
 ### EXTRACT --------------------------------------------------------------------
 
-  enstr <- \(x, y = x) str <- glue("{x}{str}{y}")
+  enstr <- \(x, y = x) pattern <- glue("{x}{pattern}{y}")
 
-  if (!is.null(ngram_max)) {
+  if (!is.null(token_max)) {
 
-    str <- enstr('', '(\\w*\\s*((-|/)\\s*)?\\w+)')
-    str <- glue("{str}{{1,", ngram_max - 1, "}}")
+    pattern <- enstr('', '(\\w*\\s*((-|/)\\s*)?\\w+)')
+    pattern <- glue("{pattern}{{1,", token_max - 1, "}}")
 
   }
 
-  if (!case_sensitive) str <- enstr("(?i)", "")
+  if (!case_sensitive) pattern <- enstr("(?i)", "")
 
-  if (starts_with_only) str <- enstr("", "\\S*")
+  if (starts_with_only) pattern <- enstr("", "\\S*")
 
   data_match <-
   data |>
-    mutate(match = str_extract_all(data[[text_input]], str)) |>
+    mutate(match = str_extract_all(data[[text_input]], pattern)) |>
     unnest(match) |>
     select(id, match)
 
@@ -108,7 +110,7 @@ edstr_view <- \(data,
     assign(config_file,
            list(match = data_match,
                 count = data_count),
-           envir = .GlobalEnv)
+           envir = rlang::caller_env())
 
 # ### OUTPUT PLOT --------------------------------------------------------------
 #
@@ -134,16 +136,7 @@ edstr_view <- \(data,
         filter(get(id) %in% data_match[[id]]) |>
         slice(1:output_sample) |>
         pull(text_input) |>
-        str_view(str, ...)
-
-      if (raw & !is.null(filter)) {
-
-        data_output_sample <-
-        data |>
-          filter(!!filter) |>
-          pull(text_input)
-
-      }
+        str_view(pattern, ...)
 
     } else {
 

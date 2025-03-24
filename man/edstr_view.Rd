@@ -6,16 +6,14 @@
 \usage{
 edstr_view(
   data,
-  config = get(.config_name),
-  text_input = with(config, text),
+  text_input = NULL,
   filter = NULL,
   replace = NULL,
-  str = NULL,
+  pattern = NULL,
   case_sensitive = FALSE,
   starts_with_only = FALSE,
-  ngram_max = NULL,
+  token_max = NULL,
   id = NULL,
-  raw = FALSE,
   output_sample = 5,
   quiet = FALSE,
   ...
@@ -24,25 +22,21 @@ edstr_view(
 \arguments{
 \item{data}{data}
 
-\item{config}{config}
-
 \item{text_input}{text_input}
 
 \item{filter}{filter}
 
 \item{replace}{replace}
 
-\item{str}{str}
+\item{pattern}{pattern}
 
 \item{case_sensitive}{case_sensitive}
 
 \item{starts_with_only}{starts_with_only}
 
-\item{ngram_max}{ngram_max}
+\item{token_max}{token_max}
 
 \item{id}{id}
-
-\item{raw}{raw}
 
 \item{output_sample}{output_sample}
 

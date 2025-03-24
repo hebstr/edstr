@@ -48,11 +48,11 @@ edstr_config <- \(config_name = ".config",
 
   assign(config_name,
          config_list,
-         envir = .GlobalEnv)
+         envir = rlang::caller_env())
 
   assign(".config_name",
          config_name,
-         envir = .GlobalEnv)
+         envir = rlang::caller_env())
 
 ### CLI ------------------------------------------------------------------------
 

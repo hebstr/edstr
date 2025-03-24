@@ -139,6 +139,7 @@
 #' @importFrom tictoc toc
 #' @importFrom tidyr drop_na
 #' @importFrom tidyr fill
+#' @importFrom tidyr last_col
 #' @importFrom tidyr nest
 #' @importFrom tidyr pivot_wider
 #' @importFrom tidyr replace_na

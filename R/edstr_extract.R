@@ -462,7 +462,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   data_regex_list |>
     imap(~ data_match_df |>
            edstr_view(text_input = text_input,
-                      str = .x,
+                      pattern = .x,
                       id = id,
                       quiet = TRUE) |>
            mutate(concept = .y,
@@ -802,7 +802,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   assign(save_files,
          data_save,
-         envir = .GlobalEnv)
+         envir = rlang::caller_env())
 
   save(list = save_files,
        file = save_extract_rdata)
