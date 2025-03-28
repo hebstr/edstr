@@ -7,7 +7,7 @@
 #' @param filter filter
 #' @param id id
 #' @param group group
-#' @param ngrams token
+#' @param token token
 #' @param concepts concepts
 #' @param collapse collapse
 #' @param intersect intersect
@@ -18,6 +18,7 @@
 #' @param mismatch_data mismatch_data
 #' @param to_xlsx to_xlsx
 #' @param to_csv to_csv
+#' @param plot
 #' @param concept_color concept_color
 #' @param text_color text_color
 #' @param text_background text_background
@@ -40,7 +41,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                    filter = NULL,
                    id = "",
                    group = "",
-                   ngrams = 1,
+                   token = 1,
                    concepts,
                    collapse = FALSE,
                    intersect = FALSE,
@@ -51,9 +52,10 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                    mismatch_data = FALSE,
                    to_xlsx = TRUE,
                    to_csv = TRUE,
+                   plot = FALSE,
                    concept_color = "#0099EE",
-                   text_color = "red",
-                   text_background = "#FFFF44",
+                   text_color = "#FF0000",
+                   text_background = "#FFFF00",
                    dirname_suffix = if (!is.null(sample)) glue("sample_{sample}") else NULL,
                    filename_suffix = dirname_suffix,
                    dest_dir = NULL,
@@ -244,8 +246,8 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   cli_progress_step("{.strong Tokenisation du texte source}")
 
-  data_ngrams <-
-  ngrams |>
+  data_token <-
+  token |>
     map(~ data_replace |>
           unnest_tokens(output = !!text_input,
                         input = !!text_input,
@@ -266,38 +268,38 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   concepts_regex <- concepts |> map(~ glue("^({.}){concepts_regex_end}"))
 
-  concepts_df <-
+  concepts_regex_df <-
   tibble(concept_key = concepts_keys,
          concept_name = unlist(concepts_names),
          regex = unlist(concepts_regex))
 
-  ngrams_extract <- \(x, n) {
+  token_extract <- \(x, n) {
 
     x |>
-      imap(~ data_ngrams[[n]] |>
+      imap(~ data_token[[n]] |>
              mutate(!!text_input := str_extract(get(text_input), .x),
                     concept = .y, .before = text_input) |>
              drop_na())
 
   }
 
-  data_ngrams_list <-
-  ngrams |>
+  data_token_list <-
+  token |>
     map(~ concepts_regex |>
-          ngrams_extract(.) |>
+          token_extract(.) |>
           list_rbind()) |>
-    set_names(ngrams)
+    set_names(token)
 
-  data_ngrams_match <-
-  data_ngrams_list |>
+  data_token_match <-
+  data_token_list |>
     map(~ . |>
           count(concept, pick(text_input),
                 name = "match",
                 sort = TRUE))
 
   data_match_init <-
-  data_ngrams_list |>
-    imap(~ mutate(.x, ngrams = .y)) |>
+  data_token_list |>
+    imap(~ mutate(.x, token = .y)) |>
     list_rbind()
 
   .concepts_id <-
@@ -330,7 +332,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   data_match_df <- data |> filter(get(id) %in% data_match[[id]])
 
-  rm(data_ngrams); invisible(gc())
+  rm(data_token); invisible(gc())
 
   if (nrow(data_match) == 0) {
 
@@ -371,7 +373,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
               start_end = "{.}.+{.}$") |>
          imap(set_exclus_auto) |>
          reduce(full_join, by = names(data_match)) |>
-         filter(ngrams > 2),
+         filter(token > 2),
        manual =
          data_match |>
            filter(str_detect(get(text_input), exclus_manual %||% NA_character_))) |>
@@ -396,19 +398,19 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                 !!id := distinct(., pick(-group)),
                 !!group := distinct(., pick(-id))) |>
           imap(~ . |>
-                 count(ngrams, concept, pick(text_input),
+                 count(token, concept, pick(text_input),
                        name = .y,
                        sort = TRUE)) |>
-          reduce(left_join, by = c("concept", text_input, "ngrams")))
+          reduce(left_join, by = c("concept", text_input, "token")))
 
   data_count_exclus <-
   data_match_exclus |>
     map(~ . |> select(-id, -group)) |>
     list_rbind() |>
     distinct() |>
-    relocate(ngrams, .before = concept) |>
+    relocate(token, .before = concept) |>
     left_join(data_count$drop,
-              by = c("ngrams", "concept", text_input))
+              by = c("token", "concept", text_input))
 
   data_id <- data_match_final$keep
   data_count <- data_count$keep
@@ -419,6 +421,8 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 ### MATCHING SOURCE ------------------------------------------------------------
 
   cli_progress_step("{.strong Matching du texte source}")
+
+  regex_replace_arg <- regex_replace
 
   regex_replace <-
   c("e(?!$)" = "[e\u00e9\u00e8\u00ea\u00eb]",
@@ -553,6 +557,21 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   cli_progress_step("{.strong R\u00e9sum\u00e9}")
 
+  token_max <- n_distinct(data_count$token)
+
+  if (plot && token_max > 1) {
+
+    data_plot <-
+    data_count |>
+      ggplot() +
+      geom_bar(mapping =
+                 aes(x = as.numeric(token),
+                     fill = concept),
+               stat = "count") +
+      scale_x_continuous(n.breaks = token_max)
+
+  } else data_plot <- NULL
+
   set_summary <- \(var) {
 
     list(total = data_match,
@@ -569,7 +588,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   }
 
   data_summary <-
-  list(ngrams = set_summary("ngrams"),
+  list(token = set_summary("token"),
        concept =
          list(match = set_summary("concept"),
               id =
@@ -578,7 +597,8 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                                    !!. := n_distinct(get(.)),
                                    .by = concept))) |>
            list_flatten()) |>
-    imap(~ reduce(., left_join, by = .y))
+    imap(~ reduce(., left_join, by = .y)) |>
+    append(list(plot = data_plot))
 
   cli_progress_done()
   cli_text("\n\n")
@@ -595,7 +615,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                        sheet,
                        ...,
                        data,
-                       width = "auto",
+                       max_width = 100,
                        halign = "center",
                        font_size = 8,
                        font_color = "#222222",
@@ -605,6 +625,8 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                        text_color = NULL,
                        border_color = "#999999",
                        border_type = "thin") {
+
+      options("openxlsx2.maxWidth" = max_width)
 
       .xlsx_output <-
       x |>
@@ -620,7 +642,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                     size = font_size) |>
         wb_add_fill(dims = wb_dims(x = data, select = "col_names"),
                     color = wb_color("grey90")) |>
-        wb_set_col_widths(cols = 1:ncol(data), widths = width) |>
+        wb_set_col_widths(cols = 1:ncol(data), widths = "auto") |>
         wb_add_cell_style(dims = wb_dims(x = data),
                           horizontal = halign,
                           vertical = "center",
@@ -641,6 +663,8 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
       .add_font <- \(wb, vars, color) {
 
+
+
         wb_add_font(wb = wb,
                     dims =
                       wb_dims(x = data,
@@ -655,18 +679,18 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
       if (!is.null(concept_color)) {
 
         .xlsx_output <-
-        .add_font(.xlsx_output,
-                  concept_var,
-                  concept_color)
+        .add_font(wb = .xlsx_output,
+                  vars = concept_var,
+                  color = concept_color)
 
       }
 
       if (!is.null(text_color)) {
 
         .xlsx_output <-
-        .add_font(.xlsx_output,
-                  text_var,
-                  text_color)
+        .add_font(wb = .xlsx_output,
+                  vars = text_var,
+                  color = text_color)
 
       }
 
@@ -681,53 +705,54 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
     xlsx_output <-
     wb_workbook() |>
-      wb_add_custom(sheet = if (intersect) "data \u2229" else "data",
+      wb_add_custom(sheet = "data",
                     data = data_extract |> select(-text_input),
                     concept_var = c(data_id$concept_key, "concept"),
                     concept_color = concept_color,
                     text_var = "extract",
                     text_color = text_color) |>
-      wb_add_custom(sheet = "regex_concepts",
-                    data = concepts_df,
-                    concept_var = names(concepts_df) |> str_subset("concept"),
+      wb_add_custom(sheet = "concept_regex",
+                    data = concepts_regex_df,
+                    concept_var = names(concepts_regex_df) |> str_subset("concept"),
                     concept_color = concept_color,
                     halign = "left") |>
-      wb_add_custom(sheet = "match_concepts",
+      wb_add_custom(sheet = "concept_count",
                     data = data_summary$concept,
                     concept_color = concept_color) |>
-      wb_add_custom(sheet = "match_text",
+      wb_add_custom(sheet = "token_match",
                     data = data_id |> select(-concept_key),
                     concept_color = concept_color,
                     text_color = text_color) |>
-      wb_add_custom(sheet = "match_count",
-                    data = data_count |> select(-ngrams),
+      wb_add_custom(sheet = "token_count",
+                    data = data_count |> select(-token),
                     concept_color = concept_color,
                     text_color = text_color) |>
-      wb_add_custom(sheet = "regex_replace",
+      wb_add_custom(sheet = "text_replace",
                     data = regex_replace_df,
                     halign = "left") |>
-      wb_add_custom(sheet = "regex_final",
+      wb_add_custom(sheet = "text_regex",
                     data = data_regex_df,
                     concept_color = concept_color,
-                    halign = "left") |>
-      wb_add_custom(sheet = "regex_match",
+                    halign = "left",
+                    max_width = 150) |>
+      wb_add_custom(sheet = "text_match",
                     data = data_regex_match,
                     concept_color = concept_color,
                     text_var = "match",
                     text_color = text_color) |>
-      wb_add_custom(sheet = "regex_mismatch",
+      wb_add_custom(sheet = "text_count",
+                    data = data_regex_count,
+                    concept_color = concept_color,
+                    text_var = "match",
+                    text_color = text_color) |>
+      wb_add_custom(sheet = "mismatch",
                     data = .xlsx_mismatch$rows,
                     concept_color = concept_color,
                     text_var = "match",
                     text_color = text_color,
-                    visible = .xlsx_mismatch$visible) |>
-      wb_add_custom(sheet = "regex_count",
-                    data = data_regex_count,
-                    concept_color = concept_color,
-                    text_var = "match",
-                    text_color = text_color)
+                    visible = .xlsx_mismatch$visible)
 
-    data_xlsx <-
+    data_xlsx_tbl <-
     xlsx_output |>
       wb_get_sheet_names() |>
       map(~ xlsx_output |>
@@ -736,10 +761,159 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
     xlsx_output |> wb_save(file = glue("{save_extract}.xlsx"))
 
+    gt_custom <- \(data,
+                   head = 10,
+                   font_size = 12,
+                   ...) {
+
+      if (is.null(head)) {
+
+        data <-
+        data |>
+          gt(id = "tbl-id") |>
+          opt_css("
+            #tbl-id .gt_table {
+              font-variant-ligatures: none;
+            }
+          ")
+
+      } else {
+
+        data <- gt_preview(data, top_n = head)
+
+      }
+
+      data |>
+        tab_options(table.font.names = c("luciole", "system-ui"),
+                    table.font.size = px(font_size),
+                    column_labels.border.top.color = "white",
+                    ...) |>
+        tab_style(style = cell_text(weight = "bold"),
+                  locations = cells_column_labels())
+
+    }
+
+    gt_text_color <- \(x, column, color) {
+
+        tab_style(data = x,
+                  style = cell_text(weight = "bold", color = color),
+                  locations = cells_body(column))
+
+    }
+
+    gt_code_font <- \(x, column = everything()) {
+
+      tab_style(data = x,
+                style = cell_text(font = "fira code", size = "0.7rem"),
+                locations = cells_body(column))
+
+    }
+
+    gt_text_align <- \(x,
+                       column = everything(),
+                       align = "center") {
+
+      tab_style(data = x,
+                style = cell_text(align = align),
+                locations =
+                  list(cells_column_labels(column),
+                       cells_body(column)))
+
+    }
+
+    data_xlsx_gt <-
+    list(data =
+           list(part_1 =
+                  data_xlsx_tbl$data |>
+                    select(-c(matches(concepts_root), concept, extract)) |>
+                    gt_custom(font_size = 11) |>
+                    sub_missing() |>
+                    gt_text_align(),
+                part_2 =
+                  data_xlsx_tbl$data |>
+                    select(n, id, matches(concepts_root), concept, extract) |>
+                    mutate(` ... ` = "...", .after = id) |>
+                    gt_custom(font_size = 11) |>
+                    gt_text_align() |>
+                    gt_text_color(column = matches(c(concepts_root, "concept")),
+                               color = concept_color) |>
+                    gt_text_color(column = "extract",
+                               color = text_color)),
+         concept_regex =
+           data_xlsx_tbl$concept_regex |>
+             gt_custom(head = NULL) |>
+             gt_text_color(column = matches("concept"),
+                           color = concept_color) |>
+             gt_code_font(column = "regex"),
+         concept_count =
+           data_xlsx_tbl$concept_count |>
+             gt_custom() |>
+             sub_missing() |>
+             gt_text_align() |>
+             gt_text_color(column = "concept",
+                           color = concept_color),
+         token_match =
+           data_xlsx_tbl$token_match |>
+             gt_custom() |>
+             gt_text_align() |>
+             gt_text_color(column = "concept",
+                           color = concept_color) |>
+             gt_text_color(column = text_input,
+                           color = text_color),
+         token_count =
+           data_xlsx_tbl$token_count |>
+             gt_custom() |>
+             gt_text_align() |>
+             gt_text_color(column = "concept",
+                           color = concept_color) |>
+             gt_text_color(column = text_input,
+                           color = text_color),
+         text_replace =
+           data_xlsx_tbl$text_replace |>
+             gt_custom(head = NULL) |>
+             gt_code_font(),
+         text_regex =
+           data_xlsx_tbl$text_regex |>
+             gt_custom(head = NULL) |>
+             text_color(column = "concept",
+                        color = concept_color) |>
+             gt_code_font(column = text_input),
+         text_match =
+           data_xlsx_tbl$text_match |>
+             gt_custom() |>
+             gt_text_align() |>
+             text_color(column = "concept",
+                        color = concept_color) |>
+             text_color(column = "match",
+                        color = text_color),
+         text_count =
+           data_xlsx_tbl$text_count |>
+             gt_custom() |>
+             gt_text_align() |>
+             text_color(column = "concept",
+                        color = concept_color) |>
+             text_color(column = "match",
+                        color = text_color),
+         mismatch =
+           data_xlsx_tbl$mismatch |>
+             gt_custom() |>
+             sub_missing(missing_text = "") |>
+             gt_text_align() |>
+             text_color(column = "concept",
+                        color = concept_color) |>
+             text_color(column = "match",
+                        color = text_color))
+
     cli_progress_done()
     cli_text("\n\n")
 
-  } else data_xlsx <- NULL
+  } else {
+
+    data_xlsx_tbl <- NULL
+
+    data_xlsx_gt <- NULL
+
+  }
 
 ### CSV DATA -------------------------------------------------------------------
 
@@ -777,8 +951,28 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   cli_progress_step("{.strong Enregistrement du .RData}")
 
   data_save <-
-  list(regex =
-         list(concepts = concepts_df,
+  list(params =
+         list(sample = sample,
+              seed = seed,
+              filter = filter,
+              id = id,
+              group = group,
+              token = token,
+              concepts_root = concepts_root,
+              concepts_keys = concepts_regex_df$concept_key,
+              concepts_names = concepts_regex_df$concept_name,
+              collapse = collapse,
+              intersect = intersect,
+              starts_with_only = starts_with_only,
+              exclus_manual = exclus_manual,
+              exclus_auto_escape = exclus_auto_escape,
+              regex_replace = regex_replace_arg,
+              mismatch_data = mismatch_data,
+              concept_color = concept_color,
+              text_color = text_color,
+              text_background = text_background),
+       regex =
+         list(concepts = concepts_regex_df,
               replace = regex_replace_df,
               final = data_regex_df,
               match = data_regex_match),
@@ -786,7 +980,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
          list(init = data_match,
               final = data_match_final),
        count =
-         list(init = data_ngrams_match,
+         list(init = data_token_match,
               final = data_count),
        exclus =
          list(match = data_match_exclus,
@@ -797,7 +991,9 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
          list(base = data |> select(-text_input),
               match = data_match_init_df,
               extract = data_extract,
-              xlsx = data_xlsx,
+              xlsx =
+                list(tbl = data_xlsx_tbl,
+                     gt = data_xlsx_gt),
               csv = data_csv))
 
   assign(save_files,
@@ -816,28 +1012,11 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   cli_rule()
   cli_text("\n\n")
 
-  ngrams_max <- n_distinct(data_count$ngrams)
-
-  if (ngrams_max > 1) {
-
-    data_plot <-
-    data_count |>
-      ggplot() +
-      geom_bar(mapping =
-                 aes(x = as.numeric(ngrams),
-                     fill = concept),
-               stat = "count") +
-      scale_x_continuous(n.breaks = ngrams_max)
-
-    print(data_plot)
-
-  }
-
   data_print <-
-  list(ngrams = data_ngrams_match,
+  list(token = data_token_match,
        count =
          list(total = data_save$count$final,
-              ngrams = data_summary$ngrams,
+              token = data_summary$token,
               concepts = data_summary$concept,
               exclus = data_save$exclus$count,
               final = data_save$count$final),
