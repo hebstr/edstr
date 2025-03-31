@@ -12,7 +12,7 @@ edstr_extract(
   filter = NULL,
   id = "",
   group = "",
-  ngrams = 1,
+  token = 1,
   concepts,
   collapse = FALSE,
   intersect = FALSE,
@@ -23,9 +23,10 @@ edstr_extract(
   mismatch_data = FALSE,
   to_xlsx = TRUE,
   to_csv = TRUE,
+  plot = FALSE,
   concept_color = "#0099EE",
-  text_color = "red",
-  text_background = "#FFFF44",
+  text_color = "#FF0000",
+  text_background = "#FFFF00",
   dirname_suffix = if (!is.null(sample)) glue("sample_{sample}") else NULL,
   filename_suffix = dirname_suffix,
   dest_dir = NULL,
@@ -49,7 +50,7 @@ edstr_extract(
 
 \item{group}{group}
 
-\item{ngrams}{token}
+\item{token}{token}
 
 \item{concepts}{concepts}
 
@@ -70,6 +71,8 @@ edstr_extract(
 \item{to_xlsx}{to_xlsx}
 
 \item{to_csv}{to_csv}
+
+\item{plot}{plot}
 
 \item{concept_color}{concept_color}
 

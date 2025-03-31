@@ -61,16 +61,14 @@
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">edstr_view</span><span class="op">(</span></span>
 <span>  <span class="va">data</span>,</span>
-<span>  config <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/get.html" class="external-link">get</a></span><span class="op">(</span><span class="va">.config_name</span><span class="op">)</span>,</span>
-<span>  text_input <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/with.html" class="external-link">with</a></span><span class="op">(</span><span class="va">config</span>, <span class="va">text</span><span class="op">)</span>,</span>
+<span>  text_input <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  filter <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  replace <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  str <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  pattern <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  case_sensitive <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  starts_with_only <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  ngram_max <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  token_max <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  id <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  raw <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  output_sample <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>  quiet <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  <span class="va">...</span></span>
@@ -85,10 +83,6 @@
 <dd><p>data</p></dd>
 
 
-<dt id="arg-config">config<a class="anchor" aria-label="anchor" href="#arg-config"></a></dt>
-<dd><p>config</p></dd>
-
-
 <dt id="arg-text-input">text_input<a class="anchor" aria-label="anchor" href="#arg-text-input"></a></dt>
 <dd><p>text_input</p></dd>
 
@@ -101,8 +95,8 @@
 <dd><p>replace</p></dd>
 
 
-<dt id="arg-str">str<a class="anchor" aria-label="anchor" href="#arg-str"></a></dt>
-<dd><p>str</p></dd>
+<dt id="arg-pattern">pattern<a class="anchor" aria-label="anchor" href="#arg-pattern"></a></dt>
+<dd><p>pattern</p></dd>
 
 
 <dt id="arg-case-sensitive">case_sensitive<a class="anchor" aria-label="anchor" href="#arg-case-sensitive"></a></dt>
@@ -113,16 +107,12 @@
 <dd><p>starts_with_only</p></dd>
 
 
-<dt id="arg-ngram-max">ngram_max<a class="anchor" aria-label="anchor" href="#arg-ngram-max"></a></dt>
-<dd><p>ngram_max</p></dd>
+<dt id="arg-token-max">token_max<a class="anchor" aria-label="anchor" href="#arg-token-max"></a></dt>
+<dd><p>token_max</p></dd>
 
 
 <dt id="arg-id">id<a class="anchor" aria-label="anchor" href="#arg-id"></a></dt>
 <dd><p>id</p></dd>
-
-
-<dt id="arg-raw">raw<a class="anchor" aria-label="anchor" href="#arg-raw"></a></dt>
-<dd><p>raw</p></dd>
 
 
 <dt id="arg-output-sample">output_sample<a class="anchor" aria-label="anchor" href="#arg-output-sample"></a></dt>
@@ -257,7 +247,7 @@
 <span class="r-out co"><span class="r-pr">#&gt;</span>         encoding = "UTF-8", catch.aborts = catch.aborts, skip.echo = skips, </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         keep.source = TRUE)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> }</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;bytecode: 0x5803d7156070&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;bytecode: 0x5c66ee879558&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: namespace:utils&gt;</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
