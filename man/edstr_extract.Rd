@@ -24,7 +24,7 @@ edstr_extract(
   to_xlsx = TRUE,
   to_csv = TRUE,
   plot = FALSE,
-  concept_color = "#0099EE",
+  concept_color = "#0099FF",
   text_color = "#FF0000",
   text_background = "#FFFF00",
   dirname_suffix = if (!is.null(sample)) glue("sample_{sample}") else NULL,
