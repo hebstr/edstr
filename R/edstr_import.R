@@ -23,7 +23,7 @@ edstr_import <- \(query = NULL,
                   to_lower = TRUE,
                   user = "w_etudes",
                   password = getPass::getPass(),
-                  connect_dir = "../R/connect",
+                  connect_dir = "/opt/oracle/instantclient_23_7/connect",
                   tns = "tns",
                   disconnect = TRUE,
                   dest_dir = NULL,
@@ -56,9 +56,6 @@ edstr_import <- \(query = NULL,
     tic("Full steps")
 
 ### CONNECT --------------------------------------------------------------------
-
-    RJDBC::JDBC(driverClass = "oracle.jdbc.OracleDriver",
-                classPath = glue("{connect_dir}/ojdbc17.jar")) # "/opt/oracle/instantclient_23_7/ojdbc17.jar"
 
     tns <- read_lines(glue("{connect_dir}/{tns}.txt"))
     adress <- glue("jdbc:oracle:thin:@{tns}")

@@ -10,7 +10,7 @@ edstr_import(
   to_lower = TRUE,
   user = "w_etudes",
   password = getPass::getPass(),
-  connect_dir = "../R/connect",
+  connect_dir = "/opt/oracle/instantclient_23_7/connect",
   tns = "tns",
   disconnect = TRUE,
   dest_dir = NULL,
