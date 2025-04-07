@@ -26,7 +26,7 @@ edstr_clean <- \(data = glue("{with(config, file)}_import"),
 
   config_dir <- config$dir
   config_file <- glue("{with(config, file)}_clean")
-  config_save <- glue("{config_dir}/{config_file}.RData")
+  config_save <- glue("{config_dir}/{config_file}.rds")
 
   file_import <- glue("{with(config, file)}_import")
 
@@ -75,13 +75,15 @@ edstr_clean <- \(data = glue("{with(config, file)}_import"),
 
     cli_save(data_clean,
              config_file,
-             config_save)
+             config_save,
+             rds = TRUE)
 
   } else {
 
     cli_load(dir = config_dir,
              file = config_file,
-             save = config_save)
+             save = config_save,
+             rds = TRUE)
 
   }
 

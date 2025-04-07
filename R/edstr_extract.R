@@ -87,7 +87,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   save_extract <- glue("{save_dir}/{save_files}")
 
-  save_extract_rdata <- glue("{save_extract}.RData")
+  save_extract_rdata <- glue("{save_extract}.rds")
 
   tic("Full steps")
 
@@ -1035,8 +1035,10 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
          data_save,
          envir = rlang::caller_env())
 
-  save(list = save_files,
-       file = save_extract_rdata)
+  readr::write_rds(x = get(save_files),
+                   file = save_extract_rdata,
+                   compress = "xz",
+                   compression = 9L)
 
   cli_progress_done()
   cli_text("\n\n")
@@ -1175,7 +1177,8 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
     cli_load(dir = save_dir,
              file = save_files,
              save = save_extract_rdata,
-             quiet = quiet)
+             quiet = quiet,
+             rds = TRUE)
 
   }
 

@@ -68,13 +68,25 @@ cli_error_data <- \(data, fun) {
 
 cli_save <- \(data,
               config_file,
-              config_save) {
+              config_save,
+              rds = FALSE) {
 
   cli_progress_step("Enregistrement du fichier {.strong {config_file}}")
 
   assign(config_file, data, envir = rlang::global_env())
 
-  save(list = config_file, file = config_save)
+  if (rds) {
+
+    readr::write_rds(x = get(config_file),
+                     file = config_save,
+                     compress = "xz",
+                     compression = 9L)
+
+  } else {
+
+    save(list = config_file, file = config_save)
+
+  }
 
   cli_progress_done()
 
@@ -94,6 +106,7 @@ cli_save <- \(data,
 cli_load <- \(dir,
               file,
               save,
+              rds = FALSE,
               quiet = FALSE) {
 
   if (!quiet) {
@@ -121,7 +134,15 @@ cli_load <- \(dir,
 
   cli_progress_step("Chargement du fichier {.strong {file}}")
 
-  load(save, envir = rlang::global_env())
+  if (rds) {
+
+    assign(file, readRDS(save), envir = rlang::global_env())
+
+  } else {
+
+    load(save, envir = rlang::global_env())
+
+  }
 
   cli_progress_done()
 
