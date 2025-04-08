@@ -10,6 +10,7 @@ edstr_extract(
   sample = NULL,
   seed = NULL,
   filter = NULL,
+  ano = FALSE,
   id = "",
   group = "",
   token = 1,
@@ -45,6 +46,8 @@ edstr_extract(
 \item{seed}{seed}
 
 \item{filter}{filter}
+
+\item{ano}{ano}
 
 \item{id}{id}
 

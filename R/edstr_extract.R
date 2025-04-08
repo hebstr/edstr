@@ -5,6 +5,7 @@
 #' @param sample sample
 #' @param seed seed
 #' @param filter filter
+#' @param ano ano
 #' @param id id
 #' @param group group
 #' @param token token
@@ -39,6 +40,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                    sample = NULL,
                    seed = NULL,
                    filter = NULL,
+                   ano = FALSE,
                    id = "",
                    group = "",
                    token = 1,
@@ -106,6 +108,15 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   }
 
   if (is.character(data)) data <- get(data)
+
+  if (ano) {
+
+    data <-
+    easy_ano(x = data,
+             hash_vars = "id_|ipp|iep",
+             hide_vars = "sexe|age|date_(nais|deces)")
+
+  }
 
 ### CONCEPTS -------------------------------------------------------------------
 
@@ -949,12 +960,12 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
           "{.sheet$mismatch}" :=
             data_xlsx_tbl[[.sheet$mismatch]] |>
               gt_custom() |>
-              sub_missing(missing_text = "") |>
               gt_text_align() |>
               gt_text_color(column = "concept",
                             color = concept_color) |>
               gt_text_color(column = "match",
-                            color = text_color),
+                            color = text_color) |>
+              sub_missing(),
           "{.sheet$params}" :=
             data_xlsx_tbl[[.sheet$params]] |>
               gt_custom(head = NULL))
@@ -1036,9 +1047,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
          envir = rlang::caller_env())
 
   readr::write_rds(x = get(save_files),
-                   file = save_extract_rdata,
-                   compress = "xz",
-                   compression = 9L)
+                   file = save_extract_rdata)
 
   cli_progress_done()
   cli_text("\n\n")

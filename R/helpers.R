@@ -33,6 +33,30 @@ easy_replace <- \(...,
 }
 
 
+easy_ano <- \(x, hash_vars, hide_vars) {
+
+  .ano_fun <- \(x, hash_vars) {
+
+    x |>
+      mutate("{hash_vars}" :=
+               get(hash_vars) |>
+               rlang::hash() |>
+               str_remove_all(".{25}$"),
+             .by = all_of(hash_vars))
+
+  }
+
+  .ano_data <-
+  names(x) |>
+    str_subset(hash_vars) |>
+    reduce(.ano_fun, .init = x) |>
+    mutate(across(matches(hide_vars), ~ "---"))
+
+  return(.ano_data)
+
+}
+
+
 cli_error_config <- \(dest_dir = NULL,
                       dest_filename = NULL) {
 
@@ -78,9 +102,7 @@ cli_save <- \(data,
   if (rds) {
 
     readr::write_rds(x = get(config_file),
-                     file = config_save,
-                     compress = "xz",
-                     compression = 9L)
+                     file = config_save)
 
   } else {
 
@@ -152,7 +174,7 @@ cli_load <- \(dir,
 
   } else {
 
-    return(get(load(save)))
+    return(readRDS(save))
 
   }
 
