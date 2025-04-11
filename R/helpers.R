@@ -33,15 +33,17 @@ easy_replace <- \(...,
 }
 
 
-easy_ano <- \(x, hash_vars, hide_vars) {
+easy_ano <- \(x, hash_vars, hide_vars, trunc = 25) {
 
   .ano_fun <- \(x, hash_vars) {
+
+    trunc <- as.character(trunc)
 
     x |>
       mutate("{hash_vars}" :=
                get(hash_vars) |>
                rlang::hash() |>
-               str_remove_all(".{25}$"),
+               str_remove_all(".{trunc}$"),
              .by = all_of(hash_vars))
 
   }
