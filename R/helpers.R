@@ -103,8 +103,7 @@ cli_save <- \(data,
 
   if (rds) {
 
-    readr::write_rds(x = get(config_file),
-                     file = config_save)
+    saveRDS(get(config_file), file = config_save)
 
   } else {
 
@@ -118,6 +117,7 @@ cli_save <- \(data,
   cli_text("\n\n")
   cli_alert_info("{.strong Dimensions}")
   cli_ul()
+    cli_ul()
     cli_li("{nrow(data)} documents")
     cli_li("{ncol(data)} variables")
     cli_end()

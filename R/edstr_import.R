@@ -41,7 +41,7 @@ edstr_import <- \(query = NULL,
 
     config_dir <- config$dir
     config_file <- glue("{with(config, file)}_import")
-    config_save <- glue("{config_dir}/{config_file}.RData")
+    config_save <- glue("{config_dir}/{config_file}.rds")
 
   }
 
@@ -56,6 +56,8 @@ edstr_import <- \(query = NULL,
     tic("Full steps")
 
 ### CONNECT --------------------------------------------------------------------
+
+    gc() ; rJava::J("java.lang.Runtime")$getRuntime()$gc()
 
     tns <- read_lines(glue("{connect_dir}/{tns}.txt"))
     adress <- glue("jdbc:oracle:thin:@{tns}")
@@ -123,7 +125,8 @@ edstr_import <- \(query = NULL,
 
       cli_save(data_import,
                config_file,
-               config_save)
+               config_save,
+               rds = TRUE)
 
       cli_text("\n\n")
       toc()
@@ -151,11 +154,14 @@ edstr_import <- \(query = NULL,
 
     }
 
+    invisible(gc()) ; rJava::J("java.lang.Runtime")$getRuntime()$gc()
+
   } else {
 
     cli_load(dir = config_dir,
              file = config_file,
-             save = config_save)
+             save = config_save,
+             rds = TRUE)
 
   }
 

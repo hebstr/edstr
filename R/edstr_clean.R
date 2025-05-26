@@ -39,8 +39,7 @@ edstr_clean <- \(data = glue("{with(config, file)}_import"),
 
     if (identical(data, file_import) && !exists(file_import)) {
 
-      cli_error_data(data = file_import,
-                     fun = "import")
+      cli_error_data(data = file_import, fun = "import")
 
     }
 
