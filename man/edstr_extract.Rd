@@ -10,7 +10,8 @@ edstr_extract(
   sample = NULL,
   seed = NULL,
   filter = NULL,
-  ano = FALSE,
+  ano_hash = NULL,
+  ano_hide = NULL,
   id = "",
   group = "",
   token = 1,
@@ -47,7 +48,9 @@ edstr_extract(
 
 \item{filter}{filter}
 
-\item{ano}{ano}
+\item{ano_hash}{ano_hash}
+
+\item{ano_hide}{ano_hide}
 
 \item{id}{id}
 

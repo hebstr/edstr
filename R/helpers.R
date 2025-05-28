@@ -33,26 +33,53 @@ easy_replace <- \(...,
 }
 
 
-easy_ano <- \(x, hash_vars, hide_vars, trunc = 25) {
+easy_ano <- \(x,
+              to_hash = NULL,
+              to_hide = NULL,
+              hash_trunc = 25,
+              hide_pattern = "---") {
 
-  .ano_fun <- \(x, hash_vars) {
+  .ano_hash_fun <- \(x_hash, to_hash) {
 
-    trunc <- as.character(trunc)
+    hash_trunc <- as.character(hash_trunc)
 
-    x |>
-      mutate("{hash_vars}" :=
-               get(hash_vars) |>
+    x_hash |>
+      mutate("{to_hash}" :=
+               get(to_hash) |>
                rlang::hash() |>
-               str_remove_all(".{trunc}$"),
-             .by = all_of(hash_vars))
+               str_remove_all(glue(".{{{hash_trunc}}}$")),
+             .by = all_of(to_hash))
 
   }
 
-  .ano_data <-
-  names(x) |>
-    str_subset(hash_vars) |>
-    reduce(.ano_fun, .init = x) |>
-    mutate(across(matches(hide_vars), ~ "---"))
+  .ano_hide_fun <- \(x_hide) {
+
+    x_hide |> mutate(across(matches(to_hide), ~ hide_pattern))
+
+  }
+
+  if (!is.null(to_hash)) {
+
+    .ano_data <-
+    names(x) |>
+      str_subset(to_hash |> paste(collapse = "|")) |>
+      reduce(.ano_hash_fun, .init = x)
+
+    if (!is.null(to_hide)) {
+
+      .ano_data <- .ano_hide_fun(.ano_data)
+
+    }
+
+  } else if (!is.null(to_hide)) {
+
+    .ano_data <- .ano_hide_fun(x)
+
+  } else {
+
+    .ano_data <- x
+
+  }
 
   return(.ano_data)
 

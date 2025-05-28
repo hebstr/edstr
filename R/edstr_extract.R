@@ -5,7 +5,8 @@
 #' @param sample sample
 #' @param seed seed
 #' @param filter filter
-#' @param ano ano
+#' @param ano_hash ano_hash
+#' @param ano_hide ano_hide
 #' @param id id
 #' @param group group
 #' @param token token
@@ -40,7 +41,8 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                    sample = NULL,
                    seed = NULL,
                    filter = NULL,
-                   ano = FALSE,
+                   ano_hash = NULL,
+                   ano_hide = NULL,
                    id = "",
                    group = "",
                    token = 1,
@@ -89,7 +91,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   save_extract <- glue("{save_dir}/{save_files}")
 
-  save_extract_rdata <- glue("{save_extract}.rds")
+  save_extract_rds <- glue("{save_extract}.rds")
 
   tic("Full steps")
 
@@ -102,21 +104,11 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   if (enexpr(data) == data_config && !exists(data)) {
 
-    cli_error_data(data = data,
-                   fun = "clean")
+    cli_error_data(data = data, fun = "clean")
 
   }
 
   if (is.character(data)) data <- get(data)
-
-  if (ano) {
-
-    data <-
-    easy_ano(x = data,
-             hash_vars = "id_|ipp|iep",
-             hide_vars = "sexe|age|date_(nais|deces)")
-
-  }
 
 ### CONCEPTS -------------------------------------------------------------------
 
@@ -235,6 +227,15 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 ### FORMAT ---------------------------------------------------------------------
 
   cli_progress_step("{.strong Formatage du texte source}")
+
+  if (!is.null(ano_hash) || !is.null(ano_hide)) {
+
+    data <-
+    easy_ano(x = data,
+             to_hash = ano_hash,
+             to_hide = ano_hide)
+
+  }
 
   data_replace <-
   data[c(id, group, text_input)] |>
@@ -1014,7 +1015,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
 ### ASSIGN DATA ----------------------------------------------------------------
 
-  cli_progress_step("{.strong Enregistrement du .RData}")
+  cli_progress_step("{.strong Enregistrement du .rds}")
 
   data_save <-
   list(regex =
@@ -1047,7 +1048,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
          envir = rlang::caller_env())
 
   readr::write_rds(x = get(save_files),
-                   file = save_extract_rdata)
+                   file = save_extract_rds)
 
   cli_progress_done()
   cli_text("\n\n")
@@ -1171,7 +1172,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   cli_alert_success("{.strong {cli_n_files} fichier{?s} enregistr\u00e9{?s} dans le dossier {.path {here(save_dir)}}}")
   cli_ul()
-    cli_li("RData : {cli_col('{save_files}.RData')}")
+    cli_li("rds : {cli_col('{save_files}.rds')}")
     if (to_xlsx) cli_li("xlsx : {cli_col('{save_files}.xlsx')}")
     if (to_csv) cli_li("csv : {cli_col('{save_files}.csv')}")
     cli_end()
@@ -1185,7 +1186,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
     cli_load(dir = save_dir,
              file = save_files,
-             save = save_extract_rdata,
+             save = save_extract_rds,
              quiet = quiet,
              rds = TRUE)
 
