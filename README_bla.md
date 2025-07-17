@@ -16,9 +16,20 @@ données textuelles de routine.
 
 ## Installation
 
+Avec une connexion <span class="concept-color">internet</span>, le
+package en développement peut être installé comme suit :
+
 ``` r
-#install.packages("pak")
-pak::pkg_install("git::https://codeberg.org/hebstr/edstr", dependencies = TRUE)
+# install.packages("devtools")
+devtools::install_git("https://codeberg.org/hebstr/edstr")
+```
+
+Depuis la bulle, le fichier `edstr_0.1.0.zip` situé dans
+`G:/Data/_R_/packages` est à installer manuellement à la manière des
+autres packages.
+
+``` r
+install.packages("G:/Data/_R_/packages/edstr_0.1.0.zip", repos = NULL)
 ```
 
 ## Résumé

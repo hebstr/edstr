@@ -25,17 +25,9 @@ Le but de {edstr} est de fournir un ensemble de fonctions réalisant un process 
 
 ## Installation
 
-Avec une connexion [internet]{.concept-color}, le package en développement peut être installé comme suit :
-
 ```r
-# install.packages("devtools")
-devtools::install_git("https://codeberg.org/hebstr/edstr")
-```
-
-Depuis la bulle, le fichier `edstr_0.1.0.zip` situé dans `G:/Data/_R_/packages` est à installer manuellement à la manière des autres packages.
-
-```r
-install.packages("G:/Data/_R_/packages/edstr_0.1.0.zip", repos = NULL)
+#install.packages("pak")
+pak::pkg_install("git::https://codeberg.org/hebstr/edstr", dependencies = TRUE)
 ```
 
 ## Résumé
