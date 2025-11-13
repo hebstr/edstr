@@ -378,19 +378,34 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   }
 
+  str_detect_safe <- \(string, pattern) {
+
+    if (is.null(pattern) || is.na(pattern)) {
+
+      rep(FALSE, length(string))
+
+    } else {
+
+      str_detect(string, pattern)
+
+    }
+
+  }
+
   data_match_exclus <-
-  list(auto =
-         list(start = "^{.}\\s",
-              end = "\\s{.}$",
-              start_end = "{.}.+{.}$") |>
-         imap(set_exclus_auto) |>
-         reduce(full_join, by = names(data_match)) |>
-         filter(token > 2),
-       manual =
-         data_match |>
-           filter(str_detect(get(text_input), exclus_manual %||% NA_character_))) |>
-    imap(~ .x |>
-           mutate(mode = .y, .before = everything()))
+  list(
+    auto =
+      list(start = "^{.}\\s",
+           end = "\\s{.}$",
+           start_end = "{.}.+{.}$") |>
+        imap(set_exclus_auto) |>
+        reduce(full_join, by = names(data_match)) |>
+        filter(token > 2),
+    manual =
+      data_match |>
+        filter(str_detect_safe(get(text_input), exclus_manual))
+  ) |>
+    imap(~ .x |> mutate(mode = .y, .before = everything()))
 
   .match_exclus <-
   list(concept =
