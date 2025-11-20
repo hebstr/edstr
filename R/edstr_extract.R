@@ -18,8 +18,6 @@
 #' @param exclus_auto_escape exclus_auto_escape
 #' @param regex_replace regex_replace
 #' @param mismatch_data mismatch_data
-#' @param to_xlsx to_xlsx
-#' @param to_csv to_csv
 #' @param plot plot
 #' @param concept_color concept_color
 #' @param text_color text_color
@@ -54,8 +52,6 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                    exclus_auto_escape = NULL,
                    regex_replace = NULL,
                    mismatch_data = FALSE,
-                   to_xlsx = TRUE,
-                   to_csv = TRUE,
                    plot = FALSE,
                    concept_color = "#0099FF",
                    text_color = "#FF0000",
@@ -96,7 +92,6 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   tic("Full steps")
 
   cli_h1("edstr_extract")
-  cli_text("\n\n")
 
   if (!load) {
 
@@ -227,6 +222,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 ### FORMAT ---------------------------------------------------------------------
 
   cli_progress_step("{.strong Formatage du texte source}")
+  cli_text("\n\n")
 
   if (!is.null(ano_hash) || !is.null(ano_hide)) {
 
@@ -251,46 +247,51 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
              iconv(from = "UTF-8",
                    to = "ASCII//TRANSLIT"))
 
-  cli_progress_done()
-  cli_text("\n\n")
-
 ### TOKENISATION ---------------------------------------------------------------
 
   cli_progress_step("{.strong Tokenisation du texte source}")
+  cli_text("\n\n")
+
+  .data_token_check_alpha <- regex("[:alpha:]")
 
   data_token <-
   token |>
-    map(~ data_replace |>
-          unnest_tokens(output = !!text_input,
-                        input = !!text_input,
-                        token = "ngrams",
-                        n = .) |>
-          filter(str_detect(get(text_input), "[:alpha:]")))
-
-  cli_progress_done()
-  cli_text("\n\n")
+    map(~
+      data_replace |>
+        unnest_tokens(
+          output = !!text_input,
+          input = !!text_input,
+          token = "ngrams",
+          n = .
+        ) |>
+        filter(str_detect(.data[[text_input]], .data_token_check_alpha))
+    )
 
   rm(data_replace); invisible(gc())
 
 ### MATCHING TOKEN -------------------------------------------------------------
 
   cli_progress_step("{.strong Matching du texte tokenis\u00e9}")
+  cli_text("\n\n")
 
   concepts_regex_end <- if (starts_with_only) "\\S*$" else ""
 
   concepts_regex <- concepts |> map(~ glue("^({.}){concepts_regex_end}"))
 
   concepts_regex_df <-
-  tibble(concept_key = concepts_keys,
-         concept_name = unlist(concepts_names),
-         regex = unlist(concepts_regex))
+  tibble(
+    concept_key = concepts_keys,
+    concept_name = unlist(concepts_names),
+    regex = unlist(concepts_regex)
+  )
 
   token_extract <- \(x, n) {
 
     x |>
       imap(~ data_token[[n]] |>
-             mutate(!!text_input := str_extract(get(text_input), .x),
-                    concept = .y, .before = text_input) |>
+             mutate(!!text_input := str_extract(.data[[text_input]], .x),
+                    concept = .y,
+                    .before = text_input) |>
              drop_na())
 
   }
@@ -328,7 +329,11 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
     .match_id <- .concepts_id |> reduce(inner_join, by = c(id, group))
 
-  } else .match_id <- data_match_init[id]
+  } else {
+
+    .match_id <- data_match_init[id]
+
+  }
 
   data_match <-
   data_match_init |>
@@ -354,12 +359,10 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   }
 
-  cli_progress_done()
-  cli_text("\n\n")
-
 ### EXCLUSIONS -----------------------------------------------------------------
 
   cli_progress_step("{.strong Exclusions}")
+  cli_text("\n\n")
 
   if (!is.null(exclus_auto_escape)) {
 
@@ -442,12 +445,10 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   data_id <- data_match_final$keep
   data_count <- data_count$keep
 
-  cli_progress_done()
-  cli_text("\n\n")
-
 ### MATCHING SOURCE ------------------------------------------------------------
 
   cli_progress_step("{.strong Matching du texte source}")
+  cli_text("\n\n")
 
   regex_replace_arg <- regex_replace
 
@@ -455,7 +456,8 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   c("e(?!$)" = "[e\u00e9\u00e8\u00ea\u00eb]",
     "(?<=o)i" = "[i\u00ee\u00ef]",
     "\\s" = "(<br/>)?\\\\s?(-|')?\\\\s?(<br/>)?") |>
-    append(regex_replace)
+    append(regex_replace) |>
+    regex(multiline = TRUE)
 
   regex_wrap <- "(?i)\\b({x})\\b"
 
@@ -502,12 +504,10 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   data_regex_count <- data_regex_match |> count(concept, match, sort = TRUE)
 
-  cli_progress_done()
-  cli_text("\n\n")
-
 ### MISMATCH -------------------------------------------------------------------
 
   cli_progress_step("{.strong Mismatch entre texte source et tokenis\u00e9}")
+  cli_text("\n\n")
 
   data_id_mismatch_base <- data[c(id, group)]
 
@@ -542,12 +542,10 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
            anti_join(y = data_regex_match_conv,
                      by = c(id, "concept", "match")))
 
-  cli_progress_done()
-  cli_text("\n\n")
-
 ### EXTRACTION -----------------------------------------------------------------
 
   cli_progress_step("{.strong Extraction}")
+  cli_text("\n\n")
 
   data_extract <-
   list(data =
@@ -577,12 +575,10 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
     arrange(pick(group, id)) |>
     rownames_to_column("n")
 
-  cli_progress_done()
-  cli_text("\n\n")
-
 ### RESUME ---------------------------------------------------------------------
 
   cli_progress_step("{.strong R\u00e9sum\u00e9}")
+  cli_text("\n\n")
 
   token_max <- n_distinct(data_count$token)
 
@@ -646,391 +642,252 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
                        text_color = text_color,
                        text_background = text_background)))
 
-  cli_progress_done()
-  cli_text("\n\n")
-
   unlink(file.path(save_dir, list.files(save_dir)), recursive = TRUE)
 
 ### XLSX DATA ------------------------------------------------------------------
 
-  if (to_xlsx) {
+  cli_progress_step("{.strong Enregistrement du .xlsx}")
+  cli_text("\n\n")
 
-    cli_progress_step("{.strong Enregistrement du .xlsx}")
+  .sheet_mismatch <-
+  lst(
+    data = data_mismatch$regex,
+    rows = if (nrow(data) > 0) data else add_row(data),
+    visible = if (nrow(data) > 0) "true" else "false"
+  )
 
-    .sheet <-
-    list(data = "data",
-         token =
-           list(regex = "token_regex",
-                match = "token_match",
-                count = "token_count"),
-         concept = "concept_count",
-         text =
-           list(replace = "text_replace",
-                regex = "text_regex",
-                match = "text_match",
-                count = "text_count"),
-         mismatch = "mismatch",
-         params = "params")
+  .sheet_params <-
+  data_summary$params |>
+    map(as.character) |>
+    enframe(name = "arg") |>
+    mutate(
+      value = map_chr(value, ~ str_flatten(unlist(.), " ; ")),
+      value = ifelse(value == "", "NULL", value)
+    )
 
-    wb_add_custom <- \(x,
-                       sheet,
-                       ...,
-                       data,
-                       max_width = 100,
-                       halign = "center",
-                       font_size = 8,
-                       font_color = "#222222",
-                       concept_var = "concept",
-                       concept_color = NULL,
-                       text_var = with(config, text),
-                       text_color = NULL,
-                       border_color = "#999999",
-                       border_type = "thin") {
+  data_sheets <-
+  list(
+    data = data_extract |> select(-text_input),
+    token_regex = concepts_regex_df,
+    token_match = data_id |> select(-concept_key),
+    token_count = data_count |> select(-token),
+    concept_count = data_summary$concept,
+    text_replace = regex_replace_df,
+    text_regex = data_regex_df,
+    text_match = data_regex_match,
+    text_count = data_regex_count,
+    mismatch = .sheet_mismatch$data,
+    params = .sheet_params
+  ) |>
+    imap(~ list2(name = .y, data = .x))
 
-      options("openxlsx2.maxWidth" = max_width)
+  .wb_text_var <- text_input
+  .wb_concept_var <- "concept"
 
-      .xlsx_output <-
-      x |>
-        wb_add_worksheet(sheet = sheet,
-                         zoom = 105,
-                         ...) |>
-        wb_add_data_table(x = data,
-                          na.strings = NULL) |>
-        wb_add_font(dims = wb_dims(x = data, select = "col_names"),
-                    size = font_size + 1,
-                    bold = TRUE) |>
-        wb_add_font(dims = wb_dims(x = data, select = "data"),
-                    size = font_size) |>
-        wb_add_fill(dims = wb_dims(x = data, select = "col_names"),
-                    color = wb_color("grey90")) |>
-        wb_set_col_widths(cols = 1:ncol(data), widths = "auto") |>
-        wb_add_cell_style(dims = wb_dims(x = data),
-                          horizontal = halign,
-                          vertical = "center",
-                          wrap_text = TRUE) |>
-        wb_add_border(dims = wb_dims(x = data),
-                      top_color = wb_color(border_color),
-                      top_border = border_type,
-                      bottom_color = wb_color(border_color),
-                      bottom_border = border_type,
-                      left_color = wb_color(border_color),
-                      left_border = border_type,
-                      right_color = wb_color(border_color),
-                      right_border = border_type,
-                      inner_hcolor = wb_color(border_color),
-                      inner_hgrid = border_type,
-                      inner_vcolor = wb_color(border_color),
-                      inner_vgrid = border_type)
+  xlsx_output <-
+  wb_workbook() |>
+    wb_add_custom(
+      sheet = data_sheets$data$name,
+      data = data_sheets$data$data,
+      concept_var = c(data_id$concept_key, "concept"),
+      concept_color = concept_color,
+      text_var = "extract",
+      text_color = text_color
+    ) |>
+    wb_add_custom(
+      sheet = data_sheets$token_regex$name,
+      data = data_sheets$token_regex$data,
+      concept_var = names(concepts_regex_df) |> str_subset("concept"),
+      concept_color = concept_color,
+      text_var = "regex",
+      text_color = text_color,
+      halign = "left"
+    ) |>
+    wb_add_custom(
+      sheet = data_sheets$token_match$name,
+      data = data_sheets$token_match$data,
+      concept_var = .wb_concept_var,
+      concept_color = concept_color,
+      text_var = .wb_text_var,
+      text_color = text_color
+    ) |>
+    wb_add_custom(
+      sheet = data_sheets$token_count$name,
+      data = data_sheets$token_count$data,
+      concept_var = .wb_concept_var,
+      concept_color = concept_color,
+      text_var = .wb_text_var,
+      text_color = text_color
+    ) |>
+    wb_add_custom(
+      sheet = data_sheets$concept_count$name,
+      data = data_sheets$concept_count$data,
+      concept_var = .wb_concept_var,
+      concept_color = concept_color
+    ) |>
+    wb_add_custom(
+      sheet = data_sheets$text_replace$name,
+      data = data_sheets$text_replace$data,
+      halign = "left"
+    ) |>
+    wb_add_custom(
+      sheet = data_sheets$text_regex$name,
+      data = data_sheets$text_regex$data,
+      concept_var = .wb_concept_var,
+      concept_color = concept_color,
+      text_var = .wb_text_var,
+      text_color = text_color,
+      halign = "left",
+      max_width = 150
+    ) |>
+    wb_add_custom(
+      sheet = data_sheets$text_match$name,
+      data = data_sheets$text_match$data,
+      concept_var = .wb_concept_var,
+      concept_color = concept_color,
+      text_var = "match",
+      text_color = text_color
+    ) |>
+    wb_add_custom(
+      sheet = data_sheets$text_count$name,
+      data = data_sheets$text_count$data,
+      concept_var = .wb_concept_var,
+      concept_color = concept_color,
+      text_var = "match",
+      text_color = text_color
+    ) |>
+    wb_add_custom(
+      sheet = data_sheets$mismatch$name,
+      data = .sheet_mismatch$rows,
+      concept_var = .wb_concept_var,
+      concept_color = concept_color,
+      text_var = "match",
+      text_color = text_color,
+      visible = .sheet_mismatch$visible
+    ) |>
+    wb_add_custom(
+      sheet = data_sheets$params$name,
+      data = data_sheets$params$data,
+      halign = "left"
+    )
 
-      .add_font <- \(wb, vars, color) {
+  data_xlsx_tbl <- data_sheets |> list_transpose() |> pluck("data")
 
+  xlsx_output |> wb_save(file = glue("{save_extract}.xlsx"))
 
-
-        wb_add_font(wb = wb,
-                    dims =
-                      wb_dims(x = data,
-                              cols = vars,
-                              select = "data"),
-                    color = wb_color(color),
-                    size = font_size,
-                    bold = TRUE)
-
-      }
-
-      if (!is.null(concept_color)) {
-
-        .xlsx_output <-
-        .add_font(wb = .xlsx_output,
-                  vars = concept_var,
-                  color = concept_color)
-
-      }
-
-      if (!is.null(text_color)) {
-
-        .xlsx_output <-
-        .add_font(wb = .xlsx_output,
-                  vars = text_var,
-                  color = text_color)
-
-      }
-
-      return(.xlsx_output)
-
-    }
-
-    .xlsx_mismatch <-
-    lst(data = data_mismatch$regex,
-        rows = if (nrow(data) > 0) data else add_row(data),
-        visible = if (nrow(data) > 0) "true" else "false")
-
-    .xlsx_params <-
-    data_summary$params |>
-      map(as.character) |>
-      enframe(name = "arg") |>
-      mutate(value = map_chr(value, ~ str_flatten(unlist(.), " ; ")),
-             value = ifelse(value == "", "NULL", value))
-
-    xlsx_output <-
-    wb_workbook() |>
-      wb_add_custom(sheet = .sheet$data,
-                    data = data_extract |> select(-text_input),
-                    concept_var = c(data_id$concept_key, "concept"),
-                    concept_color = concept_color,
-                    text_var = "extract",
-                    text_color = text_color) |>
-      wb_add_custom(sheet = .sheet$token$regex,
-                    data = concepts_regex_df,
-                    concept_var = names(concepts_regex_df) |> str_subset("concept"),
-                    concept_color = concept_color,
-                    text_var = "regex",
-                    text_color = text_color,
-                    halign = "left") |>
-      wb_add_custom(sheet = .sheet$token$match,
-                    data = data_id |> select(-concept_key),
-                    concept_color = concept_color,
-                    text_color = text_color) |>
-      wb_add_custom(sheet = .sheet$token$count,
-                    data = data_count |> select(-token),
-                    concept_color = concept_color,
-                    text_color = text_color) |>
-      wb_add_custom(sheet = .sheet$concept,
-                    data = data_summary$concept,
-                    concept_color = concept_color) |>
-      wb_add_custom(sheet = .sheet$text$replace,
-                    data = regex_replace_df,
-                    halign = "left") |>
-      wb_add_custom(sheet = .sheet$text$regex,
-                    data = data_regex_df,
-                    concept_color = concept_color,
-                    text_var = text_input,
-                    text_color = text_color,
-                    halign = "left",
-                    max_width = 150) |>
-      wb_add_custom(sheet = .sheet$text$match,
-                    data = data_regex_match,
-                    concept_color = concept_color,
-                    text_var = "match",
-                    text_color = text_color) |>
-      wb_add_custom(sheet = .sheet$text$count,
-                    data = data_regex_count,
-                    concept_color = concept_color,
-                    text_var = "match",
-                    text_color = text_color) |>
-      wb_add_custom(sheet = .sheet$mismatch,
-                    data = .xlsx_mismatch$rows,
-                    concept_color = concept_color,
-                    text_var = "match",
-                    text_color = text_color,
-                    visible = .xlsx_mismatch$visible) |>
-      wb_add_custom(sheet = .sheet$params,
-                    data = .xlsx_params,
-                    halign = "left")
-
-    data_xlsx_tbl <-
-    xlsx_output |>
-      wb_get_sheet_names() |>
-      map(~ xlsx_output |>
-            wb_to_df(sheet = .) |>
-            as_tibble())
-
-    xlsx_output |> wb_save(file = glue("{save_extract}.xlsx"))
-
-    gt_custom <- \(data,
-                   head = 10,
-                   font_size = 12,
-                   ...) {
-
-      if (is.null(head)) {
-
-        data <-
-        data |>
-          gt(id = "tbl-id") |>
-          opt_css("
-            #tbl-id .gt_table {
-              font-variant-ligatures: none;
-            }
-          ")
-
-      } else {
-
-        data <- gt_preview(data, top_n = head)
-
-      }
-
-      data |>
-        tab_options(table.font.names = c("luciole", "system-ui"),
-                    table.font.size = px(font_size),
-                    column_labels.border.top.color = "white",
-                    ...) |>
-        tab_style(style = cell_text(weight = "bold"),
-                  locations = cells_column_labels())
-
-    }
-
-    gt_text_color <- \(x, column, color) {
-
-        tab_style(data = x,
-                  style = cell_text(weight = "bold", color = color),
-                  locations = cells_body(column))
-
-    }
-
-    gt_code_font <- \(x, column = everything()) {
-
-      tab_style(data = x,
-                style = cell_text(font = "fira code"),
-                locations = cells_body(column))
-
-    }
-
-    gt_text_align <- \(x,
-                       column = everything(),
-                       align = "center") {
-
-      tab_style(data = x,
-                style = cell_text(align = align),
-                locations =
-                  list(cells_column_labels(column),
-                       cells_body(column)))
-
-    }
-
-    data_xlsx_gt <-
-    list2("{.sheet$data}" :=
-            list(id =
-                   data_xlsx_tbl[[.sheet$data]] |>
-                     select(-c(matches(concepts_root), concept, extract)) |>
-                     gt_custom(font_size = 11) |>
-                     sub_missing() |>
-                     gt_text_align(),
-                 text =
-                   data_xlsx_tbl[[.sheet$data]] |>
-                     select(n, id, matches(concepts_root), concept, extract) |>
-                     mutate(` ... ` = "...", .after = id) |>
-                     gt_custom(font_size = 11) |>
-                     gt_text_align() |>
-                     gt_text_color(column = matches(c(concepts_root, "concept")),
-                                color = concept_color) |>
-                     gt_text_color(column = "extract",
-                                color = text_color)),
-          "{.sheet$token$regex}" :=
-            data_xlsx_tbl[[.sheet$token$regex]] |>
-              gt_custom(head = NULL) |>
-              gt_text_color(column = matches("concept"),
-                            color = concept_color) |>
-              gt_text_color(column = "regex",
-                            color = text_color) |>
-              gt_code_font(column = "regex"),
-          "{.sheet$token$match}" :=
-            data_xlsx_tbl[[.sheet$token$match]] |>
-              gt_custom() |>
-              gt_text_align() |>
-              gt_text_color(column = "concept",
-                            color = concept_color) |>
-              gt_text_color(column = text_input,
-                            color = text_color),
-          "{.sheet$token$count}" :=
-            data_xlsx_tbl[[.sheet$token$count]] |>
-              gt_custom() |>
-              gt_text_align() |>
-              gt_text_color(column = "concept",
-                            color = concept_color) |>
-              gt_text_color(column = text_input,
-                            color = text_color),
-          "{.sheet$concept}" :=
-            data_xlsx_tbl[[.sheet$concept]] |>
-              gt_custom() |>
-              sub_missing() |>
-              gt_text_align() |>
-              gt_text_color(column = "concept",
-                            color = concept_color),
-          "{.sheet$text$replace}" :=
-            data_xlsx_tbl[[.sheet$text$replace]] |>
-              gt_custom(head = NULL) |>
-              gt_code_font(),
-          "{.sheet$text$regex}" :=
-            data_xlsx_tbl[[.sheet$text$regex]] |>
-              gt_custom(head = NULL) |>
-              gt_text_color(column = "concept",
-                            color = concept_color) |>
-              gt_text_color(column = text_input,
-                            color = text_color) |>
-              gt_code_font(column = text_input),
-          "{.sheet$text$match}" :=
-            data_xlsx_tbl[[.sheet$text$match]] |>
-              gt_custom() |>
-              gt_text_align() |>
-              gt_text_color(column = "concept",
-                            color = concept_color) |>
-              gt_text_color(column = "match",
-                            color = text_color),
-          "{.sheet$text$count}" :=
-            data_xlsx_tbl[[.sheet$text$count]] |>
-              gt_custom() |>
-              gt_text_align() |>
-              gt_text_color(column = "concept",
-                            color = concept_color) |>
-              gt_text_color(column = "match",
-                            color = text_color),
-          "{.sheet$mismatch}" :=
-            data_xlsx_tbl[[.sheet$mismatch]] |>
-              gt_custom() |>
-              gt_text_align() |>
-              gt_text_color(column = "concept",
-                            color = concept_color) |>
-              gt_text_color(column = "match",
-                            color = text_color) |>
-              sub_missing(),
-          "{.sheet$params}" :=
-            data_xlsx_tbl[[.sheet$params]] |>
-              gt_custom(head = NULL))
-
-    cli_progress_done()
-    cli_text("\n\n")
-
-  } else {
-
-    data_xlsx_tbl <- NULL
-
-    data_xlsx_gt <- NULL
-
-  }
+  data_xlsx_gt <-
+  list2("{data_sheets$data$name}" :=
+          list(
+            id =
+              data_sheets$data$data |>
+                select(-c(matches(concepts_root), concept, extract)) |>
+                gt_custom(font_size = 11) |>
+                sub_missing() |>
+                gt_text_align(),
+            text =
+              data_sheets$data$data |>
+                select(n, id, matches(concepts_root), concept, extract) |>
+                mutate(` ... ` = "...", .after = id) |>
+                gt_custom(font_size = 11) |>
+                gt_text_align() |>
+                gt_text_color(column = matches(c(concepts_root, "concept")),
+                              color = concept_color) |>
+                gt_text_color(column = "extract",
+                              color = text_color)
+          ),
+        "{data_sheets$token_regex$name}" :=
+          data_sheets$token_regex$data |>
+            gt_custom(head = NULL) |>
+            gt_text_color(column = matches("concept"),
+                          color = concept_color) |>
+            gt_text_color(column = "regex",
+                          color = text_color) |>
+            gt_code_font(column = "regex"),
+        "{data_sheets$token_match$name}" :=
+          data_sheets$token_match$data |>
+            gt_custom() |>
+            gt_text_align() |>
+            gt_text_color(column = "concept",
+                          color = concept_color) |>
+            gt_text_color(column = text_input,
+                          color = text_color),
+        "{data_sheets$token_count$name}" :=
+          data_sheets$token_count$data |>
+            gt_custom() |>
+            gt_text_align() |>
+            gt_text_color(column = "concept",
+                          color = concept_color) |>
+            gt_text_color(column = text_input,
+                          color = text_color),
+        "{data_sheets$concept_count$name}" :=
+          data_sheets$concept_count$data |>
+            gt_custom() |>
+            sub_missing() |>
+            gt_text_align() |>
+            gt_text_color(column = "concept",
+                          color = concept_color),
+        "{data_sheets$text_replace$name}" :=
+          data_sheets$text_replace$data |>
+            gt_custom(head = NULL) |>
+            gt_code_font(),
+        "{data_sheets$text_regex$name}" :=
+          data_sheets$text_regex$data |>
+            gt_custom(head = NULL) |>
+            gt_text_color(column = "concept",
+                          color = concept_color) |>
+            gt_text_color(column = text_input,
+                          color = text_color) |>
+            gt_code_font(column = text_input),
+        "{data_sheets$text_match$name}" :=
+          data_sheets$text_match$data |>
+            gt_custom() |>
+            gt_text_align() |>
+            gt_text_color(column = "concept",
+                          color = concept_color) |>
+            gt_text_color(column = "match",
+                          color = text_color),
+        "{data_sheets$text_count$name}" :=
+          data_sheets$text_count$data |>
+            gt_custom() |>
+            gt_text_align() |>
+            gt_text_color(column = "concept",
+                          color = concept_color) |>
+            gt_text_color(column = "match",
+                          color = text_color),
+        "{data_sheets$mismatch$name}" :=
+          data_sheets$mismatch$data |>
+            gt_custom() |>
+            gt_text_align() |>
+            gt_text_color(column = "concept",
+                          color = concept_color) |>
+            gt_text_color(column = "match",
+                          color = text_color) |>
+            sub_missing(),
+        "{data_sheets$params$name}" :=
+          data_sheets$params$data |>
+            gt_custom(head = NULL))
 
 ### CSV DATA -------------------------------------------------------------------
 
-  if (to_csv) {
+  cli_progress_step("{.strong Enregistrement du .csv}")
+  cli_text("\n\n")
 
-    cli_progress_step("{.strong Enregistrement du .csv}")
+  data_csv <-
+  data_extract |>
+    set_data_csv(
+      text_input = text_input,
+      text_color = text_color,
+      text_background = text_background,
+      pattern = data_regex_str
+    ) |>
+    select(-matches(concepts_root))
 
-    .css <-
-    css(color = text_color,
-        background.color = text_background,
-        font.weight = "bold",
-        font.family = "system-ui",
-        padding = "0.2rem",
-        border.radius = "5px")
-
-    data_csv <-
-    data_extract |>
-      mutate(!!text_input :=
-               get(text_input) |>
-                 str_replace_all(glue("(?={data_regex_str})"),
-                                 glue("<span style='{.css}'>")) |>
-                 str_replace_all(glue("(?<={data_regex_str})"),
-                                 "</span>")) |>
-      select(-matches(concepts_root))
-
-    data_csv |> write_excel_csv(file = glue("{save_extract}.csv"))
-
-    cli_progress_done()
-    cli_text("\n\n")
-
-  } else data_csv <- NULL
+  data_csv |> write_excel_csv(file = glue("{save_extract}.csv"))
 
 ### ASSIGN DATA ----------------------------------------------------------------
 
   cli_progress_step("{.strong Enregistrement du .rds}")
+  cli_text("\n\n")
 
   data_save <-
   list(regex =
@@ -1062,13 +919,15 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
          data_save,
          envir = rlang::caller_env())
 
-  readr::write_rds(x = get(save_files),
-                   file = save_extract_rds)
+  readr::write_rds(
+    x = get(save_files),
+    file = save_extract_rds
+  )
+
+
+  ### PRINT ----------------------------------------------------------------------
 
   cli_progress_done()
-  cli_text("\n\n")
-
-### PRINT ----------------------------------------------------------------------
 
   cli_text("\n\n")
   cli_rule()
@@ -1188,8 +1047,8 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   cli_alert_success("{.strong {cli_n_files} fichier{?s} enregistr\u00e9{?s} dans le dossier {.path {here(save_dir)}}}")
   cli_ul()
     cli_li("rds : {cli_col('{save_files}.rds')}")
-    if (to_xlsx) cli_li("xlsx : {cli_col('{save_files}.xlsx')}")
-    if (to_csv) cli_li("csv : {cli_col('{save_files}.csv')}")
+    cli_li("xlsx : {cli_col('{save_files}.xlsx')}")
+    cli_li("csv : {cli_col('{save_files}.csv')}")
     cli_end()
 
   cli_text("\n\n")

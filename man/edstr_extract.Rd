@@ -23,8 +23,6 @@ edstr_extract(
   exclus_auto_escape = NULL,
   regex_replace = NULL,
   mismatch_data = FALSE,
-  to_xlsx = TRUE,
-  to_csv = TRUE,
   plot = FALSE,
   concept_color = "#0099FF",
   text_color = "#FF0000",
@@ -73,10 +71,6 @@ edstr_extract(
 \item{regex_replace}{regex_replace}
 
 \item{mismatch_data}{mismatch_data}
-
-\item{to_xlsx}{to_xlsx}
-
-\item{to_csv}{to_csv}
 
 \item{plot}{plot}
 
