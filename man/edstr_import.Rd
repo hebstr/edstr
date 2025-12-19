@@ -8,15 +8,16 @@ edstr_import(
   query = NULL,
   head = NULL,
   to_lower = TRUE,
-  user = "w_etudes",
-  password = getPass::getPass(),
-  connect_dir = "/opt/oracle/instantclient_23_7/connect",
-  tns = "tns",
+  user = NULL,
+  password = rstudioapi::askForPassword(),
+  connect_dir = "/opt/oracle/instantclient_23_7/connect/dbconnect.yml",
+  tns = "vlp",
   disconnect = TRUE,
   dest_dir = NULL,
   dest_filename = NULL,
   collect = TRUE,
-  load = FALSE
+  load = FALSE,
+  ...
 )
 }
 \arguments{

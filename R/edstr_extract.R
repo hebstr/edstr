@@ -34,34 +34,36 @@
 #'
 #' @examples example
 #'
-edstr_extract <- \(data = glue("{with(config, file)}_clean"),
-                   text_input = with(config, text),
-                   sample = NULL,
-                   seed = NULL,
-                   filter = NULL,
-                   ano_hash = NULL,
-                   ano_hide = NULL,
-                   id = "",
-                   group = "",
-                   token = 1,
-                   concepts,
-                   collapse = FALSE,
-                   intersect = FALSE,
-                   starts_with_only = TRUE,
-                   exclus_manual = NULL,
-                   exclus_auto_escape = NULL,
-                   regex_replace = NULL,
-                   mismatch_data = FALSE,
-                   plot = FALSE,
-                   concept_color = "#0099FF",
-                   text_color = "#FF0000",
-                   text_background = "#FFFF00",
-                   dirname_suffix = if (!is.null(sample)) glue("sample_{sample}") else NULL,
-                   filename_suffix = dirname_suffix,
-                   dest_dir = NULL,
-                   dest_filename = NULL,
-                   load = FALSE,
-                   quiet = FALSE) {
+edstr_extract <- \(
+  data = glue("{with(config, file)}_clean"),
+  text_input = with(config, text),
+  sample = NULL,
+  seed = NULL,
+  filter = NULL,
+  ano_hash = NULL,
+  ano_hide = NULL,
+  id = "",
+  group = "",
+  token = 1,
+  concepts,
+  collapse = FALSE,
+  intersect = FALSE,
+  starts_with_only = TRUE,
+  exclus_manual = NULL,
+  exclus_auto_escape = NULL,
+  regex_replace = NULL,
+  mismatch_data = FALSE,
+  plot = FALSE,
+  concept_color = "#0099FF",
+  text_color = "#FF0000",
+  text_background = "#FFFF00",
+  dirname_suffix = if (!is.null(sample)) glue("sample_{sample}") else NULL,
+  filename_suffix = dirname_suffix,
+  dest_dir = NULL,
+  dest_filename = NULL,
+  load = FALSE,
+  quiet = FALSE
+) {
 
   if (!is.null(seed)) set.seed(seed)
 
@@ -69,7 +71,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
     config <- cli_error_config(dest_dir, dest_filename)
 
-  } else config <- get(.config_name)
+  } else config <- base::get(.config_name)
 
   config_dir <- config$dir
   filename <- config$file
@@ -103,7 +105,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   }
 
-  if (is.character(data)) data <- get(data)
+  if (is.character(data)) data <- base::get(data)
 
 ### CONCEPTS -------------------------------------------------------------------
 
@@ -236,7 +238,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   data_replace <-
   data[c(id, group, text_input)] |>
   mutate(!!text_input :=
-           get(text_input) |>
+           .data[[text_input]] |>
              str_split("\n") |>
              map_chr(~ . |>
                        str_extract("(?<=>).+(?=</\\w+>)") |>
@@ -340,14 +342,14 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
     rename(concept_key = concept) |>
     mutate(concept = concept_key |> map_chr(~ concepts_names[[.]]),
            .after = concept_key) |>
-    filter(get(id) %in% .match_id[[id]])
+    filter(.data[[id]] %in% .match_id[[id]])
 
   data_match_init_df <-
   data |>
     select(-text_input) |>
-    filter(get(id) %in% data_match_init[[id]])
+    filter(.data[[id]] %in% data_match_init[[id]])
 
-  data_match_df <- data |> filter(get(id) %in% data_match[[id]])
+  data_match_df <- data |> filter(.data[[id]] %in% data_match[[id]])
 
   rm(data_token); invisible(gc())
 
@@ -366,7 +368,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   if (!is.null(exclus_auto_escape)) {
 
-    data_match <- filter(data_match, !str_detect(get(text_input), exclus_auto_escape))
+    data_match <- filter(data_match, !str_detect(.data[[text_input]], exclus_auto_escape))
 
   }
 
@@ -375,7 +377,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
     data_match[[text_input]] |>
       unique() |>
       map(~ data_match |>
-            filter(str_detect(get(text_input), glue(regex))) |>
+            filter(str_detect(.data[[text_input]], glue(regex))) |>
             mutate(!!name := .)) |>
       list_rbind()
 
@@ -406,7 +408,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
         filter(token > 2),
     manual =
       data_match |>
-        filter(str_detect_safe(get(text_input), exclus_manual))
+        filter(str_detect_safe(.data[[text_input]], exclus_manual))
   ) |>
     imap(~ .x |> mutate(mode = .y, .before = everything()))
 
@@ -416,7 +418,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
            list_rbind() |>
            pull(text_input) |>
            unique(),
-       expr = expr(get(text_input) %in% .match_exclus$concept))
+       expr = expr(.data[[text_input]] %in% .match_exclus$concept))
 
   data_match_final <-
   list(keep = data_match |> filter(!eval(.match_exclus$expr)),
@@ -469,7 +471,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   data_count |>
     arrange(concept) |>
     mutate(!!text_input :=
-             str_replace_all(get(text_input), regex_replace))
+             str_replace_all(.data[[text_input]], regex_replace))
 
   data_regex_str <-
   glue(regex_wrap,
@@ -482,9 +484,9 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   data_regex_replace |>
     nest(!!text_input := all_of(text_input), .by = concept) |>
     mutate(!!text_input :=
-             map_chr(get(text_input), ~ str_flatten(unlist(.), "|")),
+             map_chr(.data[[text_input]], ~ str_flatten(unlist(.), "|")),
            !!text_input :=
-             glue(regex_wrap, x = get(text_input)))
+             glue(regex_wrap, x = .data[[text_input]]))
 
   data_regex_list <-
   data_regex_df[[text_input]] |>
@@ -515,13 +517,13 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
     data_id_mismatch <-
     data_id_mismatch_base |>
-      filter(!get(id) %in% data_match_init[[id]])
+      filter(!.data[[id]] %in% data_match_init[[id]])
 
   } else {
 
     data_id_mismatch <-
     data_id_mismatch_base |>
-      filter(get(id) %in% NA_character_)
+      filter(.data[[id]] %in% NA_character_)
 
   }
 
@@ -551,13 +553,13 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   list(data =
          data_match_df |>
            mutate(extract =
-                    get(text_input) |>
+                    .data[[text_input]] |>
                       str_extract_all(data_regex_str) |>
                       map_chr(paste, collapse = " ; ")),
        concept_name =
          data_regex_list |>
            imap(~ data_match_df |>
-                  mutate(extract = str_extract(get(text_input), .x),
+                  mutate(extract = str_extract(.data[[text_input]], .x),
                          concept = .y) |>
                   drop_na(extract) |>
                   select(id, group, concept)) |>
@@ -617,7 +619,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
               id =
                 list(id, group) |>
                   imap(~ summarise(data_id,
-                                   !!. := n_distinct(get(.)),
+                                   !!. := n_distinct(.data[[.]]),
                                    .by = concept))) |>
            list_flatten()) |>
     imap(~ reduce(., left_join, by = .y)) |>
@@ -920,7 +922,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
          envir = rlang::caller_env())
 
   readr::write_rds(
-    x = get(save_files),
+    x = base::get(save_files),
     file = save_extract_rds
   )
 
@@ -933,17 +935,19 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
   cli_rule()
   cli_text("\n\n")
 
-  data_print <-
-  list(token = data_token_match,
-       count =
-         list(total = data_save$count$final,
-              token = data_summary$token,
-              concepts = data_summary$concept,
-              exclus = data_save$exclus$count,
-              final = data_save$count$final),
-       regex = data_save$regex,
-       mismatch = data_save$mismatch,
-       params = data_summary$params)
+  data_print <- list(
+    token = data_token_match,
+    count = list(
+      total = data_save$count$final,
+      token = data_summary$token,
+      concepts = data_summary$concept,
+      exclus = data_save$exclus$count,
+      final = data_save$count$final
+    ),
+    regex = data_save$regex,
+    mismatch = data_save$mismatch,
+    params = data_summary$params
+  )
 
   print(data_print)
 
@@ -959,7 +963,7 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   cli_intersect <- if (intersect) " \u00e0 l'intersection {str_concepts_inter}" else ""
 
-  cli_n_id <- nrow(data_id |> filter(get(id) %in% .match_id[[id]]))
+  cli_n_id <- nrow(data_id |> filter(.data[[id]] %in% .match_id[[id]]))
   cli_p_id <- label_percent(0.1)(nrow(data) / nrow(data_init))
 
   cli_n_match <- n_distinct(data_match_init[[id]])
@@ -1058,11 +1062,13 @@ edstr_extract <- \(data = glue("{with(config, file)}_clean"),
 
   } else {
 
-    cli_load(dir = save_dir,
-             file = save_files,
-             save = save_extract_rds,
-             quiet = quiet,
-             rds = TRUE)
+    cli_load(
+      dir = save_dir,
+      file = save_files,
+      save = save_extract_rds,
+      quiet = quiet,
+      rds = TRUE
+    )
 
   }
 

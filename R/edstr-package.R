@@ -18,6 +18,7 @@
 #' @importFrom cli col_br_red
 #' @importFrom cli col_green
 #' @importFrom cli col_red
+#' @importFrom config get
 #' @importFrom DatabaseConnector connect
 #' @importFrom DatabaseConnector disconnect
 #' @importFrom dplyr across

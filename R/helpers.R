@@ -44,11 +44,12 @@ easy_ano <- \(x,
     hash_trunc <- as.character(hash_trunc)
 
     x_hash |>
-      mutate("{to_hash}" :=
-               get(to_hash) |>
-               rlang::hash() |>
-               str_remove_all(glue(".{{{hash_trunc}}}$")),
-             .by = all_of(to_hash))
+      mutate(
+        "{to_hash}" :=
+          .data[[to_hash]] |>
+            rlang::hash() |>
+            str_remove_all(glue(".{{{hash_trunc}}}$")),
+          .by = all_of(to_hash))
 
   }
 
@@ -130,7 +131,7 @@ cli_save <- \(data,
 
   if (rds) {
 
-    saveRDS(get(config_file), file = config_save)
+    saveRDS(base::get(config_file), file = config_save)
 
   } else {
 

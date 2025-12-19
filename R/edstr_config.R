@@ -23,9 +23,9 @@ edstr_config <- \(config_name = ".config",
   dest_filename <- glue(dest_filename)
   text <- glue(text)
 
-  if (!is.null(replace)) replace <- get(load(replace))
+  if (!is.null(replace)) replace <- base::get(load(replace))
 
-  if (!is.null(concepts)) concepts <- get(load(concepts))
+  if (!is.null(concepts)) concepts <- base::get(load(concepts))
 
 ### DIRECTORY ------------------------------------------------------------------
 

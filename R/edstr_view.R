@@ -18,18 +18,20 @@
 #'
 #' @examples example
 #'
-edstr_view <- \(data,
-                text_input = NULL,
-                filter = NULL,
-                replace = NULL,
-                pattern = NULL,
-                case_sensitive = FALSE,
-                starts_with_only = FALSE,
-                token_max = NULL,
-                id = NULL,
-                output_sample = 5,
-                quiet = FALSE,
-                ...) {
+edstr_view <- \(
+  data,
+  text_input = NULL,
+  filter = NULL,
+  replace = NULL,
+  pattern = NULL,
+  case_sensitive = FALSE,
+  starts_with_only = FALSE,
+  token_max = NULL,
+  id = NULL,
+  output_sample = 5,
+  quiet = FALSE,
+  ...
+) {
 
   if (!quiet && !exists(".config_name")) {
 
@@ -40,7 +42,7 @@ edstr_view <- \(data,
 
   } else if (exists(".config_name")) {
 
-    config <- get(.config_name)
+    config <- base::get(.config_name)
 
     config_file <- glue("{with(config, file)}_view")
 
@@ -72,7 +74,7 @@ edstr_view <- \(data,
       mutate(!!text_input :=
                reduce(replace,
                       str_replace_all,
-                      .init = get(text_input)))
+                      .init = .data[[text_input]]))
 
   }
 
@@ -133,7 +135,7 @@ edstr_view <- \(data,
 
       data_output_sample <-
       data |>
-        filter(get(id) %in% data_match[[id]]) |>
+        filter(.data[[id]] %in% data_match[[id]]) |>
         slice(1:output_sample) |>
         pull(text_input) |>
         str_view(pattern, ...)

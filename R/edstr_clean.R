@@ -22,7 +22,7 @@ edstr_clean <- \(data = glue("{with(config, file)}_import"),
 
     config <- cli_error_config()
 
-  } else config <- get(.config_name)
+  } else config <- base::get(.config_name)
 
   config_dir <- config$dir
   config_file <- glue("{with(config, file)}_clean")
@@ -43,7 +43,7 @@ edstr_clean <- \(data = glue("{with(config, file)}_import"),
 
     }
 
-    if (is.character(data)) data <- get(data)
+    if (is.character(data)) data <- base::get(data)
 
     data_total <- data
 
@@ -66,7 +66,7 @@ edstr_clean <- \(data = glue("{with(config, file)}_import"),
       mutate(!!text_input :=
                reduce(replace,
                       str_replace_all,
-                      .init = get(text_input)))
+                      .init =.data[[text_input]]))
 
     cli_progress_done()
 

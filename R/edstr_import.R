@@ -18,18 +18,21 @@
 #'
 #' @examples example
 #'
-edstr_import <- \(query = NULL,
-                  head = NULL,
-                  to_lower = TRUE,
-                  user = "w_etudes",
-                  password = getPass::getPass(),
-                  connect_dir = "/opt/oracle/instantclient_23_7/connect",
-                  tns = "tns",
-                  disconnect = TRUE,
-                  dest_dir = NULL,
-                  dest_filename = NULL,
-                  collect = TRUE,
-                  load = FALSE) {
+edstr_import <- \(
+  query = NULL,
+  head = NULL,
+  to_lower = TRUE,
+  user = NULL,
+  password = rstudioapi::askForPassword(),
+  connect_dir = "/opt/oracle/instantclient_23_7/connect/dbconnect.yml",
+  tns = "vlp",
+  disconnect = TRUE,
+  dest_dir = NULL,
+  dest_filename = NULL,
+  collect = TRUE,
+  load = FALSE,
+  ...
+) {
 
   if (collect) {
 
@@ -37,7 +40,7 @@ edstr_import <- \(query = NULL,
 
       config <- cli_error_config(dest_dir, dest_filename)
 
-    } else config <- get(.config_name)
+    } else config <- base::get(.config_name)
 
     config_dir <- config$dir
     config_file <- glue("{with(config, file)}_import")
@@ -57,17 +60,20 @@ edstr_import <- \(query = NULL,
 
 ### CONNECT --------------------------------------------------------------------
 
+    withr::local_options(java.parameters = "-Xmx8g")
+
     gc() ; rJava::J("java.lang.Runtime")$getRuntime()$gc()
 
-    tns <- read_lines(glue("{connect_dir}/{tns}.txt"))
-    adress <- glue("jdbc:oracle:thin:@{tns}")
+    dbconfig <- config::get(file = connect_dir)
 
-    connection <-
-    DatabaseConnector::connect(dbms = "oracle",
-                               pathToDriver = connect_dir,
-                               connectionString = adress,
-                               user = user,
-                               password = password)
+    connection <- DatabaseConnector::connect(
+      dbms = dbconfig$db$driver,
+      pathToDriver = dbconfig$db$path,
+      connectionString = paste0(dbconfig$db$adress, dbconfig$tns[[tns]]),
+      user = user,
+      password = password,
+      ...
+    )
 
     cli_text("\n\n")
 
