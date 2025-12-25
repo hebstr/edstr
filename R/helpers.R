@@ -15,22 +15,22 @@ normalize_dir <- \(dir) {
 }
 
 
-easy_replace <- \(...,
-                  replace = "</>") {
+# easy_replace <- \(...,
+#                   replace = "</>") {
 
-  col_replace <- col_br_red(replace)
-  col_replace <- glue("\n\n\n{col_replace}\n\n\n")
+#   col_replace <- col_br_red(replace)
+#   col_replace <- glue("\n\n\n{col_replace}\n\n\n")
 
-  str_list <-
-  c(...) |>
-    map(~ list2('{glue("<p>.*({.}).*</p>")}' := replace) |>
-          unlist())
+#   str_list <-
+#   c(...) |>
+#     map(~ list2('{glue("<p>.*({.}).*</p>")}' := replace) |>
+#           unlist())
 
-  replace_list <- list2("(\n*{replace})+\n*" := col_replace)
+#   replace_list <- list2("(\n*{replace})+\n*" := col_replace)
 
-  unlist(append(str_list, replace_list))
+#   unlist(append(str_list, replace_list))
 
-}
+# }
 
 
 easy_ano <- \(x,
@@ -86,6 +86,22 @@ easy_ano <- \(x,
 
 }
 
+format_text <- \(text) {
+
+  .format_content <- regex("(?<=\">).+(?=</p>)")
+  .format_tags <- regex("</?[a-z]+/?>")
+
+  text |>
+    str_extract_all(.format_content) |>
+    map_chr(
+      ~ . |>
+        str_replace_all(.format_tags, " ") |>
+        paste(collapse = " ")
+    ) |>
+    str_squish() |>
+    iconv(from = "UTF-8", to = "ASCII//TRANSLIT")
+
+}
 
 cli_error_config <- \(dest_dir = NULL,
                       dest_filename = NULL) {
@@ -120,24 +136,15 @@ cli_error_data <- \(data, fun) {
 }
 
 
-cli_save <- \(data,
-              config_file,
-              config_save,
-              rds = FALSE) {
+cli_save <- \(
+  data,
+  config_file,
+  config_save
+) {
 
   cli_progress_step("Enregistrement du fichier {.strong {config_file}}")
 
-  assign(config_file, data, envir = rlang::global_env())
-
-  if (rds) {
-
-    saveRDS(base::get(config_file), file = config_save)
-
-  } else {
-
-    save(list = config_file, file = config_save)
-
-  }
+  saveRDS(data, file = config_save)
 
   cli_progress_done()
 
@@ -152,16 +159,18 @@ cli_save <- \(data,
   cli_text("\n\n")
   cli_rule()
 
+  invisible(gc())
+
+  return(invisible(data))
+
 }
 
 
-cli_load <- \(dir,
-              file,
-              save,
-              rds = FALSE,
-              quiet = FALSE) {
-
-  if (!quiet) {
+cli_load <- \(
+  dir,
+  file,
+  save
+) {
 
   if (!file.exists(dir)) {
 
@@ -186,15 +195,7 @@ cli_load <- \(dir,
 
   cli_progress_step("Chargement du fichier {.strong {file}}")
 
-  if (rds) {
-
-    assign(file, readRDS(save), envir = rlang::global_env())
-
-  } else {
-
-    load(save, envir = rlang::global_env())
-
-  }
+  .load <- readRDS(save)
 
   cli_progress_done()
 
@@ -202,11 +203,7 @@ cli_load <- \(dir,
   cli_text("\n\n")
   cli_rule()
 
-  } else {
-
-    return(readRDS(save))
-
-  }
+  return(invisible(.load))
 
 }
 
@@ -275,11 +272,13 @@ gt_text_align <- \(x,
 }
 
 
-set_data_csv <- \(data,
-                  text_input,
-                  text_color,
-                  text_background,
-                  pattern) {
+set_data_csv <- \(
+  data,
+  text_input,
+  text_color,
+  text_background,
+  pattern
+) {
 
   .css <-
   paste0(
@@ -293,12 +292,11 @@ set_data_csv <- \(data,
 
   pattern_compiled <- regex(as.character(pattern))
 
-  text_vector <-
-  data[[text_input]] |>
-    str_replace_all(
-      pattern = pattern_compiled,
-      replacement = glue("<span style='{.css}'>\\1</span>")
-    )
+  text_vector <- str_replace_all(
+    string = data[[text_input]],
+    pattern = pattern_compiled,
+    replacement = glue("<span style='{.css}'>\\1</span>")
+  )
 
   data[[text_input]] <- text_vector
 

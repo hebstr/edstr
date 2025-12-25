@@ -18,7 +18,6 @@
 #' @param exclus_auto_escape exclus_auto_escape
 #' @param regex_replace regex_replace
 #' @param mismatch_data mismatch_data
-#' @param plot plot
 #' @param concept_color concept_color
 #' @param text_color text_color
 #' @param text_background text_background
@@ -35,7 +34,7 @@
 #' @examples example
 #'
 edstr_extract <- \(
-  data = glue("{with(config, file)}_clean"),
+  data,
   text_input = with(config, text),
   sample = NULL,
   seed = NULL,
@@ -53,7 +52,6 @@ edstr_extract <- \(
   exclus_auto_escape = NULL,
   regex_replace = NULL,
   mismatch_data = FALSE,
-  plot = FALSE,
   concept_color = "#0099FF",
   text_color = "#FF0000",
   text_background = "#FFFF00",
@@ -97,15 +95,15 @@ edstr_extract <- \(
 
   if (!load) {
 
-    data_config <- glue("{with(config, file)}_clean")
+    # data_config <- glue("{with(config, file)}_clean")
 
-  if (enexpr(data) == data_config && !exists(data)) {
+  # if (enexpr(data) == data_config && !exists(data)) {
 
-    cli_error_data(data = data, fun = "clean")
+  #   cli_error_data(data = data, fun = "clean")
 
-  }
+  # }
 
-  if (is.character(data)) data <- base::get(data)
+  # if (is.character(data)) data <- base::get(data)
 
 ### CONCEPTS -------------------------------------------------------------------
 
@@ -228,33 +226,25 @@ edstr_extract <- \(
 
   if (!is.null(ano_hash) || !is.null(ano_hide)) {
 
-    data <-
-    easy_ano(x = data,
-             to_hash = ano_hash,
-             to_hide = ano_hide)
+    data <- easy_ano(
+      x = data,
+      to_hash = ano_hash,
+      to_hide = ano_hide
+    )
 
   }
 
+  .format_content <- regex("(?<=\">).+(?=</p>)")
+  .format_tags <- regex("</?[a-z]+/?>")
+
   data_replace <-
   data[c(id, group, text_input)] |>
-  mutate(!!text_input :=
-           .data[[text_input]] |>
-             str_split("\n") |>
-             map_chr(~ . |>
-                       str_extract("(?<=>).+(?=</\\w+>)") |>
-                       str_replace_all("\\.|'|</?\\w+/?>", " ") |>
-                       na.omit() |>
-                       paste(collapse = " ") |>
-                       str_replace_all("\\s+", " ")) |>
-             iconv(from = "UTF-8",
-                   to = "ASCII//TRANSLIT"))
+    mutate(!!text_input := format_text(.data[[text_input]]))
 
 ### TOKENISATION ---------------------------------------------------------------
 
   cli_progress_step("{.strong Tokenisation du texte source}")
   cli_text("\n\n")
-
-  .data_token_check_alpha <- regex("[:alpha:]")
 
   data_token <-
   token |>
@@ -266,7 +256,7 @@ edstr_extract <- \(
           token = "ngrams",
           n = .
         ) |>
-        filter(str_detect(.data[[text_input]], .data_token_check_alpha))
+        filter(stri_detect_regex(.data[[text_input]], "[:alpha:]"))
     )
 
   rm(data_replace); invisible(gc())
@@ -278,7 +268,7 @@ edstr_extract <- \(
 
   concepts_regex_end <- if (starts_with_only) "\\S*$" else ""
 
-  concepts_regex <- concepts |> map(~ glue("^({.}){concepts_regex_end}"))
+  concepts_regex <- map(concepts, ~ glue("^({.}){concepts_regex_end}"))
 
   concepts_regex_df <-
   tibble(
@@ -495,13 +485,17 @@ edstr_extract <- \(
 
   data_regex_match <-
   data_regex_list |>
-    imap(~ data_match_df |>
-           edstr_view(text_input = text_input,
-                      pattern = .x,
-                      id = id,
-                      quiet = TRUE) |>
-           mutate(concept = .y,
-                  .before = match)) |>
+    imap(
+      ~ edstr_view(
+        data = data_match_df,
+        text_input = text_input,
+        pattern = .x,
+        id = id,
+        print = FALSE
+      ) |>
+        pluck("match") |>
+        mutate(concept = .y, .before = match)
+    ) |>
     list_rbind()
 
   data_regex_count <- data_regex_match |> count(concept, match, sort = TRUE)
@@ -582,21 +576,6 @@ edstr_extract <- \(
   cli_progress_step("{.strong R\u00e9sum\u00e9}")
   cli_text("\n\n")
 
-  token_max <- n_distinct(data_count$token)
-
-  if (plot && token_max > 1) {
-
-    data_plot <-
-    data_count |>
-      ggplot() +
-      geom_bar(mapping =
-                 aes(x = as.numeric(token),
-                     fill = concept),
-               stat = "count") +
-      scale_x_continuous(n.breaks = token_max)
-
-  } else data_plot <- NULL
-
   set_summary <- \(var) {
 
     list(total = data_match,
@@ -623,8 +602,7 @@ edstr_extract <- \(
                                    .by = concept))) |>
            list_flatten()) |>
     imap(~ reduce(., left_join, by = .y)) |>
-    append(list(plot = data_plot,
-                params =
+    append(list(params =
                   list(sample = sample,
                        seed = seed,
                        filter = filter,
@@ -884,48 +862,50 @@ edstr_extract <- \(
     ) |>
     select(-matches(concepts_root))
 
-  data_csv |> write_excel_csv(file = glue("{save_extract}.csv"))
+  write_excel_csv(data_csv, file = glue("{save_extract}.csv"))
 
 ### ASSIGN DATA ----------------------------------------------------------------
 
   cli_progress_step("{.strong Enregistrement du .rds}")
   cli_text("\n\n")
 
-  data_save <-
-  list(regex =
-         list(concepts = concepts_regex_df,
-              replace = regex_replace_df,
-              final = data_regex_df,
-              match = data_regex_match),
-       match =
-         list(init = data_match,
-              final = data_match_final),
-       count =
-         list(init = data_token_match,
-              final = data_count),
-       exclus =
-         list(match = data_match_exclus,
-              count = data_count_exclus),
-       mismatch = data_mismatch,
-       summary = data_summary,
-       data =
-         list(base = data |> select(-text_input),
-              match = data_match_init_df,
-              extract = data_extract,
-              xlsx =
-                list(tbl = data_xlsx_tbl,
-                     gt = data_xlsx_gt),
-              csv = data_csv))
-
-  assign(save_files,
-         data_save,
-         envir = rlang::caller_env())
-
-  readr::write_rds(
-    x = base::get(save_files),
-    file = save_extract_rds
+  data_save <- list(
+    regex = list(
+      concepts = concepts_regex_df,
+      replace = regex_replace_df,
+      final = data_regex_df,
+      match = data_regex_match
+    ),
+    match = list(
+      init = data_match,
+      final = data_match_final
+    ),
+    count = list(
+      init = data_token_match,
+      final = data_count
+    ),
+    exclus = list(
+      match = data_match_exclus,
+      count = data_count_exclus
+    ),
+    mismatch = data_mismatch,
+    summary = data_summary,
+    data = list(
+      base = data |> select(-text_input),
+      match = data_match_init_df,
+      extract = data_extract,
+      xlsx = list(
+        tbl = data_xlsx_tbl,
+        gt = data_xlsx_gt
+      ),
+      csv = data_csv
+    )
   )
 
+  readr::write_rds(
+    x = data_save,
+    file = save_extract_rds
+  )
 
   ### PRINT ----------------------------------------------------------------------
 
@@ -1060,14 +1040,14 @@ edstr_extract <- \(
 
   invisible(gc())
 
+  return(invisible(data_save))
+
   } else {
 
     cli_load(
       dir = save_dir,
       file = save_files,
-      save = save_extract_rds,
-      quiet = quiet,
-      rds = TRUE
+      save = save_extract_rds
     )
 
   }

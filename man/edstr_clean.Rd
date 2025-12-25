@@ -5,11 +5,11 @@
 \title{clean}
 \usage{
 edstr_clean(
-  data = glue("{with(config, file)}_import"),
+  data,
   sample = NULL,
   filter = NULL,
   text_input = with(config, text),
-  replace = with(config, replace),
+  replace,
   load = FALSE
 )
 }

@@ -5,7 +5,7 @@
 \title{Title}
 \usage{
 edstr_extract(
-  data = glue("{with(config, file)}_clean"),
+  data,
   text_input = with(config, text),
   sample = NULL,
   seed = NULL,
@@ -23,7 +23,6 @@ edstr_extract(
   exclus_auto_escape = NULL,
   regex_replace = NULL,
   mismatch_data = FALSE,
-  plot = FALSE,
   concept_color = "#0099FF",
   text_color = "#FF0000",
   text_background = "#FFFF00",
@@ -71,8 +70,6 @@ edstr_extract(
 \item{regex_replace}{regex_replace}
 
 \item{mismatch_data}{mismatch_data}
-
-\item{plot}{plot}
 
 \item{concept_color}{concept_color}
 

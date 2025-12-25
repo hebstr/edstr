@@ -12,6 +12,7 @@
 #' @param dest_filename dest_filename
 #' @param collect collect
 #' @param load load
+#' @param ... ...
 #'
 #' @return value
 #' @export
@@ -129,10 +130,11 @@ edstr_import <- \(
 
 ### CLI ------------------------------------------------------------------------
 
-      cli_save(data_import,
-               config_file,
-               config_save,
-               rds = TRUE)
+      cli_save(
+        data_import,
+        config_file,
+        config_save
+      )
 
       cli_text("\n\n")
       toc()
@@ -164,13 +166,12 @@ edstr_import <- \(
 
   } else {
 
-    cli_load(dir = config_dir,
-             file = config_file,
-             save = config_save,
-             rds = TRUE)
+    cli_load(
+      dir = config_dir,
+      file = config_file,
+      save = config_save
+    )
 
   }
-
-  invisible(gc())
 
 }

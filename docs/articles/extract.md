@@ -1,23 +1,10 @@
----
-title: "edstr_extract() : extraction du texte"
+# edstr_extract() : extraction du texte
 
-vignette: >
-  %\VignetteIndexEntry{edstr_extract() : extraction du texte}
-  %\VignetteEngine{quarto::html}
-  %\VignetteEncoding{UTF-8}
-
-knitr:
-  opts_chunk:
-    eval: false
----
-
-{{< include _setup.qmd >}}
-
-## blabla
+## 1 blabla
 
 préparation
 
-```{r}
+``` r
 edstr_config(dest_dir = "_demo/ains/data_sample",
              dest_filename = "ains_sample",
              replace = "_demo/config/str.RData",
@@ -29,11 +16,11 @@ edstr_import(query = "select * from ains",
 edstr_clean(load = TRUE)
 ```
 
-## extract
+## 2 extract
 
 on y va
 
-```{r}
+``` r
 edstr_extract(ngrams = 1:2,
               concepts = .config$concepts,
               intersect = TRUE,

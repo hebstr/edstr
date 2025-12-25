@@ -15,7 +15,7 @@ edstr_view(
   token_max = NULL,
   id = NULL,
   output_sample = 5,
-  quiet = FALSE,
+  print = TRUE,
   ...
 )
 }
@@ -40,7 +40,7 @@ edstr_view(
 
 \item{output_sample}{output_sample}
 
-\item{quiet}{quiet}
+\item{print}{print}
 
 \item{...}{...}
 }

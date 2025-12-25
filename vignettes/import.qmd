@@ -5,6 +5,10 @@ vignette: >
   %\VignetteIndexEntry{edstr_import() : collection des données}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
+
+knitr:
+  opts_chunk:
+    eval: false
 ---
 
 {{< include _setup.qmd >}}
@@ -20,7 +24,7 @@ edstr_config(dest_dir = "_demo/ains/data_sample",
              concepts = "_demo/config/concepts_ains.RData")
 ```
 
-La fonction `edstr_import()` produit un dataframe portant le nom défini dans `edstr_config()` (argument `dest_filename`) suivi du suffixe `_import`. Dans cet exemple, il sera donc nommé ``r glue("{.config$file}_import")``.
+La fonction `edstr_import()` produit un dataframe portant le nom défini dans `edstr_config()` (argument `dest_filename`) suivi du suffixe `_import`. Dans cet exemple, il sera donc nommé glue("{.config$file}_import").
 
 Il peut être produit de deux façons :
 
@@ -59,7 +63,7 @@ edstr_import(query = "select * from ains",
 
 # Chargement d'un dataframe déjà importé
 
-Si un dataframe est déjà importé dans le dossier `r .config$dir`, celui-ci peut être simplement chargé avec l'argument `load = TRUE`.
+Si un dataframe est déjà importé dans le dossier .config$dir, celui-ci peut être simplement chargé avec l'argument `load = TRUE`.
 
 ```{r}
 edstr_import(load = TRUE)

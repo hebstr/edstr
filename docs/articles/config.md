@@ -1,0 +1,43 @@
+# edstr_config() : configuration par défaut
+
+## 1 Valeur
+
+La fonction produit une liste, nommée par défaut `.config`, qui contient
+les informations suivantes :
+
+- `dest_dir` : tous les fichiers seront enregistrés dans \[dossier\].
+- `dest_filename` : tous les fichiers seront nommés \[fichier\], avec un
+  suffixe spécifique de chaque fonction.
+- `str` : chargement d’une liste contenant des règles de nettoyage et de
+  splitage du texte pouvant être injectées dans les fonctions en aval.
+- `concepts` : chargement d’une liste contenant des règles de recherche
+  textuelle pouvant être injectées dans les fonctions en aval.
+- `split` : ajout d’une chaîne de caractères à la règle de splitage pour
+  en améliorer la pertinence.
+- `text` : nom de la variable contenant le texte à traiter, qui n’est
+  pas censée changer au cours du process.
+
+Ces valeurs sont fournies par défaut aux fonctions en aval, mais elles
+peuvent être modifiées manuellement pour une fonction donnée.
+
+## 2 Configuration minimale
+
+Seuls deux arguments sont indispensables :
+
+- Le répertoire de destination (`dest_dir`)
+- Le nom à donner aux fichiers qui seront produits (`dest_filename`)
+
+``` r
+edstr_config(dest_dir = "_demo/ains/data_sample",
+             dest_filename = "ains_sample")
+```
+
+Les éléments non créés seront toujours dans la liste, mais prendront la
+valeur `NULL`.
+
+``` r
+.config
+```
+
+Si l’argument `text` n’est pas renseigné, l’information devra être
+ajoutée dans les fonctions en aval.

@@ -44,6 +44,8 @@ edstr_import(
 \item{collect}{collect}
 
 \item{load}{load}
+
+\item{...}{...}
 }
 \value{
 value

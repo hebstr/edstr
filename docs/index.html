@@ -81,13 +81,9 @@
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<p>Avec une connexion <span class="concept-color">internet</span>, le package en développement peut être installé comme suit :</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># install.packages("devtools")</span></span>
-<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_git.html" class="external-link">install_git</a></span><span class="op">(</span><span class="st">"https://codeberg.org/hebstr/edstr"</span><span class="op">)</span></span></code></pre></div>
-<p>Depuis la bulle, le fichier <code>edstr_0.1.0.zip</code> situé dans <code>G:/Data/_R_/packages</code> est à installer manuellement à la manière des autres packages.</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"G:/Data/_R_/packages/edstr_0.1.0.zip"</span>, repos <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="co">#install.packages("pak")</span></span>
+<span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pkg_install.html" class="external-link">pkg_install</a></span><span class="op">(</span><span class="st">"git::https://codeberg.org/hebstr/edstr"</span>, dependencies <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="résumé">Résumé<a class="anchor" aria-label="anchor" href="#r%C3%A9sum%C3%A9"></a>
@@ -169,7 +165,7 @@
 <h2 id="template">Template<a class="anchor" aria-label="anchor" href="#template"></a>
 </h2>
 <p>Pour une utilisation classique, un template de script est mis à disposition à <code>G:/Data/_R_/packages/edstr_config/template.R</code></p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://cpd000001.chrul.net/9000">edstr</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="reference/edstr_config.html">edstr_config</a></span><span class="op">(</span>dest_dir <span class="op">=</span> <span class="st">"___"</span>,</span>
@@ -232,7 +228,7 @@
 <div class="developers">
 <h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
-<li>EDS INCLUDE <br><small class="roles"> Author, maintainer </small>   </li>
+<li>Julien ELICES-DIEZ <br><small class="roles"> Author, maintainer </small> <a href="https://orcid.org/0009-0001-3983-5713" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
 </ul>
 </div>
 
@@ -248,11 +244,11 @@
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by EDS INCLUDE.</p>
+  <p>Developed by Julien ELICES-DIEZ.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>

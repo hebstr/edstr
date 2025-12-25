@@ -10,7 +10,7 @@
 #' @param token_max token_max
 #' @param id id
 #' @param output_sample output_sample
-#' @param quiet quiet
+#' @param print print
 #' @param ... ...
 #'
 #' @return value
@@ -29,35 +29,14 @@ edstr_view <- \(
   token_max = NULL,
   id = NULL,
   output_sample = 5,
-  quiet = FALSE,
+  print = TRUE,
   ...
 ) {
-
-  if (!quiet && !exists(".config_name")) {
-
-      cli_abort(c("Le fichier de configuration n'existe pas",
-                  "i" =
-                    "Cr\u00e9er ce fichier dans un premier temps avec {.fn edstr_config},
-                    ou bien {.field quiet == TRUE}"))
-
-  } else if (exists(".config_name")) {
-
-    config <- base::get(.config_name)
-
-    config_file <- glue("{with(config, file)}_view")
-
-    if (is.null(text_input)) text_input <- with(config, text)
-
-  }
-
-  if (!quiet) {
 
     cli_h1("edstr_view")
     cli_text("\n\n")
 
-    cli_progress_step("Creating {.strong {config_file}}")
-
-  }
+    cli_progress_step("Creating ???")
 
   filter <- enexpr(filter)
 
@@ -105,28 +84,6 @@ edstr_view <- \(
 
   data_count <- data_match |> count(match, sort = TRUE)
 
-  if (!quiet) {
-
-### ASSIGN ---------------------------------------------------------------------
-
-    assign(config_file,
-           list(match = data_match,
-                count = data_count),
-           envir = rlang::caller_env())
-
-# ### OUTPUT PLOT --------------------------------------------------------------
-#
-#     if (n_distinct(data_match$nchar) >= 50) {
-#
-#       data_output_plot <-
-#       data_match |>
-#         ggplot(aes(nchar)) +
-#         geom_histogram()
-#
-#       print(data_output_plot)
-#
-#     }
-
 ### OUTPUT SAMPLE ---------------------------------------------------------------
 
     if (output_sample > 0) {
@@ -146,8 +103,12 @@ edstr_view <- \(
 
     }
 
-    print(list(sample = data_output_sample,
-               count = data_count))
+    output <- list(
+      sample = data_output_sample,
+      count = data_count
+    )
+
+    if (print) print(output)
 
     cli_progress_done()
 
@@ -172,10 +133,11 @@ edstr_view <- \(
     cli_rule()
     cli_text("\n\n")
 
-  } else {
+    data_view <- list(
+      match = data_match,
+      count = data_count
+    )
 
-    return(data_match)
-
-  }
+    return(invisible(data_view))
 
 }

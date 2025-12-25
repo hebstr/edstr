@@ -4,14 +4,7 @@
 \alias{edstr_config}
 \title{config}
 \usage{
-edstr_config(
-  config_name = ".config",
-  dest_dir,
-  dest_filename,
-  text = "texte",
-  replace = NULL,
-  concepts = NULL
-)
+edstr_config(config_name = ".config", dest_dir, dest_filename, concepts = NULL)
 }
 \arguments{
 \item{config_name}{config_name}
@@ -19,10 +12,6 @@ edstr_config(
 \item{dest_dir}{dest_dirname}
 
 \item{dest_filename}{dest_filename}
-
-\item{text}{text}
-
-\item{replace}{replace}
 
 \item{concepts}{concepts}
 }

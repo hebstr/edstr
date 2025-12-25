@@ -5,6 +5,10 @@ vignette: >
   %\VignetteIndexEntry{edstr_clean() : nettoyage du texte}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
+
+knitr:
+  opts_chunk:
+    eval: false
 ---
 
 {{< include _setup.qmd >}}
@@ -15,12 +19,10 @@ La fonction `edstr_clean()` dépend des paramètres définis avec `edstr_config(
 
 ```{r}
 edstr_config(dest_dir = "_demo/ains/data_sample",
-             dest_filename = "ains_sample",
-             replace = "_demo/config/str.RData",
-             concepts = "_demo/config/concepts_ains.RData")
+             dest_filename = "ains_sample")
 ```
 
-La fonction `edstr_clean` produit un dataframe portant le nom défini dans `edstr_config()` (argument `dest_filename`) suivi du suffixe `_clean`. Dans cet exemple, il sera donc nommé ``r glue("{.config$file}_clean")``.
+La fonction `edstr_clean` produit un dataframe portant le nom défini dans `edstr_config()` (argument `dest_filename`) suivi du suffixe `_clean`. Dans cet exemple, il sera donc nommé glue("{.config$file}_clean").
 
 Il peut être produit de deux façons :
 
@@ -29,7 +31,7 @@ Il peut être produit de deux façons :
 
 ## Nettoyage d'un dataframe
 
-Admettons qu'un dataframe est déjà importé dans le dossier ``r .config$dir`` avec `edstr_import()`.
+Admettons qu'un dataframe est déjà importé dans le dossier .config$dir avec `edstr_import()`.
 Il peut être simplement chargé avec la fonction l'argument `load = TRUE`.
 
 ```{r}
@@ -46,7 +48,7 @@ edstr_clean(replace = .config$replace)
 
 ## Chargement d'un dataframe
 
-Si un dataframe nettoyé est déjà créé et présent dans le dossier `r .config$dir`, celui-ci peut être simplement chargé avec l'argument `load = TRUE`.
+Si un dataframe nettoyé est déjà créé et présent dans le dossier .config$dir, celui-ci peut être simplement chargé avec l'argument `load = TRUE`.
 
 ```{r}
 edstr_clean(load = TRUE)

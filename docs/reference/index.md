@@ -1,0 +1,20 @@
+# Package index
+
+## Configuration par défaut
+
+- [`edstr_config()`](https://cpd000001.chrul.net/9000/reference/edstr_config.md)
+  : config
+
+## Traitement du texte
+
+- [`edstr_import()`](https://cpd000001.chrul.net/9000/reference/edstr_import.md)
+  : extract
+- [`edstr_clean()`](https://cpd000001.chrul.net/9000/reference/edstr_clean.md)
+  : clean
+- [`edstr_extract()`](https://cpd000001.chrul.net/9000/reference/edstr_extract.md)
+  : Title
+
+## Recharche dans le texte
+
+- [`edstr_view()`](https://cpd000001.chrul.net/9000/reference/edstr_view.md)
+  : Explorer

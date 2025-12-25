@@ -5,6 +5,10 @@ vignette: >
   %\VignetteIndexEntry{edstr_config() : configuration par défaut}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
+
+knitr:
+  opts_chunk:
+    eval: false
 ---
 
 {{< include _setup.qmd >}}
@@ -24,7 +28,7 @@ Ces valeurs sont fournies par défaut aux fonctions en aval, mais elles peuvent 
 
 ## Configuration minimale
 
-Seuls deux arguments sont indispensables : 
+Seuls deux arguments sont indispensables :
 
 - Le répertoire de destination (`dest_dir`)
 - Le nom à donner aux fichiers qui seront produits (`dest_filename`)

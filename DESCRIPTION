@@ -16,7 +16,6 @@ Imports:
     cli,
     DatabaseConnector,
     dplyr,
-    getPass,
     ggplot2,
     glue,
     graphics,
@@ -39,7 +38,10 @@ Imports:
     tidyr,
     tidytext,
     utils,
-    withr
+    withr,
+    config,
+    stringi,
+    rstudioapi
 Suggests:
     knitr,
     quarto,

@@ -1,0 +1,69 @@
+# edstr_import() : collection des données
+
+## 1 Prérequis
+
+La fonction
+[`edstr_import()`](https://cpd000001.chrul.net/9000/reference/edstr_import.md)
+dépend des paramètres définis avec
+[`edstr_config()`](https://cpd000001.chrul.net/9000/reference/edstr_config.md)
+: celle-ci doit alors être exécutée en amont.
+
+``` r
+edstr_config(dest_dir = "_demo/ains/data_sample",
+             dest_filename = "ains_sample",
+             replace = "_demo/config/str.RData",
+             concepts = "_demo/config/concepts_ains.RData")
+```
+
+La fonction
+[`edstr_import()`](https://cpd000001.chrul.net/9000/reference/edstr_import.md)
+produit un dataframe portant le nom défini dans
+[`edstr_config()`](https://cpd000001.chrul.net/9000/reference/edstr_config.md)
+(argument `dest_filename`) suivi du suffixe `_import`. Dans cet exemple,
+il sera donc nommé glue(“{.config\$file}\_import”).
+
+Il peut être produit de deux façons :
+
+- Importation d’un dataframe depuis une base de données
+- Chargement d’un dataframe déjà importé
+
+## 2 Importation d’un dataframe
+
+On peut procéder à l’importation avec
+[`edstr_import()`](https://cpd000001.chrul.net/9000/reference/edstr_import.md)
+en précisant a minima la requête et les paramètres de connexion de la
+base.
+
+Le dataframe importé est automatiquement sauvegardé en .RData dans le
+répertoire défini avec
+[`edstr_config()`](https://cpd000001.chrul.net/9000/reference/edstr_config.md)
+(argument `dest_dir`).
+
+### 2.1 Mode collecte et sauvegarde automatique
+
+``` r
+edstr_import(query = "select * from ains",
+             connect_dir = "_demo/connect",
+             user = "w_etudes",
+             password = pwd,
+             collect = FALSE)
+```
+
+### 2.2 Mode sans collecte
+
+``` r
+edstr_import(query = "select * from ains",
+             connect_dir = "_demo/connect",
+             user = "w_etudes",
+             password = pwd,
+             head = 500)
+```
+
+## 3 Chargement d’un dataframe déjà importé
+
+Si un dataframe est déjà importé dans le dossier .config\$dir, celui-ci
+peut être simplement chargé avec l’argument `load = TRUE`.
+
+``` r
+edstr_import(load = TRUE)
+```

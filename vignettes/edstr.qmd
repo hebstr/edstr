@@ -5,6 +5,10 @@ vignette: >
   %\VignetteIndexEntry{Vue d'ensemble}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
+
+knitr:
+  opts_chunk:
+    eval: false
 ---
 
 {{< include _setup.qmd >}}
@@ -37,7 +41,7 @@ edstr_config(dest_dir = "_demo/ains/data_sample",
              dest_filename = "ains_sample")
 ```
 
-## Collection des données 
+## Collection des données
 
 Réalise l'importation de la table [nom] depuis la base et son enregistrement selon les paramètres définis dans `edstr_config()`.
 
@@ -53,7 +57,7 @@ Réalise le nettoyage du texte présent dans la table importée et son enregistr
 Prend automatiquement en input la table importée avec `edstr_import()`.
 
 ```{r error=TRUE}
-edstr_clean(load = TRUE) 
+edstr_clean(load = TRUE)
 ```
 
 ## Extraction avec `edstr_extract()`

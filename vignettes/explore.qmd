@@ -5,6 +5,10 @@ vignette: >
   %\VignetteIndexEntry{edstr_view() : rechercher dans le texte}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
+
+knitr:
+  opts_chunk:
+    eval: false
 ---
 
 {{< include _setup.qmd >}}
@@ -35,9 +39,8 @@ edstr_view(data = ains_sample_clean,
            output_sample = 0)
 ```
 
-assignation 
+assignation
 
 ```{r}
 ls()
 ```
-

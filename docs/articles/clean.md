@@ -1,0 +1,60 @@
+# edstr_clean() : nettoyage du texte
+
+## 1 Prérequis test
+
+La fonction
+[`edstr_clean()`](https://cpd000001.chrul.net/9000/reference/edstr_clean.md)
+dépend des paramètres définis avec
+[`edstr_config()`](https://cpd000001.chrul.net/9000/reference/edstr_config.md)
+: celle-ci doit alors être exécutée en amont.
+
+``` r
+edstr_config(dest_dir = "_demo/ains/data_sample",
+             dest_filename = "ains_sample")
+```
+
+La fonction `edstr_clean` produit un dataframe portant le nom défini
+dans
+[`edstr_config()`](https://cpd000001.chrul.net/9000/reference/edstr_config.md)
+(argument `dest_filename`) suivi du suffixe `_clean`. Dans cet exemple,
+il sera donc nommé glue(“{.config\$file}\_clean”).
+
+Il peut être produit de deux façons :
+
+- Nettoyage d’un dataframe chargé dans l’environnement
+- Chargement d’un dataframe déjà nettoyé
+
+## 2 Nettoyage d’un dataframe
+
+Admettons qu’un dataframe est déjà importé dans le dossier .config\$dir
+avec
+[`edstr_import()`](https://cpd000001.chrul.net/9000/reference/edstr_import.md).
+Il peut être simplement chargé avec la fonction l’argument
+`load = TRUE`.
+
+``` r
+edstr_import(load = TRUE)
+```
+
+On peut ensuite procéder à son nettoyage avec
+[`edstr_clean()`](https://cpd000001.chrul.net/9000/reference/edstr_clean.md),
+en appliquant a minima une règle via l’argument `replace`.
+
+Le dataframe nettoyé est automatiquement sauvegardé en .RData dans le
+répertoire défini avec
+[`edstr_config()`](https://cpd000001.chrul.net/9000/reference/edstr_config.md)
+(argument `dest_dir`).
+
+``` r
+edstr_clean(replace = .config$replace)
+```
+
+## 3 Chargement d’un dataframe
+
+Si un dataframe nettoyé est déjà créé et présent dans le dossier
+.config\$dir, celui-ci peut être simplement chargé avec l’argument
+`load = TRUE`.
+
+``` r
+edstr_clean(load = TRUE)
+```
