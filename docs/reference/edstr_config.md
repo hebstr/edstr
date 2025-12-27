@@ -5,26 +5,22 @@ config
 ## Usage
 
 ``` r
-edstr_config(config_name = ".config", dest_dir, dest_filename, concepts = NULL)
+edstr_config(edstr_dirname, edstr_filename, ...)
 ```
 
 ## Arguments
 
-- config_name:
+- edstr_dirname:
 
-  config_name
+  edstr_dirname
 
-- dest_dir:
+- edstr_filename:
 
-  dest_dirname
+  edstr_filename
 
-- dest_filename:
+- ...:
 
-  dest_filename
-
-- concepts:
-
-  concepts
+  ...
 
 ## Value
 
@@ -146,6 +142,6 @@ example
 #>         encoding = "UTF-8", catch.aborts = catch.aborts, skip.echo = skips, 
 #>         keep.source = TRUE)
 #> }
-#> <bytecode: 0x568fd2973330>
+#> <bytecode: 0x638a857d6648>
 #> <environment: namespace:utils>
 ```

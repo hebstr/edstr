@@ -5,14 +5,7 @@ clean
 ## Usage
 
 ``` r
-edstr_clean(
-  data,
-  sample = NULL,
-  filter = NULL,
-  text_input = with(config, text),
-  replace,
-  load = FALSE
-)
+edstr_clean(data, text = getOption("edstr_text"), replace, sample = NULL)
 ```
 
 ## Arguments
@@ -21,25 +14,17 @@ edstr_clean(
 
   data
 
-- sample:
+- text:
 
-  sample
-
-- filter:
-
-  filter
-
-- text_input:
-
-  text_input
+  text
 
 - replace:
 
   replace
 
-- load:
+- sample:
 
-  load
+  sample
 
 ## Value
 
@@ -161,6 +146,6 @@ example
 #>         encoding = "UTF-8", catch.aborts = catch.aborts, skip.echo = skips, 
 #>         keep.source = TRUE)
 #> }
-#> <bytecode: 0x568fd2973330>
+#> <bytecode: 0x638a857d6648>
 #> <environment: namespace:utils>
 ```

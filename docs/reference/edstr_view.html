@@ -62,16 +62,16 @@
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">edstr_view</span><span class="op">(</span></span>
 <span>  <span class="va">data</span>,</span>
-<span>  text_input <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  filter <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  text_input <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">getOption</a></span><span class="op">(</span><span class="st">"edstr_text"</span><span class="op">)</span>,</span>
 <span>  replace <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  pattern <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  case_sensitive <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  starts_with_only <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  token_max <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  id <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  output_sample <span class="op">=</span> <span class="fl">5</span>,</span>
-<span>  print <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  n_text_output <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>  print_text <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  print_count <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -86,10 +86,6 @@
 
 <dt id="arg-text-input">text_input<a class="anchor" aria-label="anchor" href="#arg-text-input"></a></dt>
 <dd><p>text_input</p></dd>
-
-
-<dt id="arg-filter">filter<a class="anchor" aria-label="anchor" href="#arg-filter"></a></dt>
-<dd><p>filter</p></dd>
 
 
 <dt id="arg-replace">replace<a class="anchor" aria-label="anchor" href="#arg-replace"></a></dt>
@@ -116,12 +112,16 @@
 <dd><p>id</p></dd>
 
 
-<dt id="arg-output-sample">output_sample<a class="anchor" aria-label="anchor" href="#arg-output-sample"></a></dt>
-<dd><p>output_sample</p></dd>
+<dt id="arg-n-text-output">n_text_output<a class="anchor" aria-label="anchor" href="#arg-n-text-output"></a></dt>
+<dd><p>n_text_output</p></dd>
 
 
-<dt id="arg-print">print<a class="anchor" aria-label="anchor" href="#arg-print"></a></dt>
-<dd><p>print</p></dd>
+<dt id="arg-print-text">print_text<a class="anchor" aria-label="anchor" href="#arg-print-text"></a></dt>
+<dd><p>print_text</p></dd>
+
+
+<dt id="arg-print-count">print_count<a class="anchor" aria-label="anchor" href="#arg-print-count"></a></dt>
+<dd><p>print_count</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
@@ -248,7 +248,7 @@
 <span class="r-out co"><span class="r-pr">#&gt;</span>         encoding = "UTF-8", catch.aborts = catch.aborts, skip.echo = skips, </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         keep.source = TRUE)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> }</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;bytecode: 0x568fd2973330&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;bytecode: 0x638a857d6648&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: namespace:utils&gt;</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>

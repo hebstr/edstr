@@ -1,9 +1,8 @@
 #' config
 #'
-#' @param config_name config_name
-#' @param dest_dir dest_dirname
-#' @param dest_filename dest_filename
-#' @param concepts concepts
+#' @param edstr_dirname edstr_dirname
+#' @param edstr_filename edstr_filename
+#' @param ... ...
 #'
 #' @return value
 #' @export
@@ -11,64 +10,25 @@
 #' @examples example
 #'
 edstr_config <- \(
-  config_name = ".config",
-  dest_dir,
-  dest_filename,
-  concepts = NULL
+  edstr_dirname,
+  edstr_filename,
+  ...
 ) {
 
-  dest_dir <- glue(dest_dir)
-  dest_filename <- glue(dest_filename)
-
-  if (!is.null(concepts)) concepts <- base::get(load(concepts))
-
-### DIRECTORY ------------------------------------------------------------------
-
-  if (!file.exists(dest_dir)) {
-
-    dir.create(path = dest_dir, recursive = TRUE)
-
-  }
-
-  dest_dir_norm <- dest_dir |> str_remove("/+$") |> normalize_dir()
-
-### ASSIGN ---------------------------------------------------------------------
-
-  config_list <-
-  list(dir = dest_dir_norm,
-       file = dest_filename,
-       concepts = concepts)
-
-  assign(config_name,
-         config_list,
-         envir = rlang::caller_env())
-
-  assign(".config_name",
-         config_name,
-         envir = rlang::caller_env())
-
-### CLI ------------------------------------------------------------------------
-
-  .col <- \(x) col_blue(glue(x))
-
-  cli_config_name <- .col(config_name)
-  cli_dirname <- .col("{config_name}$dir ==")
-  cli_filename <- .col("{config_name}$file == '{dest_filename}'")
-  cli_concepts <- .col("{config_name}$concepts")
+  options(
+    edstr_dirname = fs::dir_create(str_glue(edstr_dirname)),
+    edstr_filename = str_glue(edstr_filename),
+    ...
+  )
 
   cli_h1("edstr_config")
   cli_text("\n\n")
 
-  cli_alert_info("{.strong R\u00e9pertoire par d\u00e9faut : {.path {here()}}}")
+  cli_alert_info("{.strong R\u00e9pertoire parent : {.path {here::here()}}}")
   cli_text("\n\n")
 
-  cli_alert_success("{.strong Objet assign\u00e9 dans l'environnement global : {cli_config_name}}")
-  cli_ul()
-  cli_ul()
-    cli_li("Emplacement : {cli_dirname} {.path {config_list$dir}}")
-    cli_li("Nom de fichier : {cli_filename}")
-    if (!is.null(concepts)) cli_li("Liste de concepts (optionnel) : {cli_concepts}")
-  cli_end()
+  cli_alert_info("Emplacement d\u00e9fini : {.strong {.path {getOption('edstr_dirname')}}}")
+  cli_alert_info("Les fichiers seront nomm\u00e9s avec le pr\u00e9fixe {.strong {.path {getOption('edstr_filename')}}}")
   cli_text("\n\n")
 
   cli_rule()

@@ -7,10 +7,9 @@ Title
 ``` r
 edstr_extract(
   data,
-  text_input = with(config, text),
+  text_input = getOption("edstr_text"),
   sample = NULL,
   seed = NULL,
-  filter = NULL,
   ano_hash = NULL,
   ano_hide = NULL,
   id = "",
@@ -29,8 +28,6 @@ edstr_extract(
   text_background = "#FFFF00",
   dirname_suffix = if (!is.null(sample)) glue("sample_{sample}") else NULL,
   filename_suffix = dirname_suffix,
-  dest_dir = NULL,
-  dest_filename = NULL,
   load = FALSE,
   quiet = FALSE
 )
@@ -53,10 +50,6 @@ edstr_extract(
 - seed:
 
   seed
-
-- filter:
-
-  filter
 
 - ano_hash:
 
@@ -129,14 +122,6 @@ edstr_extract(
 - filename_suffix:
 
   filename_suffix
-
-- dest_dir:
-
-  dest_dir
-
-- dest_filename:
-
-  dest_filename
 
 - load:
 
@@ -266,6 +251,6 @@ example
 #>         encoding = "UTF-8", catch.aborts = catch.aborts, skip.echo = skips, 
 #>         keep.source = TRUE)
 #> }
-#> <bytecode: 0x568fd2973330>
+#> <bytecode: 0x638a857d6648>
 #> <environment: namespace:utils>
 ```

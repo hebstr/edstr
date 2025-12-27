@@ -1,11 +1,62 @@
+.clean_save <- \(
+  data,
+  text,
+  replace,
+  sample = NULL
+) {
+
+  config <- check_config("clean")
+
+  cli_h1("edstr_clean")
+  cli_text("\n\n")
+
+  if (!is.null(sample)) data <- data[sample(nrow(data), sample), ]
+
+  cli_progress_step("Nettoyage du fichier (???)")
+
+  if (!is.list(replace)) replace <- list(replace)
+
+  data_clean <- mutate(
+    .data = data,
+    !!text := reduce(
+      .x = replace,
+      .f = str_replace_all,
+      .init = .data[[text]]
+    )
+  )
+
+  cli_progress_done()
+
+  cli_save(
+    data = data_clean,
+    config_file = config$file,
+    config_save = config$save
+  )
+
+}
+
+.clean_load <- \() {
+
+  config <- check_config("clean")
+
+  cli_h1("edstr_clean")
+  cli_text("\n\n")
+
+  cli_load(
+    dir = config$dir,
+    file = config$file,
+    save = config$save
+  )
+
+}
+
+
 #' clean
 #'
 #' @param data data
 #' @param sample sample
-#' @param filter filter
-#' @param text_input text_input
+#' @param text text
 #' @param replace replace
-#' @param load load
 #'
 #' @returns value
 #' @export
@@ -13,83 +64,33 @@
 #' @examples example
 edstr_clean <- \(
   data,
-  sample = NULL,
-  filter = NULL,
-  text_input = with(config, text),
+  text = getOption("edstr_text"),
   replace,
-  load = FALSE
+  sample = NULL
 ) {
 
-  if (!exists(".config_name")) {
+  config <- check_config("clean")
 
-    config <- cli_error_config()
+  if (!fs::file_exists(config$save)) {
 
-  } else config <- base::get(.config_name)
-
-  config_dir <- config$dir
-  config_file <- glue("{with(config, file)}_clean")
-  config_save <- glue("{config_dir}/{config_file}.rds")
-
-  # file_import <- glue("{with(config, file)}_import")
-
-  cli_h1("edstr_clean")
-  cli_text("\n\n")
-
-  if (!load) {
-
-### INPUT ----------------------------------------------------------------------
-
-    # if (identical(data, file_import) && !exists(file_import)) {
-
-    #   cli_error_data(data = file_import, fun = "import")
-
-    # }
-
-    # if (is.character(data)) data <- base::get(data)
-
-    # data_total <- data
-
-### FILTERS --------------------------------------------------------------------
-
-    if (!is.null(sample)) data <- data[sample(nrow(data), sample), ]
-
-    filter <- enexpr(filter)
-
-    if (!is.null(filter)) data <- filter(data, !!filter)
-
-### CLEAN ----------------------------------------------------------------------
-
-    cli_progress_step("Nettoyage du fichier (???)")
-
-    replace <- base::get(load(replace))
-
-    if (!is.list(replace)) replace <- list(replace)
-
-    data_clean <- mutate(
-      .data = data,
-      !!text_input := reduce(
-        .x = replace,
-        .f = str_replace_all,
-        .init = .data[[text_input]]
-      )
-    )
-
-    cli_progress_done()
-
-### CLI ------------------------------------------------------------------------
-
-    cli_save(
-      data = data_clean,
-      config_file = config_file,
-      config_save = config_save
+    .clean_save(
+      data = data,
+      text = text,
+      replace = replace,
+      sample = sample
     )
 
   } else {
 
-    cli_load(
-      dir = config_dir,
-      file = config_file,
-      save = config_save
+    cli_check(
+      config_file = config$file,
+      fun_save = .clean_save(
+        data = data,
+        text = text,
+        replace = replace,
+        sample = sample
+      ),
+      fun_load = .clean_load()
     )
 
   }

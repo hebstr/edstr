@@ -4,16 +4,14 @@
 \alias{edstr_config}
 \title{config}
 \usage{
-edstr_config(config_name = ".config", dest_dir, dest_filename, concepts = NULL)
+edstr_config(edstr_dirname, edstr_filename, ...)
 }
 \arguments{
-\item{config_name}{config_name}
+\item{edstr_dirname}{edstr_dirname}
 
-\item{dest_dir}{dest_dirname}
+\item{edstr_filename}{edstr_filename}
 
-\item{dest_filename}{dest_filename}
-
-\item{concepts}{concepts}
+\item{...}{...}
 }
 \value{
 value

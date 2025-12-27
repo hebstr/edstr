@@ -4,7 +4,6 @@
 #' @param text_input text_input
 #' @param sample sample
 #' @param seed seed
-#' @param filter filter
 #' @param ano_hash ano_hash
 #' @param ano_hide ano_hide
 #' @param id id
@@ -23,8 +22,6 @@
 #' @param text_background text_background
 #' @param dirname_suffix dirname_suffix
 #' @param filename_suffix filename_suffix
-#' @param dest_dir dest_dir
-#' @param dest_filename dest_filename
 #' @param load load
 #' @param quiet quiet
 #'
@@ -35,10 +32,9 @@
 #'
 edstr_extract <- \(
   data,
-  text_input = with(config, text),
+  text_input = getOption("edstr_text"),
   sample = NULL,
   seed = NULL,
-  filter = NULL,
   ano_hash = NULL,
   ano_hide = NULL,
   id = "",
@@ -57,22 +53,16 @@ edstr_extract <- \(
   text_background = "#FFFF00",
   dirname_suffix = if (!is.null(sample)) glue("sample_{sample}") else NULL,
   filename_suffix = dirname_suffix,
-  dest_dir = NULL,
-  dest_filename = NULL,
   load = FALSE,
   quiet = FALSE
 ) {
 
   if (!is.null(seed)) set.seed(seed)
 
-  if (!exists(".config_name")) {
+  config <- check_config()
 
-    config <- cli_error_config(dest_dir, dest_filename)
-
-  } else config <- base::get(.config_name)
-
-  config_dir <- config$dir
-  filename <- config$file
+  config_dir <- getOption('edstr_dirname')
+  filename <- getOption('edstr_filename')
   dirname <- "extract"
 
   save_dir <- glue("{config_dir}/{dirname}")
@@ -94,16 +84,6 @@ edstr_extract <- \(
   cli_h1("edstr_extract")
 
   if (!load) {
-
-    # data_config <- glue("{with(config, file)}_clean")
-
-  # if (enexpr(data) == data_config && !exists(data)) {
-
-  #   cli_error_data(data = data, fun = "clean")
-
-  # }
-
-  # if (is.character(data)) data <- base::get(data)
 
 ### CONCEPTS -------------------------------------------------------------------
 
@@ -197,27 +177,24 @@ edstr_extract <- \(
   if (!id %in% names(data_init)) {
 
     id <- "n_id"
-    data <- data |> rownames_to_column(id)
+
+    data <- rownames_to_column(data, id)
 
   }
 
   if (!check_group) {
 
     group <- "n_group"
-    data <-
-    mutate(data,
-           !!group := row_number(),
-           .after = all_of(id))
+
+    data <- mutate(
+      .data = data,
+      !!group := row_number(),
+      .after = all_of(id)
+    )
 
   }
 
-### FILTER ---------------------------------------------------------------------
-
   if (!is.null(sample)) data <- data[sample(nrow(data), sample), ]
-
-  filter <- enexpr(filter)
-
-  if (!is.null(filter)) data <- filter(data, !!filter)
 
 ### FORMAT ---------------------------------------------------------------------
 
@@ -491,7 +468,7 @@ edstr_extract <- \(
         text_input = text_input,
         pattern = .x,
         id = id,
-        print = FALSE
+        print_count = FALSE
       ) |>
         pluck("match") |>
         mutate(concept = .y, .before = match)
@@ -605,7 +582,6 @@ edstr_extract <- \(
     append(list(params =
                   list(sample = sample,
                        seed = seed,
-                       filter = filter,
                        id = id,
                        group = group,
                        token = token,
@@ -1028,7 +1004,7 @@ edstr_extract <- \(
   cli_rule()
   cli_text("\n\n")
 
-  cli_alert_success("{.strong {cli_n_files} fichier{?s} enregistr\u00e9{?s} dans le dossier {.path {here(save_dir)}}}")
+  cli_alert_success("{.strong {cli_n_files} fichier{?s} enregistr\u00e9{?s} dans le r\u00e9pertoire {.path {save_dir}}}")
   cli_ul()
     cli_li("rds : {cli_col('{save_files}.rds')}")
     cli_li("xlsx : {cli_col('{save_files}.xlsx')}")

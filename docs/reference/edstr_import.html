@@ -63,14 +63,11 @@
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">edstr_import</span><span class="op">(</span></span>
 <span>  query <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  head <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  to_lower <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  lower <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  user <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  password <span class="op">=</span> <span class="fu">rstudioapi</span><span class="fu">::</span><span class="fu"><a href="https://rstudio.github.io/rstudioapi/reference/askForPassword.html" class="external-link">askForPassword</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  connect_dir <span class="op">=</span> <span class="st">"/opt/oracle/instantclient_23_7/connect/dbconnect.yml"</span>,</span>
 <span>  tns <span class="op">=</span> <span class="st">"vlp"</span>,</span>
-<span>  disconnect <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  dest_dir <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  dest_filename <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  collect <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  load <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  <span class="va">...</span></span>
@@ -89,8 +86,8 @@
 <dd><p>head</p></dd>
 
 
-<dt id="arg-to-lower">to_lower<a class="anchor" aria-label="anchor" href="#arg-to-lower"></a></dt>
-<dd><p>to_lower</p></dd>
+<dt id="arg-lower">lower<a class="anchor" aria-label="anchor" href="#arg-lower"></a></dt>
+<dd><p>lower</p></dd>
 
 
 <dt id="arg-user">user<a class="anchor" aria-label="anchor" href="#arg-user"></a></dt>
@@ -107,18 +104,6 @@
 
 <dt id="arg-tns">tns<a class="anchor" aria-label="anchor" href="#arg-tns"></a></dt>
 <dd><p>tns</p></dd>
-
-
-<dt id="arg-disconnect">disconnect<a class="anchor" aria-label="anchor" href="#arg-disconnect"></a></dt>
-<dd><p>disconnect</p></dd>
-
-
-<dt id="arg-dest-dir">dest_dir<a class="anchor" aria-label="anchor" href="#arg-dest-dir"></a></dt>
-<dd><p>dest_dirname</p></dd>
-
-
-<dt id="arg-dest-filename">dest_filename<a class="anchor" aria-label="anchor" href="#arg-dest-filename"></a></dt>
-<dd><p>dest_filename</p></dd>
 
 
 <dt id="arg-collect">collect<a class="anchor" aria-label="anchor" href="#arg-collect"></a></dt>
@@ -253,7 +238,7 @@
 <span class="r-out co"><span class="r-pr">#&gt;</span>         encoding = "UTF-8", catch.aborts = catch.aborts, skip.echo = skips, </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         keep.source = TRUE)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> }</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;bytecode: 0x568fd2973330&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;bytecode: 0x638a857d6648&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: namespace:utils&gt;</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>

@@ -12,4 +12,4 @@
 ^vignettes/*_files$
 ^vignettes/\.quarto$
 ^vignettes/_*
-
+^_extra$

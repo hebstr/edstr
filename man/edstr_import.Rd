@@ -7,14 +7,11 @@
 edstr_import(
   query = NULL,
   head = NULL,
-  to_lower = TRUE,
+  lower = TRUE,
   user = NULL,
   password = rstudioapi::askForPassword(),
   connect_dir = "/opt/oracle/instantclient_23_7/connect/dbconnect.yml",
   tns = "vlp",
-  disconnect = TRUE,
-  dest_dir = NULL,
-  dest_filename = NULL,
   collect = TRUE,
   load = FALSE,
   ...
@@ -25,7 +22,7 @@ edstr_import(
 
 \item{head}{head}
 
-\item{to_lower}{to_lower}
+\item{lower}{lower}
 
 \item{user}{user}
 
@@ -34,12 +31,6 @@ edstr_import(
 \item{connect_dir}{connect_dir}
 
 \item{tns}{tns}
-
-\item{disconnect}{disconnect}
-
-\item{dest_dir}{dest_dirname}
-
-\item{dest_filename}{dest_filename}
 
 \item{collect}{collect}
 

@@ -1,38 +1,3 @@
-str_u <- \(...) {
-
-  str_c(c(...), collapse = "|")
-
-}
-
-
-normalize_dir <- \(dir) {
-
-  dir |>
-    glue() |>
-    normalizePath() |>
-    str_replace_all("\\\\", "/")
-
-}
-
-
-# easy_replace <- \(...,
-#                   replace = "</>") {
-
-#   col_replace <- col_br_red(replace)
-#   col_replace <- glue("\n\n\n{col_replace}\n\n\n")
-
-#   str_list <-
-#   c(...) |>
-#     map(~ list2('{glue("<p>.*({.}).*</p>")}' := replace) |>
-#           unlist())
-
-#   replace_list <- list2("(\n*{replace})+\n*" := col_replace)
-
-#   unlist(append(str_list, replace_list))
-
-# }
-
-
 easy_ano <- \(x,
               to_hash = NULL,
               to_hide = NULL,
@@ -103,44 +68,34 @@ format_text <- \(text) {
 
 }
 
-cli_error_config <- \(dest_dir = NULL,
-                      dest_filename = NULL) {
+check_config <- \(suffix = NULL) {
 
-  if (!is.null(dest_dir) && !is.null(dest_filename)) {
+  id <- "edstr_dirname"
 
-    if (!file.exists(dest_dir)) dir.create(path = dest_dir, recursive = TRUE)
+  if (is.null(getOption(id))) {
 
-    list(dir = str_remove(dest_dir, "/+$"),
-         file = dest_filename)
+    cli_abort(c(
+      "{.field {id}} n'est pas configur\u00e9",
+      "i" = "Cr\u00e9er avec {.fn edstr_config}"
+    ))
 
   } else {
 
-    cli_abort(c("Le fichier de configuration n'existe pas",
-                "i" =
-                  "Cr\u00e9er ce fichier dans un premier temps avec {.fn edstr_config},
-                  ou bien indiquer un r\u00e9pertoire par d\u00e9faut avec {.field dest_dir}
-                  et un nom de fichier par d\u00e9faut avec {.field dest_filename}"))
+    .dirname <- getOption('edstr_dirname')
+    .filename <- getOption('edstr_filename')
+
+    lst(
+      dir = .dirname,
+      file = str_glue("{.filename}_{suffix}"),
+      save = str_glue("{.dirname}/{file}.rds")
+    )
 
   }
 
 }
 
 
-cli_error_data <- \(data, fun) {
-
-  cli_abort(c("Le fichier {.strong {data}} n'est pas charg\u00e9",
-            "i" =
-              "Cr\u00e9er/charger le fichier {.strong {data}} dans un premier
-              temps avec {.fn edstr_{glue(fun)}} ou bien utiliser un autre fichier"))
-
-}
-
-
-cli_save <- \(
-  data,
-  config_file,
-  config_save
-) {
+cli_save <- \(data, config_file, config_save) {
 
   cli_progress_step("Enregistrement du fichier {.strong {config_file}}")
 
@@ -166,32 +121,7 @@ cli_save <- \(
 }
 
 
-cli_load <- \(
-  dir,
-  file,
-  save
-) {
-
-  if (!file.exists(dir)) {
-
-    cli_abort(c("Le fichier {.strong {file}} ne peut \u00eatre charg\u00e9 car le dossier
-                {.path {here(dir)}} n'existe pas",
-                "i" =
-                  "Cr\u00e9er le fichier {.strong {file}} dans un premier temps avec
-                  {.field load = FALSE} ou bien charger un autre fichier"))
-
-  }
-
-  if (!file.exists(save)) {
-
-    cli_abort(c(" Le fichier {.strong {file}} n'est pas retrouv\u00e9 dans le dossier
-                {.path {here(dir)}}",
-                "i" =
-                  "Cr\u00e9er le fichier {.strong {file}} dans un premier temps avec
-                  {.field load = FALSE} ou bien changer le r\u00e9pertoire par d\u00e9faut
-                  dans {.fn edstr_config} avec {.field dest_dir}"))
-
-  }
+cli_load <- \(dir, file, save) {
 
   cli_progress_step("Chargement du fichier {.strong {file}}")
 
@@ -204,6 +134,37 @@ cli_load <- \(
   cli_rule()
 
   return(invisible(.load))
+
+}
+
+
+cli_check <- \(config_file, fun_save, fun_load) {
+
+  cli::cli_text("\n\n")
+  cli::cli_alert_warning("Le fichier {.strong {config_file}} existe d\u00e9ja.")
+
+  choix <- menu(
+    choices = c(
+      "\u00c9craser le fichier existant",
+      "Charger le fichier existant",
+      "Annuler"
+    ),
+    title = NULL
+  )
+
+  if (choix == 1) {
+
+    fun_save
+
+  } else if (choix == 2) {
+
+    fun_load
+
+  } else {
+
+    cli::cli_abort("Op\u00e9ration annul\u00e9e.")
+
+  }
 
 }
 

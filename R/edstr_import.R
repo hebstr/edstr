@@ -2,14 +2,11 @@
 #'
 #' @param query query
 #' @param head head
-#' @param to_lower to_lower
+#' @param lower lower
 #' @param user user
 #' @param password password
 #' @param connect_dir connect_dir
 #' @param tns tns
-#' @param disconnect disconnect
-#' @param dest_dir dest_dirname
-#' @param dest_filename dest_filename
 #' @param collect collect
 #' @param load load
 #' @param ... ...
@@ -22,35 +19,20 @@
 edstr_import <- \(
   query = NULL,
   head = NULL,
-  to_lower = TRUE,
+  lower = TRUE,
   user = NULL,
   password = rstudioapi::askForPassword(),
   connect_dir = "/opt/oracle/instantclient_23_7/connect/dbconnect.yml",
   tns = "vlp",
-  disconnect = TRUE,
-  dest_dir = NULL,
-  dest_filename = NULL,
   collect = TRUE,
   load = FALSE,
   ...
 ) {
 
-  if (collect) {
+  if (collect) config <- check_config("import")
 
-    if (!exists(".config_name")) {
-
-      config <- cli_error_config(dest_dir, dest_filename)
-
-    } else config <- base::get(.config_name)
-
-    config_dir <- config$dir
-    config_file <- glue("{with(config, file)}_import")
-    config_save <- glue("{config_dir}/{config_file}.rds")
-
-  }
-
-  connect_dir <- glue(connect_dir)
   query <- glue(query)
+  connect_dir <- glue(connect_dir)
 
   cli_h1("edstr_import")
   cli_text("\n\n")
@@ -67,7 +49,7 @@ edstr_import <- \(
 
     dbconfig <- config::get(file = connect_dir)
 
-    connection <- DatabaseConnector::connect(
+    connection <- DBI::dbConnect(
       dbms = dbconfig$db$driver,
       pathToDriver = dbconfig$db$path,
       connectionString = paste0(dbconfig$db$adress, dbconfig$tns[[tns]]),
@@ -118,22 +100,18 @@ edstr_import <- \(
       cli_text("\n\n")
       cli_progress_step("Import (user: {.strong {user}})")
 
-      data_import <- get_query() |> collect()
+      data_import <- collect(get_query())
 
-      if (to_lower) {
-
-        data_import <- data_import |> set_names(tolower)
-
-      }
+      if (lower) data_import <- set_names(data_import, tolower)
 
       cli_progress_done()
 
 ### CLI ------------------------------------------------------------------------
 
       cli_save(
-        data_import,
-        config_file,
-        config_save
+        data = data_import,
+        config_file = config$file,
+        config_save = config$save
       )
 
       cli_text("\n\n")
@@ -142,7 +120,7 @@ edstr_import <- \(
 
     } else if (!is.null(head)) {
 
-      return(get_query() |> collect())
+      return(collect(get_query()))
 
     } else {
 
@@ -150,26 +128,16 @@ edstr_import <- \(
 
     }
 
-    if (disconnect) {
-
-      DatabaseConnector::disconnect(connection)
-
-    } else {
-
-      assign("connection",
-             connection,
-             envir = rlang::caller_env())
-
-    }
+    DBI::dbDisconnect(connection)
 
     invisible(gc()) ; rJava::J("java.lang.Runtime")$getRuntime()$gc()
 
   } else {
 
     cli_load(
-      dir = config_dir,
-      file = config_file,
-      save = config_save
+      dir = config$dir,
+      file = config$file,
+      save = config$save
     )
 
   }

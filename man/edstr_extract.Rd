@@ -6,10 +6,9 @@
 \usage{
 edstr_extract(
   data,
-  text_input = with(config, text),
+  text_input = getOption("edstr_text"),
   sample = NULL,
   seed = NULL,
-  filter = NULL,
   ano_hash = NULL,
   ano_hide = NULL,
   id = "",
@@ -28,8 +27,6 @@ edstr_extract(
   text_background = "#FFFF00",
   dirname_suffix = if (!is.null(sample)) glue("sample_{sample}") else NULL,
   filename_suffix = dirname_suffix,
-  dest_dir = NULL,
-  dest_filename = NULL,
   load = FALSE,
   quiet = FALSE
 )
@@ -42,8 +39,6 @@ edstr_extract(
 \item{sample}{sample}
 
 \item{seed}{seed}
-
-\item{filter}{filter}
 
 \item{ano_hash}{ano_hash}
 
@@ -80,10 +75,6 @@ edstr_extract(
 \item{dirname_suffix}{dirname_suffix}
 
 \item{filename_suffix}{filename_suffix}
-
-\item{dest_dir}{dest_dir}
-
-\item{dest_filename}{dest_filename}
 
 \item{load}{load}
 

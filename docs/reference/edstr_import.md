@@ -8,14 +8,11 @@ extract
 edstr_import(
   query = NULL,
   head = NULL,
-  to_lower = TRUE,
+  lower = TRUE,
   user = NULL,
   password = rstudioapi::askForPassword(),
   connect_dir = "/opt/oracle/instantclient_23_7/connect/dbconnect.yml",
   tns = "vlp",
-  disconnect = TRUE,
-  dest_dir = NULL,
-  dest_filename = NULL,
   collect = TRUE,
   load = FALSE,
   ...
@@ -32,9 +29,9 @@ edstr_import(
 
   head
 
-- to_lower:
+- lower:
 
-  to_lower
+  lower
 
 - user:
 
@@ -51,18 +48,6 @@ edstr_import(
 - tns:
 
   tns
-
-- disconnect:
-
-  disconnect
-
-- dest_dir:
-
-  dest_dirname
-
-- dest_filename:
-
-  dest_filename
 
 - collect:
 
@@ -196,6 +181,6 @@ example
 #>         encoding = "UTF-8", catch.aborts = catch.aborts, skip.echo = skips, 
 #>         keep.source = TRUE)
 #> }
-#> <bytecode: 0x568fd2973330>
+#> <bytecode: 0x638a857d6648>
 #> <environment: namespace:utils>
 ```

@@ -4,27 +4,16 @@
 \alias{edstr_clean}
 \title{clean}
 \usage{
-edstr_clean(
-  data,
-  sample = NULL,
-  filter = NULL,
-  text_input = with(config, text),
-  replace,
-  load = FALSE
-)
+edstr_clean(data, text = getOption("edstr_text"), replace, sample = NULL)
 }
 \arguments{
 \item{data}{data}
 
-\item{sample}{sample}
-
-\item{filter}{filter}
-
-\item{text_input}{text_input}
+\item{text}{text}
 
 \item{replace}{replace}
 
-\item{load}{load}
+\item{sample}{sample}
 }
 \value{
 value

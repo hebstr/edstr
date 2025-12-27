@@ -7,16 +7,16 @@ Explorer
 ``` r
 edstr_view(
   data,
-  text_input = NULL,
-  filter = NULL,
+  text_input = getOption("edstr_text"),
   replace = NULL,
   pattern = NULL,
   case_sensitive = FALSE,
   starts_with_only = FALSE,
   token_max = NULL,
   id = NULL,
-  output_sample = 5,
-  print = TRUE,
+  n_text_output = 5,
+  print_text = FALSE,
+  print_count = TRUE,
   ...
 )
 ```
@@ -30,10 +30,6 @@ edstr_view(
 - text_input:
 
   text_input
-
-- filter:
-
-  filter
 
 - replace:
 
@@ -59,13 +55,17 @@ edstr_view(
 
   id
 
-- output_sample:
+- n_text_output:
 
-  output_sample
+  n_text_output
 
-- print:
+- print_text:
 
-  print
+  print_text
+
+- print_count:
+
+  print_count
 
 - ...:
 
@@ -191,6 +191,6 @@ example
 #>         encoding = "UTF-8", catch.aborts = catch.aborts, skip.echo = skips, 
 #>         keep.source = TRUE)
 #> }
-#> <bytecode: 0x568fd2973330>
+#> <bytecode: 0x638a857d6648>
 #> <environment: namespace:utils>
 ```

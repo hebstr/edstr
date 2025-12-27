@@ -14,7 +14,6 @@ Depends:
     R (>= 4.1.0)
 Imports:
     cli,
-    DatabaseConnector,
     dplyr,
     ggplot2,
     glue,
@@ -41,7 +40,9 @@ Imports:
     withr,
     config,
     stringi,
-    rstudioapi
+    rstudioapi,
+    fs,
+    DBI
 Suggests:
     knitr,
     quarto,

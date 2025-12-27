@@ -6,16 +6,16 @@
 \usage{
 edstr_view(
   data,
-  text_input = NULL,
-  filter = NULL,
+  text_input = getOption("edstr_text"),
   replace = NULL,
   pattern = NULL,
   case_sensitive = FALSE,
   starts_with_only = FALSE,
   token_max = NULL,
   id = NULL,
-  output_sample = 5,
-  print = TRUE,
+  n_text_output = 5,
+  print_text = FALSE,
+  print_count = TRUE,
   ...
 )
 }
@@ -23,8 +23,6 @@ edstr_view(
 \item{data}{data}
 
 \item{text_input}{text_input}
-
-\item{filter}{filter}
 
 \item{replace}{replace}
 
@@ -38,9 +36,11 @@ edstr_view(
 
 \item{id}{id}
 
-\item{output_sample}{output_sample}
+\item{n_text_output}{n_text_output}
 
-\item{print}{print}
+\item{print_text}{print_text}
+
+\item{print_count}{print_count}
 
 \item{...}{...}
 }
