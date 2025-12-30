@@ -23,7 +23,6 @@
 #' @param dirname_suffix dirname_suffix
 #' @param filename_suffix filename_suffix
 #' @param load load
-#' @param quiet quiet
 #'
 #' @return value
 #' @export
@@ -33,12 +32,12 @@
 edstr_extract <- \(
   data,
   text_input = getOption("edstr_text"),
+  id = check_id_key(data = data, exclude = text_input),
+  group = NULL,
   sample = NULL,
   seed = NULL,
   ano_hash = NULL,
   ano_hide = NULL,
-  id = "",
-  group = "",
   token = 1,
   concepts,
   collapse = FALSE,
@@ -53,11 +52,11 @@ edstr_extract <- \(
   text_background = "#FFFF00",
   dirname_suffix = if (!is.null(sample)) glue("sample_{sample}") else NULL,
   filename_suffix = dirname_suffix,
-  load = FALSE,
-  quiet = FALSE
+  load = FALSE
 ) {
 
-  if (!is.null(seed)) set.seed(seed)
+  check_class(data, "data.frame")
+  check_class(text_input, "character")
 
   config <- check_config()
 
@@ -78,6 +77,8 @@ edstr_extract <- \(
   save_extract <- glue("{save_dir}/{save_files}")
 
   save_extract_rds <- glue("{save_extract}.rds")
+
+  if (!is.null(seed)) set.seed(seed)
 
   tic("Full steps")
 
@@ -168,23 +169,34 @@ edstr_extract <- \(
   str_concepts_comma <- str_flatten_comma(concepts_root)
   str_concepts_inter <- glue("[{paste(concepts_root, collapse = ' ET ')}]")
 
+  .regex_end <- if (starts_with_only) "\\S*$" else ""
+
+  concepts_regex <- map(concepts, ~ glue("^({.}){.regex_end}"))
+
+  concepts_regex_df <- tibble(
+    concept_key = concepts_keys,
+    concept_name = unlist(concepts_names),
+    regex = unlist(concepts_regex)
+  )
+
 ### ID -------------------------------------------------------------------------
 
-  data_init <- data
+  which_key <- check_id_key(
+    data = data,
+    exclude = text_input,
+    error = FALSE
+  )
 
-  check_group <- group %in% names(data_init)
+  if (!(id %in% which_key)) rlang::arg_match(id, which_key)
 
-  if (!id %in% names(data_init)) {
+  which_group <- check_id_group(
+    data = data,
+    id = group
+  )
 
-    id <- "n_id"
+  if (is.null(group)) {
 
-    data <- rownames_to_column(data, id)
-
-  }
-
-  if (!check_group) {
-
-    group <- "n_group"
+    group <- "id_group"
 
     data <- mutate(
       .data = data,
@@ -194,7 +206,9 @@ edstr_extract <- \(
 
   }
 
-  if (!is.null(sample)) data <- data[sample(nrow(data), sample), ]
+  nrow_init <- nrow(data)
+
+  if (!is.null(sample)) data <- data[sample(nrow_init, sample), ]
 
 ### FORMAT ---------------------------------------------------------------------
 
@@ -211,48 +225,31 @@ edstr_extract <- \(
 
   }
 
-  .format_content <- regex("(?<=\">).+(?=</p>)")
-  .format_tags <- regex("</?[a-z]+/?>")
-
-  data_replace <-
+  data_token <-
   data[c(id, group, text_input)] |>
-    mutate(!!text_input := format_text(.data[[text_input]]))
+    mutate(!!text_input := easy_format(.data[[text_input]]))
 
 ### TOKENISATION ---------------------------------------------------------------
 
   cli_progress_step("{.strong Tokenisation du texte source}")
   cli_text("\n\n")
 
-  data_token <-
-  token |>
-    map(~
-      data_replace |>
-        unnest_tokens(
-          output = !!text_input,
-          input = !!text_input,
-          token = "ngrams",
-          n = .
-        ) |>
-        filter(stri_detect_regex(.data[[text_input]], "[:alpha:]"))
-    )
+  token <- token |> set_names(paste0("n", token))
 
-  rm(data_replace); invisible(gc())
+  data_token <- map(
+    token,
+    ~ easy_ngram(
+      data = data_token,
+      text = !!text_input,
+      n = .,
+      filter = "[:alpha:]"
+    )
+  )
 
 ### MATCHING TOKEN -------------------------------------------------------------
 
   cli_progress_step("{.strong Matching du texte tokenis\u00e9}")
   cli_text("\n\n")
-
-  concepts_regex_end <- if (starts_with_only) "\\S*$" else ""
-
-  concepts_regex <- map(concepts, ~ glue("^({.}){concepts_regex_end}"))
-
-  concepts_regex_df <-
-  tibble(
-    concept_key = concepts_keys,
-    concept_name = unlist(concepts_names),
-    regex = unlist(concepts_regex)
-  )
 
   token_extract <- \(x, n) {
 
@@ -265,34 +262,37 @@ edstr_extract <- \(
 
   }
 
-  data_token_list <-
-  token |>
-    map(~ concepts_regex |>
-          token_extract(.) |>
-          list_rbind()) |>
-    set_names(token)
+  data_token_list <- map(
+    token,
+    ~ concepts_regex |>
+      token_extract(.) |>
+      list_rbind()
+  )
 
-  data_token_match <-
-  data_token_list |>
-    map(~ . |>
-          count(concept, pick(text_input),
-                name = "match",
-                sort = TRUE))
+  data_token_match <- map(
+    data_token_list,
+    ~ count(
+      x = .,
+      concept, pick(text_input),
+      name = "match",
+      sort = TRUE
+    )
+  )
 
   data_match_init <-
-  data_token_list |>
-    imap(~ mutate(.x, token = .y)) |>
+  imap(data_token_list, ~ mutate(.x, token = .y)) |>
     list_rbind()
 
   .concepts_id <-
-  concepts_root |>
-    set_names() |>
-    map(~ data_match_init |>
-          distinct(pick(id, group), concept) |>
-          pivot_wider(names_from = concept,
-                      values_from = concept) |>
-          filter(if_any(matches(.), ~ !is.na(.))) |>
-          select(id, group))
+  set_names(concepts_root) |>
+    map(
+      ~ data_match_init |>
+        distinct(pick(id, group), concept) |>
+        pivot_wider(names_from = concept,
+                    values_from = concept) |>
+        filter(if_any(matches(.), ~ !is.na(.))) |>
+        select(id, group)
+    )
 
   if (intersect) {
 
@@ -424,7 +424,7 @@ edstr_extract <- \(
   regex_replace <-
   c("e(?!$)" = "[e\u00e9\u00e8\u00ea\u00eb]",
     "(?<=o)i" = "[i\u00ee\u00ef]",
-    "\\s" = "(<br/>)?\\\\s?(-|')?\\\\s?(<br/>)?") |>
+    "\\s" = "(?:<br/>)?[\\\\s\\\\-']+(?:<br/>)?") |>
     append(regex_replace) |>
     regex(multiline = TRUE)
 
@@ -463,12 +463,11 @@ edstr_extract <- \(
   data_regex_match <-
   data_regex_list |>
     imap(
-      ~ edstr_view(
+      ~ view_output(
         data = data_match_df,
         text_input = text_input,
         pattern = .x,
-        id = id,
-        print_count = FALSE
+        id = id
       ) |>
         pluck("match") |>
         mutate(concept = .y, .before = match)
@@ -920,7 +919,7 @@ edstr_extract <- \(
   cli_intersect <- if (intersect) " \u00e0 l'intersection {str_concepts_inter}" else ""
 
   cli_n_id <- nrow(data_id |> filter(.data[[id]] %in% .match_id[[id]]))
-  cli_p_id <- label_percent(0.1)(nrow(data) / nrow(data_init))
+  cli_p_id <- label_percent(0.1)(nrow(data) / nrow_init)
 
   cli_n_match <- n_distinct(data_match_init[[id]])
   cli_p_match <- label_percent(0.1)(cli_n_match / nrow(data))
@@ -944,7 +943,7 @@ edstr_extract <- \(
   cli_alert_info("{.strong Documents}")
   cli_ul()
   cli_ul()
-    cli_li("Total : {nrow(data_init)} {id}")
+    cli_li("Total : {nrow_init} {id}")
     if (!is.null(sample)) cli_li("Sample : {nrow(data)} {id} ({cli_p_id})")
     cli_end()
 
@@ -983,7 +982,7 @@ edstr_extract <- \(
   cli_alert_success("{.strong {cli_n_id} correspondance{?s}{glue(cli_intersect)}}")
   cli_ul()
     cli_li("{cli_n_extract} {id} ({cli_p_extract} {id})")
-    if (check_group) cli_li("{cli_n_group} {group} ({cli_p_group} {group})")
+    if (!is.null(which_group)) cli_li("{cli_n_group} {group} ({cli_p_group} {group})")
     cli_end()
 
   if (mismatch_data && cli_n_mismatch > 0) {
@@ -992,7 +991,7 @@ edstr_extract <- \(
     cli_alert_success("{.strong {cli_n_mismatch} mismatch{?es}}")
     cli_ul()
       cli_li("{cli_n_mismatch} {id} ({cli_p_mismatch} {id})")
-      if (check_group) cli_li("{cli_n_group_mismatch} {group} ({cli_p_group_mismatch} {group})")
+      if (!is.null(which_group)) cli_li("{cli_n_group_mismatch} {group} ({cli_p_group_mismatch} {group})")
       cli_end()
 
   }

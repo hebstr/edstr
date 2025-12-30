@@ -1,3 +1,104 @@
+check_class <- \(
+  x,
+  class,
+  arg = rlang::caller_arg(x),
+  call = rlang::caller_env()
+) {
+
+  if (!inherits(x, class)) {
+
+    cli::cli_abort(
+      "{.arg {arg}} doit \u00eatre un objet de type
+      {.cls {class}}, pas {.cls {class(x)}}.",
+      call = call
+    )
+
+  }
+
+  invisible(data)
+
+}
+
+check_id_key <- \(data, exclude, error = TRUE) {
+
+  filename <- enexpr(data)
+
+  id_key <-
+  data |>
+    select(-all_of(exclude)) |>
+    purrr::keep(~ anyDuplicated(.) == 0L && !anyNA(.)) |>
+    names()
+
+  if (length(id_key) != 1) {
+
+    if (length(id_key) < 1) {
+
+      cli_abort(
+        message = c(
+          "{.arg id_key} : aucune clé primaire identifiée dans {.strong {filename}}",
+          "i" = "{.strong {filename}} doit contenir au moins un identifiant unique et sans valeur manquante"
+        ),
+        call = rlang::caller_env()
+      )
+
+    } else if (error) {
+
+      str_id_key <- str_flatten_comma(id_key)
+
+      cli_abort(
+        message = c(
+          "{.arg id_key} : plusieurs clés primaires identifiées dans {.strong {filename}}",
+          "i" = "En choisir une parmi : {str_id_key}"
+        ),
+        call = rlang::caller_env()
+      )
+
+    } else {
+
+      return(invisible(id_key))
+
+    }
+
+  }
+
+  return(invisible(id_key))
+
+}
+
+check_id_group <- \(
+  data,
+  id,
+  arg = rlang::caller_arg(id),
+  call = rlang::caller_env()
+) {
+
+  if (is.null(id)) return(NULL)
+
+  if (!(id %in% names(data))) {
+
+    cli_abort(
+      message = "{.arg {arg}}: la colonne {.strong {id}} n'existe pas",
+      call = call
+    )
+
+  }
+
+  if (anyNA(data[[id]])) {
+
+    cli_abort(
+      message = c(
+        "{.arg {arg}}: {.strong {id}} contient au moins une valeur manquante",
+        "i" = "Grouper sur un identifiant sans valeur manquante"
+      ),
+      call = call
+    )
+
+  }
+
+  return(invisible(id))
+
+}
+
 easy_ano <- \(x,
               to_hash = NULL,
               to_hide = NULL,
@@ -51,7 +152,7 @@ easy_ano <- \(x,
 
 }
 
-format_text <- \(text) {
+easy_format <- \(text) {
 
   .format_content <- regex("(?<=\">).+(?=</p>)")
   .format_tags <- regex("</?[a-z]+/?>")
@@ -68,16 +169,90 @@ format_text <- \(text) {
 
 }
 
+
+easy_ngram <- \(data, text, n, filter) {
+
+  .data_ngram <- unnest_tokens(
+    tbl = data,
+    output = {{ text }},
+    input = {{ text }},
+    token = "ngrams",
+    n = n
+  )
+
+  .data_ngram <- .data_ngram |> filter(stri_detect_regex({{ text }}, filter))
+
+   return(.data_ngram)
+
+}
+
+
+easy_replace <- \(data, pattern, text) {
+
+  if (!is.list(pattern)) pattern <- list(pattern)
+
+  mutate(
+    .data = data,
+    !!text := reduce(
+      .x = pattern,
+      .f = str_replace_all,
+      .init = .data[[text]]
+    )
+  )
+
+}
+
+view_output <- \(
+  data,
+  text_input,
+  pattern,
+  id,
+  ...
+) {
+
+  data$match <- str_extract_all(data[[text_input]], pattern)
+
+  .data_match <- data |> unnest(match) |> select(id, match)
+
+  if (nrow(.data_match) == 0) {
+
+    cli_abort(
+      message = "{.strong Aucune correspondance}",
+      call = rlang::caller_env()
+    )
+
+  }
+
+  .data_count <- .data_match |> count(match, sort = TRUE)
+
+  .data_text <-
+  data |>
+    filter(.data[[id]] %in% .data_match[[id]]) |>
+    pull(text_input) |>
+    str_view(pattern, ...)
+
+  lst(
+    match = .data_match,
+    count = .data_count,
+    text = .data_text
+  )
+
+}
+
+
 check_config <- \(suffix = NULL) {
 
   id <- "edstr_dirname"
 
   if (is.null(getOption(id))) {
 
-    cli_abort(c(
-      "{.field {id}} n'est pas configur\u00e9",
-      "i" = "Cr\u00e9er avec {.fn edstr_config}"
-    ))
+    cli_abort(
+      message = c(
+        "{.field {id}} n'est pas configur\u00e9",
+        "i" = "Cr\u00e9er avec {.fn edstr_config}"
+      ),
+      call = rlang::caller_env()
+    )
 
   } else {
 
@@ -145,8 +320,8 @@ cli_check <- \(config_file, fun_save, fun_load) {
 
   choix <- menu(
     choices = c(
-      "\u00c9craser le fichier existant",
       "Charger le fichier existant",
+      "\u00c9craser le fichier existant",
       "Annuler"
     ),
     title = NULL
@@ -154,11 +329,11 @@ cli_check <- \(config_file, fun_save, fun_load) {
 
   if (choix == 1) {
 
-    fun_save
+    fun_load
 
   } else if (choix == 2) {
 
-    fun_load
+    fun_save
 
   } else {
 

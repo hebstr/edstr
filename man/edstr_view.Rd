@@ -8,14 +8,9 @@ edstr_view(
   data,
   text_input = getOption("edstr_text"),
   replace = NULL,
-  pattern = NULL,
-  case_sensitive = FALSE,
-  starts_with_only = FALSE,
-  token_max = NULL,
-  id = NULL,
-  n_text_output = 5,
-  print_text = FALSE,
-  print_count = TRUE,
+  pattern,
+  ngrams = 1,
+  id,
   ...
 )
 }
@@ -28,19 +23,9 @@ edstr_view(
 
 \item{pattern}{pattern}
 
-\item{case_sensitive}{case_sensitive}
-
-\item{starts_with_only}{starts_with_only}
-
-\item{token_max}{token_max}
+\item{ngrams}{ngrams}
 
 \item{id}{id}
-
-\item{n_text_output}{n_text_output}
-
-\item{print_text}{print_text}
-
-\item{print_count}{print_count}
 
 \item{...}{...}
 }

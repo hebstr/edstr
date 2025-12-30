@@ -7,6 +7,8 @@
 
   config <- check_config("clean")
 
+  check_class(data, "data.frame")
+
   cli_h1("edstr_clean")
   cli_text("\n\n")
 
@@ -14,15 +16,10 @@
 
   cli_progress_step("Nettoyage du fichier (???)")
 
-  if (!is.list(replace)) replace <- list(replace)
-
-  data_clean <- mutate(
-    .data = data,
-    !!text := reduce(
-      .x = replace,
-      .f = str_replace_all,
-      .init = .data[[text]]
-    )
+  data_clean <- easy_replace(
+    data = data,
+    pattern = replace,
+    text = text
   )
 
   cli_progress_done()

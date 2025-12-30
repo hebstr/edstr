@@ -12,7 +12,7 @@ edstr_extract(
   ano_hash = NULL,
   ano_hide = NULL,
   id = "",
-  group = "",
+  group = NULL,
   token = 1,
   concepts,
   collapse = FALSE,
@@ -27,8 +27,7 @@ edstr_extract(
   text_background = "#FFFF00",
   dirname_suffix = if (!is.null(sample)) glue("sample_{sample}") else NULL,
   filename_suffix = dirname_suffix,
-  load = FALSE,
-  quiet = FALSE
+  load = FALSE
 )
 }
 \arguments{
@@ -77,8 +76,6 @@ edstr_extract(
 \item{filename_suffix}{filename_suffix}
 
 \item{load}{load}
-
-\item{quiet}{quiet}
 }
 \value{
 value
