@@ -49,7 +49,7 @@ edstr_import <- \(
 
     dbconfig <- config::get(file = connect_dir)
 
-    connection <- DBI::dbConnect(
+    connection <- DatabaseConnector::connect(
       dbms = dbconfig$db$driver,
       pathToDriver = dbconfig$db$path,
       connectionString = paste0(dbconfig$db$adress, dbconfig$tns[[tns]]),
@@ -128,7 +128,7 @@ edstr_import <- \(
 
     }
 
-    DBI::dbDisconnect(connection)
+    DatabaseConnector::disconnect(connection)
 
     invisible(gc()) ; rJava::J("java.lang.Runtime")$getRuntime()$gc()
 
