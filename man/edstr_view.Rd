@@ -7,10 +7,10 @@
 edstr_view(
   data,
   text_input = getOption("edstr_text"),
+  id = check_id_key(data = data, exclude = text_input),
   replace = NULL,
   pattern,
   ngrams = 1,
-  id,
   ...
 )
 }
@@ -19,13 +19,13 @@ edstr_view(
 
 \item{text_input}{text_input}
 
+\item{id}{id}
+
 \item{replace}{replace}
 
 \item{pattern}{pattern}
 
 \item{ngrams}{ngrams}
-
-\item{id}{id}
 
 \item{...}{...}
 }

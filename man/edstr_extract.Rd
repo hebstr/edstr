@@ -7,12 +7,12 @@
 edstr_extract(
   data,
   text_input = getOption("edstr_text"),
+  id = check_id_key(data = data, exclude = text_input),
+  group = NULL,
   sample = NULL,
   seed = NULL,
   ano_hash = NULL,
   ano_hide = NULL,
-  id = "",
-  group = NULL,
   token = 1,
   concepts,
   collapse = FALSE,
@@ -35,6 +35,10 @@ edstr_extract(
 
 \item{text_input}{text_input}
 
+\item{id}{id}
+
+\item{group}{group}
+
 \item{sample}{sample}
 
 \item{seed}{seed}
@@ -42,10 +46,6 @@ edstr_extract(
 \item{ano_hash}{ano_hash}
 
 \item{ano_hide}{ano_hide}
-
-\item{id}{id}
-
-\item{group}{group}
 
 \item{token}{token}
 
