@@ -41,8 +41,7 @@ Imports:
     config,
     stringi,
     rstudioapi,
-    fs,
-    DBI
+    fs
 Suggests:
     knitr,
     quarto,
