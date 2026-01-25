@@ -9,7 +9,7 @@ edstr_import(
   head = NULL,
   lower = TRUE,
   user = NULL,
-  password = rstudioapi::askForPassword(),
+  password = askForPassword(),
   connect_dir = "/opt/oracle/instantclient_23_7/connect/dbconnect.yml",
   tns = "vlp",
   collect = TRUE,

@@ -78,7 +78,7 @@ edstr_extract <- \(
 
   save_extract_rds <- glue("{save_extract}.rds")
 
-  if (!is.null(seed)) set.seed(seed)
+  if (!is.null(seed)) local_seed(seed)
 
   tic("Full steps")
 
@@ -86,518 +86,140 @@ edstr_extract <- \(
 
   if (!load) {
 
-### CONCEPTS -------------------------------------------------------------------
+### PARSE CONCEPTS -------------------------------------------------------------
 
-  if (length(concepts) > 1) {
-
-    if (!is_named(concepts)) {
-
-      cli_abort("Chaque concept doit \u00eatre nomm\u00e9")
-
-    } else {
-
-      concepts <- as.list(concepts)
-
-    }
-
-  } else if (!is.list(concepts)) {
-
-    if (!is_named(concepts)) {
-
-      concepts <- list("<concept>" = concepts)
-
-    } else {
-
-      concepts <- as.list(concepts)
-
-    }
-
-  }
-
-  list_flatten_complete <- \(data) {
-
-    data |>
-      pluck_depth() |>
-      seq() |>
-      reduce(~ list_flatten(.), .init = data)
-
-  }
-
-  if (collapse) {
-
-    if (length(concepts) == 1) {
-
-      cli_abort("Pas de regroupement possible si un seul concept est recherch\u00e9")
-
-    }
-
-    if (pluck_depth(concepts) > 2) {
-
-      concepts <-
-      concepts |>
-        map(~ . |>
-              list_flatten_complete() |>
-              paste(collapse = "|"))
-
-    } else {
-
-      concepts <-
-      concepts |>
-        paste(collapse = "|") |>
-        set_names("<concept>")
-
-    }
-
-  } else {
-
-    concepts <- list_flatten_complete(concepts)
-
-  }
-
-  concepts_keys <- names(concepts)
-
-  concepts_names <- concepts |> imap(~ { if (is_named(.x)) names(.x) else .y })
-
-  concepts_root <- concepts_keys |> str_remove("_.+") |> unique()
-
-  if (length(concepts_root) == 1 && intersect) {
-
-    cli_abort("Pas d'intersection possible si un seul concept est recherch\u00e9")
-
-  }
-
-  str_concepts_comma <- str_flatten_comma(concepts_root)
-  str_concepts_inter <- glue("[{paste(concepts_root, collapse = ' ET ')}]")
-
-  .regex_end <- if (starts_with_only) "\\S*$" else ""
-
-  concepts_regex <- map(concepts, ~ glue("^({.}){.regex_end}"))
-
-  concepts_regex_df <- tibble(
-    concept_key = concepts_keys,
-    concept_name = unlist(concepts_names),
-    regex = unlist(concepts_regex)
-  )
-
-### ID -------------------------------------------------------------------------
-
-  which_key <- check_id_key(
-    data = data,
-    exclude = text_input,
-    error = FALSE
-  )
-
-  if (!(id %in% which_key)) rlang::arg_match(id, which_key)
-
-  which_group <- check_id_group(
-    data = data,
-    id = group
-  )
-
-  if (is.null(group)) {
-
-    group <- "id_group"
-
-    data <- mutate(
-      .data = data,
-      !!group := row_number(),
-      .after = all_of(id)
+    concepts_list <- .extract_parse_concepts(
+      concepts,
+      collapse,
+      intersect,
+      starts_with_only
     )
 
-  }
+### CHECK IDS ------------------------------------------------------------------
 
-  nrow_init <- nrow(data)
+    ids_list <- .extract_check_ids(data, sample, text_input, id, group)
 
-  if (!is.null(sample)) data <- data[sample(nrow_init, sample), ]
+    data <- ids_list$data
+    id <- ids_list$id
+    group <- ids_list$group
+    which_group <- ids_list$which_group
+    nrow_init <- ids_list$nrow_init
 
 ### FORMAT ---------------------------------------------------------------------
 
-  cli_progress_step("{.strong Formatage du texte source}")
-  cli_text("\n\n")
+    cli_progress_step("{.strong Formatage du texte source}")
+    cli_text("\n\n")
 
-  if (!is.null(ano_hash) || !is.null(ano_hide)) {
-
-    data <- easy_ano(
-      x = data,
-      to_hash = ano_hash,
-      to_hide = ano_hide
+    data_token <- .extract_format_text(
+      data, text_input, id, group, ano_hash, ano_hide
     )
-
-  }
-
-  data_token <-
-  data[c(id, group, text_input)] |>
-    mutate(!!text_input := easy_format(.data[[text_input]]))
 
 ### TOKENISATION ---------------------------------------------------------------
 
-  cli_progress_step("{.strong Tokenisation du texte source}")
-  cli_text("\n\n")
+    cli_progress_step("{.strong Tokenisation du texte source}")
+    cli_text("\n\n")
 
-  token <- token |> set_names(paste0("n", token))
+    token <- set_names(token, paste0("n", token))
 
-  data_token <- map(
-    token,
-    ~ easy_ngram(
-      data = data_token,
-      text = !!text_input,
-      n = .,
-      filter = "[:alpha:]"
-    )
-  )
+    data_token <- .extract_tokenize(data_token, text_input, token)
 
 ### MATCHING TOKEN -------------------------------------------------------------
 
-  cli_progress_step("{.strong Matching du texte tokenis\u00e9}")
-  cli_text("\n\n")
+    cli_progress_step("{.strong Matching du texte tokenis\u00e9}")
+    cli_text("\n\n")
 
-  token_extract <- \(x, n) {
-
-    x |>
-      imap(~ data_token[[n]] |>
-             mutate(!!text_input := str_extract(.data[[text_input]], .x),
-                    concept = .y,
-                    .before = text_input) |>
-             drop_na())
-
-  }
-
-  data_token_list <- map(
-    token,
-    ~ concepts_regex |>
-      token_extract(.) |>
-      list_rbind()
-  )
-
-  data_token_match <- map(
-    data_token_list,
-    ~ count(
-      x = .,
-      concept, pick(text_input),
-      name = "match",
-      sort = TRUE
-    )
-  )
-
-  data_match_init <-
-  imap(data_token_list, ~ mutate(.x, token = .y)) |>
-    list_rbind()
-
-  .concepts_id <-
-  set_names(concepts_root) |>
-    map(
-      ~ data_match_init |>
-        distinct(pick(id, group), concept) |>
-        pivot_wider(names_from = concept,
-                    values_from = concept) |>
-        filter(if_any(matches(.), ~ !is.na(.))) |>
-        select(id, group)
+    match_tokens <- .extract_match_token(
+      data, data_token, token, text_input, concepts_list, id, group, intersect
     )
 
-  if (intersect) {
-
-    .match_id <- .concepts_id |> reduce(inner_join, by = c(id, group))
-
-  } else {
-
-    .match_id <- data_match_init[id]
-
-  }
-
-  data_match <-
-  data_match_init |>
-    rename(concept_key = concept) |>
-    mutate(concept = concept_key |> map_chr(~ concepts_names[[.]]),
-           .after = concept_key) |>
-    filter(.data[[id]] %in% .match_id[[id]])
-
-  data_match_init_df <-
-  data |>
-    select(-text_input) |>
-    filter(.data[[id]] %in% data_match_init[[id]])
-
-  data_match_df <- data |> filter(.data[[id]] %in% data_match[[id]])
-
-  rm(data_token); invisible(gc())
-
-  if (nrow(data_match) == 0) {
-
-    abort_intersect <- if (intersect) " \u00e0 l'intersection" else ""
-
-    cli_abort("{.strong Aucune correspondance{abort_intersect}}")
-
-  }
+    data_match <- match_tokens$data_match
+    data_match_init <- match_tokens$data_match_init
+    data_match_init_df <- match_tokens$data_match_init_df
+    data_match_df <- match_tokens$data_match_df
+    data_token_match <- match_tokens$data_token_match
+    match_id <- match_tokens$match_id
 
 ### EXCLUSIONS -----------------------------------------------------------------
 
-  cli_progress_step("{.strong Exclusions}")
-  cli_text("\n\n")
+    cli_progress_step("{.strong Exclusions}")
+    cli_text("\n\n")
 
-  if (!is.null(exclus_auto_escape)) {
+    exclusions <- .extract_exclusions(
+      data_match, text_input, id, group, exclus_manual, exclus_auto_escape
+    )
 
-    data_match <- filter(data_match, !str_detect(.data[[text_input]], exclus_auto_escape))
-
-  }
-
-  set_exclus_auto <- \(regex, name) {
-
-    data_match[[text_input]] |>
-      unique() |>
-      map(~ data_match |>
-            filter(str_detect(.data[[text_input]], glue(regex))) |>
-            mutate(!!name := .)) |>
-      list_rbind()
-
-  }
-
-  str_detect_safe <- \(string, pattern) {
-
-    if (is.null(pattern) || is.na(pattern)) {
-
-      rep(FALSE, length(string))
-
-    } else {
-
-      str_detect(string, pattern)
-
-    }
-
-  }
-
-  data_match_exclus <-
-  list(
-    auto =
-      list(start = "^{.}\\s",
-           end = "\\s{.}$",
-           start_end = "{.}.+{.}$") |>
-        imap(set_exclus_auto) |>
-        reduce(full_join, by = names(data_match)) |>
-        filter(token > 2),
-    manual =
-      data_match |>
-        filter(str_detect_safe(.data[[text_input]], exclus_manual))
-  ) |>
-    imap(~ .x |> mutate(mode = .y, .before = everything()))
-
-  .match_exclus <-
-  list(concept =
-         data_match_exclus |>
-           list_rbind() |>
-           pull(text_input) |>
-           unique(),
-       expr = expr(.data[[text_input]] %in% .match_exclus$concept))
-
-  data_match_final <-
-  list(keep = data_match |> filter(!eval(.match_exclus$expr)),
-       drop = data_match |> filter(eval(.match_exclus$expr)))
-
-  data_count <-
-  data_match_final |>
-    map(~ list2(match = .,
-                !!id := distinct(., pick(-group)),
-                !!group := distinct(., pick(-id))) |>
-          imap(~ . |>
-                 count(token, concept, pick(text_input),
-                       name = .y,
-                       sort = TRUE)) |>
-          reduce(left_join, by = c("concept", text_input, "token")))
-
-  data_count_exclus <-
-  data_match_exclus |>
-    map(~ . |> select(-id, -group)) |>
-    list_rbind() |>
-    distinct() |>
-    relocate(token, .before = concept) |>
-    left_join(data_count$drop,
-              by = c("token", "concept", text_input))
-
-  data_id <- data_match_final$keep
-  data_count <- data_count$keep
+    data_match <- exclusions$data_match
+    data_match_exclus <- exclusions$data_match_exclus
+    data_match_final <- exclusions$data_match_final
+    data_id <- exclusions$data_id
+    data_count <- exclusions$data_count
+    data_count_exclus <- exclusions$data_count_exclus
 
 ### MATCHING SOURCE ------------------------------------------------------------
 
-  cli_progress_step("{.strong Matching du texte source}")
-  cli_text("\n\n")
+    cli_progress_step("{.strong Matching du texte source}")
+    cli_text("\n\n")
 
-  regex_replace_arg <- regex_replace
+    match_source <- .extract_match_source(
+      data_match_df, data_count, text_input, id, regex_replace
+    )
 
-  regex_replace <-
-  c("e(?!$)" = "[e\u00e9\u00e8\u00ea\u00eb]",
-    "(?<=o)i" = "[i\u00ee\u00ef]",
-    "\\s" = "(?:<br/>)?[\\\\s\\\\-']+(?:<br/>)?") |>
-    append(regex_replace) |>
-    regex(multiline = TRUE)
-
-  regex_wrap <- "(?i)\\b({x})\\b"
-
-  regex_replace_df <-
-  tibble(pattern = names(as.list(regex_replace)),
-         replace = regex_replace)
-
-  data_regex_replace <-
-  data_count |>
-    arrange(concept) |>
-    mutate(!!text_input :=
-             str_replace_all(.data[[text_input]], regex_replace))
-
-  data_regex_str <-
-  glue(regex_wrap,
-       x =
-         data_regex_replace |>
-           pull(text_input) |>
-           paste(collapse = "|"))
-
-  data_regex_df <-
-  data_regex_replace |>
-    nest(!!text_input := all_of(text_input), .by = concept) |>
-    mutate(!!text_input :=
-             map_chr(.data[[text_input]], ~ str_flatten(unlist(.), "|")),
-           !!text_input :=
-             glue(regex_wrap, x = .data[[text_input]]))
-
-  data_regex_list <-
-  data_regex_df[[text_input]] |>
-    as.list() |>
-    set_names(data_regex_df$concept)
-
-  data_regex_match <-
-  data_regex_list |>
-    imap(
-      ~ view_output(
-        data = data_match_df,
-        text_input = text_input,
-        pattern = .x,
-        id = id
-      ) |>
-        pluck("match") |>
-        mutate(concept = .y, .before = match)
-    ) |>
-    list_rbind()
-
-  data_regex_count <- data_regex_match |> count(concept, match, sort = TRUE)
+    regex_replace_arg <- match_source$regex_replace_arg
+    regex_replace_df <- match_source$regex_replace_df
+    data_regex_df <- match_source$data_regex_df
+    data_regex_list <- match_source$data_regex_list
+    data_regex_match <- match_source$data_regex_match
+    data_regex_count <- match_source$data_regex_count
+    data_regex_str <- match_source$data_regex_str
 
 ### MISMATCH -------------------------------------------------------------------
 
-  cli_progress_step("{.strong Mismatch entre texte source et tokenis\u00e9}")
-  cli_text("\n\n")
+    cli_progress_step("{.strong Mismatch texte source / texte tokenis\u00e9}")
+    cli_text("\n\n")
 
-  data_id_mismatch_base <- data[c(id, group)]
-
-  if (mismatch_data) {
-
-    data_id_mismatch <-
-    data_id_mismatch_base |>
-      filter(!.data[[id]] %in% data_match_init[[id]])
-
-  } else {
-
-    data_id_mismatch <-
-    data_id_mismatch_base |>
-      filter(.data[[id]] %in% NA_character_)
-
-  }
-
-  data_regex_match_conv <-
-  data_regex_match |>
-    mutate(match =
-             match |>
-               iconv(from = "UTF-8", to = "ASCII//TRANSLIT") |>
-               tolower() |>
-               str_replace_all(c("-(<br/>)?|-?<br/>" = " ",
-                                 "\\s+" = " ")))
-
-  data_mismatch <-
-  list(id = data_id_mismatch,
-       regex =
-         data_match |>
-           select(id, concept, match = !!text_input) |>
-           anti_join(y = data_regex_match_conv,
-                     by = c(id, "concept", "match")))
+    data_mismatch <- .extract_mismatch(
+      data, data_match, data_match_init, data_regex_match, id, group, text_input, mismatch_data
+    )
 
 ### EXTRACTION -----------------------------------------------------------------
 
-  cli_progress_step("{.strong Extraction}")
-  cli_text("\n\n")
+    cli_progress_step("{.strong Extraction}")
+    cli_text("\n\n")
 
-  data_extract <-
-  list(data =
-         data_match_df |>
-           mutate(extract =
-                    .data[[text_input]] |>
-                      str_extract_all(data_regex_str) |>
-                      map_chr(paste, collapse = " ; ")),
-       concept_name =
-         data_regex_list |>
-           imap(~ data_match_df |>
-                  mutate(extract = str_extract(.data[[text_input]], .x),
-                         concept = .y) |>
-                  drop_na(extract) |>
-                  select(id, group, concept)) |>
-           list_rbind() |>
-           nest(concept = concept) |>
-           mutate(concept = map_chr(concept, ~ str_flatten(unlist(.), " ; "))),
-       concept_dummy =
-         data_id |>
-           distinct(pick(id, group), concept_key) |>
-           pivot_wider(names_from = concept_key,
-                       values_from = concept_key) |>
-           mutate(across(matches(concepts_root), ~ ifelse(is.na(.), 0, 1)))) |>
-    reduce(inner_join, by = c(id, group)) |>
-    relocate(concept, extract, .after = last_col()) |>
-    arrange(pick(group, id)) |>
-    rownames_to_column("n")
+    data_extract <- .extract_results(
+      data_match_df, data_id, data_regex_list, data_regex_str, concepts_list$root, id, group, text_input
+    )
 
 ### RESUME ---------------------------------------------------------------------
 
-  cli_progress_step("{.strong R\u00e9sum\u00e9}")
-  cli_text("\n\n")
+    cli_progress_step("{.strong R\u00e9sum\u00e9}")
+    cli_text("\n\n")
 
-  set_summary <- \(var) {
+    params <- list(
+      sample = sample,
+      seed = seed,
+      id = id,
+      group = group,
+      token = token,
+      concepts_root = concepts_list$root,
+      concepts_names = concepts_list$regex_df$concept_name,
+      collapse = collapse,
+      intersect = intersect,
+      starts_with_only = starts_with_only,
+      exclus_manual = exclus_manual,
+      exclus_auto_escape = exclus_auto_escape,
+      regex_replace = regex_replace_arg,
+      mismatch_data = mismatch_data,
+      concept_color = concept_color,
+      text_color = text_color,
+      text_background = text_background
+    )
 
-    list(total = data_match,
-         exclus_auto = data_match_exclus$auto,
-         exclus_manual = data_match_exclus$manual,
-         final = data_id,
-         distinct = data_count) |>
-      set_names(~ glue("match_{.}")) |>
-      imap(~ .x |>
-             count(pick(all_of(var)),
-                   sort = TRUE,
-                   name = .y))
+    data_summary <- .extract_summary(
+      data_match, data_match_exclus, data_id, data_count, id, group, params
+    )
 
-  }
-
-  data_summary <-
-  list(token = set_summary("token"),
-       concept =
-         list(match = set_summary("concept"),
-              id =
-                list(id, group) |>
-                  imap(~ summarise(data_id,
-                                   !!. := n_distinct(.data[[.]]),
-                                   .by = concept))) |>
-           list_flatten()) |>
-    imap(~ reduce(., left_join, by = .y)) |>
-    append(list(params =
-                  list(sample = sample,
-                       seed = seed,
-                       id = id,
-                       group = group,
-                       token = token,
-                       concepts_root = concepts_root,
-                       concepts_names = concepts_regex_df$concept_name,
-                       collapse = collapse,
-                       intersect = intersect,
-                       starts_with_only = starts_with_only,
-                       exclus_manual = exclus_manual,
-                       exclus_auto_escape = exclus_auto_escape,
-                       regex_replace = regex_replace_arg,
-                       mismatch_data = mismatch_data,
-                       concept_color = concept_color,
-                       text_color = text_color,
-                       text_background = text_background)))
-
-  unlink(file.path(save_dir, list.files(save_dir)), recursive = TRUE)
+    unlink(file.path(save_dir, list.files(save_dir)), recursive = TRUE)
 
 ### XLSX DATA ------------------------------------------------------------------
 
@@ -623,7 +245,7 @@ edstr_extract <- \(
   data_sheets <-
   list(
     data = data_extract |> select(-text_input),
-    token_regex = concepts_regex_df,
+    token_regex = concepts_list$regex_df,
     token_match = data_id |> select(-concept_key),
     token_count = data_count |> select(-token),
     concept_count = data_summary$concept,
@@ -652,7 +274,7 @@ edstr_extract <- \(
     wb_add_custom(
       sheet = data_sheets$token_regex$name,
       data = data_sheets$token_regex$data,
-      concept_var = names(concepts_regex_df) |> str_subset("concept"),
+      concept_var = names(concepts_list$regex_df) |> str_subset("concept"),
       concept_color = concept_color,
       text_var = "regex",
       text_color = text_color,
@@ -735,17 +357,17 @@ edstr_extract <- \(
           list(
             id =
               data_sheets$data$data |>
-                select(-c(matches(concepts_root), concept, extract)) |>
+                select(-c(matches(concepts_list$root), concept, extract)) |>
                 gt_custom(font_size = 11) |>
                 sub_missing() |>
                 gt_text_align(),
             text =
               data_sheets$data$data |>
-                select(n, id, matches(concepts_root), concept, extract) |>
+                select(n, id, matches(concepts_list$root), concept, extract) |>
                 mutate(` ... ` = "...", .after = id) |>
                 gt_custom(font_size = 11) |>
                 gt_text_align() |>
-                gt_text_color(column = matches(c(concepts_root, "concept")),
+                gt_text_color(column = matches(c(concepts_list$root, "concept")),
                               color = concept_color) |>
                 gt_text_color(column = "extract",
                               color = text_color)
@@ -835,7 +457,7 @@ edstr_extract <- \(
       text_background = text_background,
       pattern = data_regex_str
     ) |>
-    select(-matches(concepts_root))
+    select(-matches(concepts_list$root))
 
   write_excel_csv(data_csv, file = glue("{save_extract}.csv"))
 
@@ -846,7 +468,7 @@ edstr_extract <- \(
 
   data_save <- list(
     regex = list(
-      concepts = concepts_regex_df,
+      concepts = concepts_list$regex_df,
       replace = regex_replace_df,
       final = data_regex_df,
       match = data_regex_match
@@ -914,11 +536,11 @@ edstr_extract <- \(
   toc()
   cli_text("\n\n")
 
-  n_concepts <- length(concepts_root)
+  n_concepts <- length(concepts_list$root)
 
-  cli_intersect <- if (intersect) " \u00e0 l'intersection {str_concepts_inter}" else ""
+  cli_intersect <- if (intersect) " \u00e0 l'intersection {concepts_list$str$inter}" else ""
 
-  cli_n_id <- nrow(data_id |> filter(.data[[id]] %in% .match_id[[id]]))
+  cli_n_id <- nrow(data_id |> filter(.data[[id]] %in% match_id[[id]]))
   cli_p_id <- label_percent(0.1)(nrow(data) / nrow_init)
 
   cli_n_match <- n_distinct(data_match_init[[id]])
@@ -930,10 +552,10 @@ edstr_extract <- \(
   cli_n_group <- n_distinct(data_extract[[group]])
   cli_p_group <- label_percent(0.1)(cli_n_group / n_distinct(data[[group]]))
 
-  cli_n_mismatch <- nrow(data_id_mismatch)
+  cli_n_mismatch <- nrow(data_mismatch$id)
   cli_p_mismatch <- label_percent(0.1)(cli_n_mismatch / nrow(data))
 
-  cli_n_group_mismatch <- n_distinct(data_id_mismatch[[group]])
+  cli_n_group_mismatch <- n_distinct(data_mismatch$id[[group]])
   cli_p_group_mismatch <- label_percent(0.1)(cli_n_group_mismatch / n_distinct(data[[group]]))
 
   cli_n_files <- sum(str_detect(list.files(save_dir), "\\.\\w+"))
@@ -976,7 +598,7 @@ edstr_extract <- \(
   cli_rule()
   cli_text("\n\n")
 
-  cli_alert_success("{.strong {n_concepts} concept{?s} parent{?s} :} {str_concepts_comma}")
+  cli_alert_success("{.strong {n_concepts} concept{?s} parent{?s} :} {concepts_list$str$comma}")
   cli_text("\n\n")
 
   cli_alert_success("{.strong {cli_n_id} correspondance{?s}{glue(cli_intersect)}}")
@@ -1012,8 +634,6 @@ edstr_extract <- \(
 
   cli_text("\n\n")
   cli_rule()
-
-  invisible(gc())
 
   return(invisible(data_save))
 

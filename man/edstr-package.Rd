@@ -8,13 +8,6 @@
 \description{
 Collecter, nettoyer et extraire des données textuelles de routine depuis l'EDS.
 }
-\seealso{
-Useful links:
-\itemize{
-  \item \url{https://cpd000001.chrul.net/9000}
-}
-
-}
 \author{
 \strong{Maintainer}: Julien ELICES-DIEZ \email{ju.diez@protonmail.com} (\href{https://orcid.org/0009-0001-3983-5713}{ORCID})
 

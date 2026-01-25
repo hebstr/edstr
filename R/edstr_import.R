@@ -21,7 +21,7 @@ edstr_import <- \(
   head = NULL,
   lower = TRUE,
   user = NULL,
-  password = rstudioapi::askForPassword(),
+  password = askForPassword(),
   connect_dir = "/opt/oracle/instantclient_23_7/connect/dbconnect.yml",
   tns = "vlp",
   collect = TRUE,
@@ -29,7 +29,7 @@ edstr_import <- \(
   ...
 ) {
 
-  if (collect) config <- check_config("import")
+  config <- check_config("import")
 
   query <- glue(query)
   connect_dir <- glue(connect_dir)
@@ -43,9 +43,7 @@ edstr_import <- \(
 
 ### CONNECT --------------------------------------------------------------------
 
-    withr::local_options(java.parameters = "-Xmx8g")
-
-    gc() ; rJava::J("java.lang.Runtime")$getRuntime()$gc()
+    .gc_r_java()
 
     dbconfig <- config::get(file = connect_dir)
 
@@ -130,7 +128,7 @@ edstr_import <- \(
 
     DatabaseConnector::disconnect(connection)
 
-    invisible(gc()) ; rJava::J("java.lang.Runtime")$getRuntime()$gc()
+    .gc_r_java()
 
   } else {
 

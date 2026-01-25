@@ -68,26 +68,18 @@ edstr_clean <- \(
 
   config <- check_config("clean")
 
+  fun_save <- \() .clean_save(data, text, replace, sample)
+
   if (!fs::file_exists(config$save)) {
 
-    .clean_save(
-      data = data,
-      text = text,
-      replace = replace,
-      sample = sample
-    )
+    fun_save()
 
   } else {
 
     cli_check(
       config_file = config$file,
-      fun_save = .clean_save(
-        data = data,
-        text = text,
-        replace = replace,
-        sample = sample
-      ),
-      fun_load = .clean_load()
+      fun_save = fun_save,
+      fun_load = \() .clean_load()
     )
 
   }

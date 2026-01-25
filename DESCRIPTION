@@ -5,7 +5,6 @@ Authors@R:
     person("Julien", "ELICES-DIEZ", , "ju.diez@protonmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0009-0001-3983-5713"))
 Description: Collecter, nettoyer et extraire des données textuelles de routine depuis l'EDS.
-URL: https://cpd000001.chrul.net/9000
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -15,9 +14,7 @@ Depends:
 Imports:
     cli,
     dplyr,
-    ggplot2,
     glue,
-    graphics,
     gt,
     here,
     htmltools,
