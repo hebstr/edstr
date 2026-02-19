@@ -79,11 +79,11 @@
 
   br(); cli_rule(); br()
 
-  cli_alert_info("{.strong R\u00e9pertoire racine : {.path {here::here()}}}\n\n")
+  cli_alert_info("{.strong R\u00e9pertoire parent : {.path {here::here()}}}\n\n")
 
-  cli_path <- cli::col_br_red(paste0(fs::path(save_dir, save_files), ".*"))
+  cli_path <- fs::path(save_dir, save_files, ext = "<xlsx/csv/rds>")
 
-  cli_alert_success("{.strong Fichiers enregistr\u00e9s dans {cli_path}}")
+  cli_alert_success("{.strong Fichiers enregistr\u00e9s : {cli::col_blue(cli_path)}}")
 
   br(); cli_rule()
 

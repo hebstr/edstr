@@ -9,8 +9,7 @@
 
   check_class(data, "data.frame")
 
-  cli_h1("edstr_clean")
-  cli_text("\n\n")
+  cli_h1("edstr_clean"); br()
 
   if (!is.null(sample)) data <- data[sample(nrow(data), sample), ]
 
@@ -36,8 +35,7 @@
 
   config <- check_config("clean")
 
-  cli_h1("edstr_clean")
-  cli_text("\n\n")
+  cli_h1("edstr_clean"); br()
 
   cli_load(
     dir = config$dir,

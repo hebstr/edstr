@@ -21,15 +21,17 @@ edstr_config <- \(
     ...
   )
 
-  cli_h1("edstr_config")
-  cli_text("\n\n")
+  set_name <- \(x) paste0("{.strong {.path {getOption('edstr_", x, "')}}}")
 
-  cli_alert_info("{.strong R\u00e9pertoire parent : {.path {here::here()}}}")
-  cli_text("\n\n")
+  cli_h1("edstr_config"); br()
 
-  cli_alert_info("Emplacement d\u00e9fini : {.strong {.path {getOption('edstr_dirname')}}}")
-  cli_alert_info("Les fichiers seront nomm\u00e9s avec le pr\u00e9fixe {.strong {.path {getOption('edstr_filename')}}}")
-  cli_text("\n\n")
+  cli_alert_info("{.strong R\u00e9pertoire parent : {.path {here::here()}}}"); br()
+
+  cli_alert_info(str_glue(
+    "Les fichiers seront enregistrés dans le r\u00e9pertoire {set_name('dirname')} et nomm\u00e9s avec le pr\u00e9fixe {set_name('filename')}"
+  ))
+
+  br()
 
   cli_rule()
 

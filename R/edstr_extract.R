@@ -328,6 +328,8 @@ edstr_extract <- \(
 
   } else {
 
+    br()
+
     cli_load(
       dir = save_dir,
       file = save_files,
