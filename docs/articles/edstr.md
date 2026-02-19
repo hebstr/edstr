@@ -16,8 +16,7 @@ correspondante dans la partie “Articles”.
 
 ## 1 Charger le package
 
-Le package [edstr](https://cpd000001.chrul.net/9000) doit être chargé
-dans l’environnement.
+Le package `{edstr}` doit être chargé dans l’environnement.
 
 ``` r
 library(edstr)

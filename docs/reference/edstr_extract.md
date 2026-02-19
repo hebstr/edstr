@@ -8,12 +8,12 @@ Title
 edstr_extract(
   data,
   text_input = getOption("edstr_text"),
+  id = check_id_key(data = data, exclude = text_input),
+  group = NULL,
   sample = NULL,
   seed = NULL,
   ano_hash = NULL,
   ano_hide = NULL,
-  id = "",
-  group = "",
   token = 1,
   concepts,
   collapse = FALSE,
@@ -28,8 +28,7 @@ edstr_extract(
   text_background = "#FFFF00",
   dirname_suffix = if (!is.null(sample)) glue("sample_{sample}") else NULL,
   filename_suffix = dirname_suffix,
-  load = FALSE,
-  quiet = FALSE
+  load = FALSE
 )
 ```
 
@@ -42,6 +41,14 @@ edstr_extract(
 - text_input:
 
   text_input
+
+- id:
+
+  id
+
+- group:
+
+  group
 
 - sample:
 
@@ -58,14 +65,6 @@ edstr_extract(
 - ano_hide:
 
   ano_hide
-
-- id:
-
-  id
-
-- group:
-
-  group
 
 - token:
 
@@ -126,10 +125,6 @@ edstr_extract(
 - load:
 
   load
-
-- quiet:
-
-  quiet
 
 ## Value
 
@@ -251,6 +246,6 @@ example
 #>         encoding = "UTF-8", catch.aborts = catch.aborts, skip.echo = skips, 
 #>         keep.source = TRUE)
 #> }
-#> <bytecode: 0x638a857d6648>
+#> <bytecode: 0x5f81c3a27ab8>
 #> <environment: namespace:utils>
 ```

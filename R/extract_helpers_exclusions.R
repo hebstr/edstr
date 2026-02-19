@@ -2,6 +2,8 @@
   data_match, text_input, id, group, exclus_manual, exclus_auto_escape
 ) {
 
+  data_match$token <- as.numeric(str_remove(data_match$token, "n"))
+
   if (!is.null(exclus_auto_escape)) {
 
     data_match <- filter(
@@ -42,7 +44,8 @@
       list(start = "^{.}\\s", end = "\\s{.}$", start_end = "{.}.+{.}$") |>
         imap(set_exclus_auto) |>
         reduce(full_join, by = names(data_match)) |>
-        filter(token > 2),
+        filter(token > 10)
+        ,
     manual = filter(
       data_match,
       str_detect_safe(.data[[text_input]], exclus_manual)

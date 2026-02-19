@@ -64,7 +64,7 @@ check_id_key <- \(data, exclude, error = TRUE) {
 
       cli_abort(
         message = c(
-          "{.arg id_key} : aucune clé primaire identifiée dans {.strong {filename}}",
+          "{.arg id} : aucune clé primaire identifiée dans {.strong {filename}}",
           "i" = "{.strong {filename}} doit contenir au moins un identifiant unique et sans valeur manquante"
         ),
         call = rlang::caller_env()
@@ -76,8 +76,8 @@ check_id_key <- \(data, exclude, error = TRUE) {
 
       cli_abort(
         message = c(
-          "{.arg id_key} : plusieurs clés primaires identifiées dans {.strong {filename}}",
-          "i" = "En choisir une parmi : {str_id_key}"
+          "{.arg id} : plusieurs clés primaires potentielles identifiées dans {.strong {filename}}",
+          "i" = "Choisir un identifiant parmi : {str_id_key}"
         ),
         call = rlang::caller_env()
       )

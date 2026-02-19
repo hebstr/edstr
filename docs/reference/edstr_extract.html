@@ -63,12 +63,12 @@
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">edstr_extract</span><span class="op">(</span></span>
 <span>  <span class="va">data</span>,</span>
 <span>  text_input <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">getOption</a></span><span class="op">(</span><span class="st">"edstr_text"</span><span class="op">)</span>,</span>
+<span>  id <span class="op">=</span> <span class="fu">check_id_key</span><span class="op">(</span>data <span class="op">=</span> <span class="va">data</span>, exclude <span class="op">=</span> <span class="va">text_input</span><span class="op">)</span>,</span>
+<span>  group <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  sample <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  seed <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  ano_hash <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  ano_hide <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  id <span class="op">=</span> <span class="st">""</span>,</span>
-<span>  group <span class="op">=</span> <span class="st">""</span>,</span>
 <span>  token <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  <span class="va">concepts</span>,</span>
 <span>  collapse <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -83,8 +83,7 @@
 <span>  text_background <span class="op">=</span> <span class="st">"#FFFF00"</span>,</span>
 <span>  dirname_suffix <span class="op">=</span> <span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">sample</span><span class="op">)</span><span class="op">)</span> <span class="fu">glue</span><span class="op">(</span><span class="st">"sample_{sample}"</span><span class="op">)</span> <span class="kw">else</span> <span class="cn">NULL</span>,</span>
 <span>  filename_suffix <span class="op">=</span> <span class="va">dirname_suffix</span>,</span>
-<span>  load <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  quiet <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  load <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -98,6 +97,14 @@
 
 <dt id="arg-text-input">text_input<a class="anchor" aria-label="anchor" href="#arg-text-input"></a></dt>
 <dd><p>text_input</p></dd>
+
+
+<dt id="arg-id">id<a class="anchor" aria-label="anchor" href="#arg-id"></a></dt>
+<dd><p>id</p></dd>
+
+
+<dt id="arg-group">group<a class="anchor" aria-label="anchor" href="#arg-group"></a></dt>
+<dd><p>group</p></dd>
 
 
 <dt id="arg-sample">sample<a class="anchor" aria-label="anchor" href="#arg-sample"></a></dt>
@@ -114,14 +121,6 @@
 
 <dt id="arg-ano-hide">ano_hide<a class="anchor" aria-label="anchor" href="#arg-ano-hide"></a></dt>
 <dd><p>ano_hide</p></dd>
-
-
-<dt id="arg-id">id<a class="anchor" aria-label="anchor" href="#arg-id"></a></dt>
-<dd><p>id</p></dd>
-
-
-<dt id="arg-group">group<a class="anchor" aria-label="anchor" href="#arg-group"></a></dt>
-<dd><p>group</p></dd>
 
 
 <dt id="arg-token">token<a class="anchor" aria-label="anchor" href="#arg-token"></a></dt>
@@ -182,10 +181,6 @@
 
 <dt id="arg-load">load<a class="anchor" aria-label="anchor" href="#arg-load"></a></dt>
 <dd><p>load</p></dd>
-
-
-<dt id="arg-quiet">quiet<a class="anchor" aria-label="anchor" href="#arg-quiet"></a></dt>
-<dd><p>quiet</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -308,7 +303,7 @@
 <span class="r-out co"><span class="r-pr">#&gt;</span>         encoding = "UTF-8", catch.aborts = catch.aborts, skip.echo = skips, </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         keep.source = TRUE)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> }</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;bytecode: 0x638a857d6648&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;bytecode: 0x5f81c3a27ab8&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: namespace:utils&gt;</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>

@@ -77,129 +77,12 @@
 </h1></div>
 <!-- badges: start -->
 
-<p>Le but de {edstr} est de fournir un ensemble de fonctions réalisant un process reproductible d’importation, de nettoyage, et d’extraction de données textuelles de routine.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">#install.packages("pak")</span></span>
 <span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pkg_install.html" class="external-link">pkg_install</a></span><span class="op">(</span><span class="st">"git::https://codeberg.org/hebstr/edstr"</span>, dependencies <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="résumé">Résumé<a class="anchor" aria-label="anchor" href="#r%C3%A9sum%C3%A9"></a>
-</h2>
-<p>Une vue d’ensemble du process est présentée dans <code><a href="articles/edstr.html">vignette("edstr")</a></code>.</p>
-<div class="section level3">
-<h3 id="configuration-initiale">Configuration initiale<a class="anchor" aria-label="anchor" href="#configuration-initiale"></a>
-</h3>
-<p><code><a href="reference/edstr_config.html">edstr_config()</a></code> :</p>
-<ul>
-<li><p>Définition de la configuration nécessaire aux fonctions exécutées en aval (répertoire de destination, nom des fichiers générés, règles de nettoyage, concepts, colonne texte).</p></li>
-<li><p>Produit une liste en arrière-plan, nommée par défaut <code>.config</code>, dont les éléments sont appelés dans les fonctions en aval.</p></li>
-<li><p>Certains paramètres peuvent être définis directement dans les fonctions en aval, cependant il est conseillé de le faire ici car ils ne sont pas censés changer d’une étape à l’autre.</p></li>
-</ul>
-</div>
-<div class="section level3">
-<h3 id="production">Production<a class="anchor" aria-label="anchor" href="#production"></a>
-</h3>
-<p><code><a href="reference/edstr_import.html">edstr_import()</a></code> :</p>
-<ul>
-<li><p>Importation de caractéristiques depuis l’entrepôt</p></li>
-<li><p>À partir d’une requête SQL (directe ou par appel d’une table) ou depuis un fichier .sql.</p></li>
-<li>
-<p>Produit un dataframe automatiquement sauvegardé dans un fichier .RData :</p>
-<ul>
-<li>Situé dans le répertoire défini avec <code><a href="reference/edstr_config.html">edstr_config()</a></code> (argument <code>dest_dir</code>)</li>
-<li>Portant le nom défini dans <code><a href="reference/edstr_config.html">edstr_config()</a></code> (argument <code>dest_filename</code>) suivi du suffixe <code>_import</code>.</li>
-</ul>
-</li>
-</ul>
-<p><code><a href="reference/edstr_clean.html">edstr_clean()</a></code> :</p>
-<ul>
-<li><p>Nettoyage d’une colonne texte présent dans un dataframe.</p></li>
-<li><p>Prend automatiquement en input le dataframe produit avec la fonction <code><a href="reference/edstr_import.html">edstr_import()</a></code>, par défaut nommé <code>[nom_du_fichier]_import</code>.</p></li>
-<li>
-<p>Produit un dataframe automatiquement sauvegardé dans un fichier .RData :</p>
-<ul>
-<li>Situé dans le répertoire défini avec <code><a href="reference/edstr_config.html">edstr_config()</a></code> (argument <code>dest_dir</code>)</li>
-<li>Portant le nom défini dans <code><a href="reference/edstr_config.html">edstr_config()</a></code> (argument <code>dest_filename</code>) suivi du suffixe <code>_clean</code>.</li>
-</ul>
-</li>
-</ul>
-<p><code><a href="reference/edstr_extract.html">edstr_extract()</a></code> :</p>
-<ul>
-<li><p>Extraction depuis une colonne texte présent dans un dataframe sur la base d’une recherche par mots-clés.</p></li>
-<li><p>Prend automatiquement en input le dataframe nettoyé produit avec la fonction <code><a href="reference/edstr_clean.html">edstr_clean()</a></code>, par défaut nommé <code>[nom_du_fichier]_clean</code>.</p></li>
-<li><p>Produit une liste portant le nom défini dans <code><a href="reference/edstr_config.html">edstr_config()</a></code> (argument <code>dest_filename</code>) suivi du suffixe <code>_extract</code> (contenu détaillé dans <code><a href="articles/extract.html">vignette("extract")</a></code>)</p></li>
-<li>
-<p>Produit automatiquement un dossier portant le nom défini dans <code><a href="reference/edstr_config.html">edstr_config()</a></code> (argument <code>dest_filename</code>) suivi du suffixe <code>_extract</code>, situé dans le répertoire défini avec <code><a href="reference/edstr_config.html">edstr_config()</a></code> (argument <code>dest_dir</code>) et contenant :</p>
-<ul>
-<li>La liste sauvegardé dans un fichier .RData</li>
-<li>Le décompte des termes extraits, enregistrés aux formats .csv et .html (si <code>HTML = TRUE</code>)</li>
-<li>Un dataframe constitué des chaines de caractères extraites avec caractéristiques associés (e.g., id_entrepot, id_pat, UF), au formats .csv et .html (si <code>HTML = TRUE</code>).</li>
-</ul>
-</li>
-</ul>
-</div>
-<div class="section level3">
-<h3 id="exploration">Exploration<a class="anchor" aria-label="anchor" href="#exploration"></a>
-</h3>
-<p>La fonction <code><a href="reference/edstr_view.html">edstr_view()</a></code> permet une exploration rapide des données textuelles depuis la console sur la base d’une recherche par mots-clés.</p>
-<ul>
-<li><p>Peut prendre en input tout dataframe contenant a minima une colonne texte et une colonne identifiant (de préférence une clé primaire).</p></li>
-<li><p>Document balisé lisible depuis la console avec surbrillance des éléments recherchés.</p></li>
-<li><p>Décompte des mots-clés recherchés classé par ordre de fréquence</p></li>
-<li>
-<p>Produit automatiquement un dossier portant le nom défini dans <code><a href="reference/edstr_config.html">edstr_config()</a></code> (argument <code>dest_filename</code>) suivi du suffixe <code>_view</code>, situé dans le répertoire défini avec <code><a href="reference/edstr_config.html">edstr_config()</a></code> (argument <code>dest_dir</code>) et contenant :</p>
-<ul>
-<li>Un dataframe consitué des mots-clés recherchés avec l’identifiant associé (classiquement l’id_entrepot)</li>
-<li>Un dataframe constitué du décompte classé par ordre de fréquence</li>
-<li>Un dataframe constitué de l’échantillon de documents affichés dans la console (10 par défaut)</li>
-</ul>
-</li>
-</ul>
-<p>Plus de détails dans <code><a href="articles/edstr.html">vignette("edstr")</a></code>.</p>
-</div>
-</div>
-<div class="section level2">
-<h2 id="template">Template<a class="anchor" aria-label="anchor" href="#template"></a>
-</h2>
-<p>Pour une utilisation classique, un template de script est mis à disposition à <code>G:/Data/_R_/packages/edstr_config/template.R</code></p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://cpd000001.chrul.net/9000">edstr</a></span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="reference/edstr_config.html">edstr_config</a></span><span class="op">(</span>dest_dir <span class="op">=</span> <span class="st">"___"</span>,</span>
-<span>             dest_filename <span class="op">=</span> <span class="st">"___"</span>,</span>
-<span>             str <span class="op">=</span> <span class="st">"G:/Data/_R_/edstr_config/str.RData"</span>,</span>
-<span>             concepts <span class="op">=</span> <span class="st">"___"</span>,</span>
-<span>             text <span class="op">=</span> <span class="st">"___"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="reference/edstr_import.html">edstr_import</a></span><span class="op">(</span>query <span class="op">=</span> <span class="st">"select * from ___"</span>,</span>
-<span>             connect_dir <span class="op">=</span> <span class="st">"G:/Data/_R_/database_connection"</span>,</span>
-<span>             user <span class="op">=</span> <span class="st">"w_etudes"</span>,</span>
-<span>             load <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="reference/edstr_clean.html">edstr_clean</a></span><span class="op">(</span>replace <span class="op">=</span> <span class="va">clean_all</span>,</span>
-<span>            load <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="reference/edstr_extract.html">edstr_extract</a></span><span class="op">(</span>sample <span class="op">=</span> <span class="fl">50</span>,</span>
-<span>              split <span class="op">=</span> <span class="va">extract_split</span>,</span>
-<span>              replace <span class="op">=</span> <span class="va">extract_replace</span>,</span>
-<span>              ngrams <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">5</span>,</span>
-<span>              concepts <span class="op">=</span> <span class="st">"___"</span>,</span>
-<span>              id <span class="op">=</span> <span class="st">"___"</span>,</span>
-<span>              group <span class="op">=</span> <span class="st">"___"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co">#--------------------------------------------------------</span></span>
-<span></span>
-<span><span class="fu"><a href="reference/edstr_view.html">edstr_view</a></span><span class="op">(</span>data <span class="op">=</span> <span class="st">"___"</span>,</span>
-<span>           str <span class="op">=</span> <span class="st">"___"</span>,</span>
-<span>           id <span class="op">=</span> <span class="st">"___"</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="origine-du-nom">Origine du nom<a class="anchor" aria-label="anchor" href="#origine-du-nom"></a>
-</h2>
-<p>edstr est la contraction de “EDS” (Entrepôt de Données de Santé) et de “str”, diminutif de string, car la finalité est le traitement de chaînes de caractères.</p>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">

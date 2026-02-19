@@ -5,8 +5,11 @@
   regex_replace_arg <- regex_replace
 
   regex_replace <- c(
-    "e(?!$)" = "[e\u00e9\u00e8\u00ea\u00eb]",
-    "(?<=o)i" = "[i\u00ee\u00ef]",
+    "a" = "[aàâæ]",
+    "e" = "[eéèêëœ]",
+    "i" = "[iîï]",
+    "o" = "[oôœ]",
+    "u" = "[uùûü]",
     "\\s" = "(?:<br/>)?[\\\\s\\\\-']+(?:<br/>)?"
   ) |>
     append(regex_replace) |>

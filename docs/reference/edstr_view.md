@@ -8,15 +8,10 @@ Explorer
 edstr_view(
   data,
   text_input = getOption("edstr_text"),
+  id = check_id_key(data = data, exclude = text_input),
   replace = NULL,
-  pattern = NULL,
-  case_sensitive = FALSE,
-  starts_with_only = FALSE,
-  token_max = NULL,
-  id = NULL,
-  n_text_output = 5,
-  print_text = FALSE,
-  print_count = TRUE,
+  pattern,
+  ngrams = 1,
   ...
 )
 ```
@@ -31,6 +26,10 @@ edstr_view(
 
   text_input
 
+- id:
+
+  id
+
 - replace:
 
   replace
@@ -39,33 +38,9 @@ edstr_view(
 
   pattern
 
-- case_sensitive:
+- ngrams:
 
-  case_sensitive
-
-- starts_with_only:
-
-  starts_with_only
-
-- token_max:
-
-  token_max
-
-- id:
-
-  id
-
-- n_text_output:
-
-  n_text_output
-
-- print_text:
-
-  print_text
-
-- print_count:
-
-  print_count
+  ngrams
 
 - ...:
 
@@ -191,6 +166,6 @@ example
 #>         encoding = "UTF-8", catch.aborts = catch.aborts, skip.echo = skips, 
 #>         keep.source = TRUE)
 #> }
-#> <bytecode: 0x638a857d6648>
+#> <bytecode: 0x5f81c3a27ab8>
 #> <environment: namespace:utils>
 ```

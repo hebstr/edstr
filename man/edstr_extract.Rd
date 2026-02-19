@@ -24,8 +24,7 @@ edstr_extract(
   mismatch_data = FALSE,
   concept_color = "#0099FF",
   text_color = "#FF0000",
-  text_background = "#FFFF00",
-  dirname_suffix = if (!is.null(sample)) glue("sample_{sample}") else NULL,
+  dirname_suffix = if (!is.null(sample)) str_glue("sample_{sample}") else NULL,
   filename_suffix = dirname_suffix,
   load = FALSE
 )
@@ -68,8 +67,6 @@ edstr_extract(
 \item{concept_color}{concept_color}
 
 \item{text_color}{text_color}
-
-\item{text_background}{text_background}
 
 \item{dirname_suffix}{dirname_suffix}
 

@@ -3,12 +3,6 @@
 Collecter, nettoyer et extraire des données textuelles de routine depuis
 l'EDS.
 
-## See also
-
-Useful links:
-
-- <https://cpd000001.chrul.net/9000>
-
 ## Author
 
 **Maintainer**: Julien ELICES-DIEZ <ju.diez@protonmail.com>

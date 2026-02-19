@@ -14,7 +14,7 @@
 
   if (!is.null(sample)) data <- data[sample(nrow(data), sample), ]
 
-  cli_progress_step("Nettoyage du fichier (???)")
+  cli_progress_step("Nettoyage du texte ({.strong {text}})")
 
   data_clean <- easy_replace(
     data = data,

@@ -26,6 +26,18 @@
 
   }
 
+  .clean_concepts_names <- \(x) {
+
+    if (!is.list(x)) return(x)
+
+    names(x) <- names(x) |> tolower() |> str_remove_all("[^[a-z]]")
+
+    map(x, .clean_concepts_names)
+
+  }
+
+  concepts <- .clean_concepts_names(concepts)
+
   if (collapse) {
 
     if (length(concepts) == 1) {

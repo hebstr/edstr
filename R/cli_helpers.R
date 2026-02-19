@@ -6,7 +6,7 @@ cli_save <- \(data, config_file, config_save) {
 
   cli_progress_done()
 
-  cli_alert_success("Fichier {.strong {config_file}} enregistr\u00e9 dans {.path {config_save}}")
+  cli_alert_success("Fichier {.strong {config_file}} enregistr\u00e9 dans {.strong {.path {config_save}}}")
   cli_text("\n\n")
   cli_alert_info("{.strong Dimensions}")
   cli_ul()
@@ -23,13 +23,13 @@ cli_save <- \(data, config_file, config_save) {
 
 cli_load <- \(dir, file, save) {
 
-  cli_progress_step("Chargement du fichier {.strong {file}}")
+  cli_progress_step("Chargement du fichier {.strong {file}}"); br()
 
   .load <- readRDS(save)
 
   cli_progress_done()
 
-  cli_alert_success("Ficher {.strong {file}} charg\u00e9 depuis {.path {save}}")
+  cli_alert_success("Ficher {.strong {file}} charg\u00e9 depuis {.strong {.path {save}}}")
   cli_text("\n\n")
   cli_rule()
 

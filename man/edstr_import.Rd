@@ -12,7 +12,6 @@ edstr_import(
   password = askForPassword(),
   connect_dir = "/opt/oracle/instantclient_23_7/connect/dbconnect.yml",
   tns = "vlp",
-  collect = TRUE,
   load = FALSE,
   ...
 )
@@ -31,8 +30,6 @@ edstr_import(
 \item{connect_dir}{connect_dir}
 
 \item{tns}{tns}
-
-\item{collect}{collect}
 
 \item{load}{load}
 

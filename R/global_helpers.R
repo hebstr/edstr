@@ -1,3 +1,5 @@
+br <- \() cli_text("\n\n")
+
 easy_flatten <- \(x) {
 
   seq_depth <- seq(pluck_depth(x))
@@ -174,154 +176,119 @@ gt_text_align <- \(x,
 
 }
 
+set_class_css <- \(data, pattern) {
 
-set_data_csv <- \(
-  data,
-  text_input,
-  text_color,
-  text_background,
-  pattern
-) {
+  pattern <-
+  set_names(pattern, str_to_kebab) |>
+    map_chr(~ regex(as.character(.)))
 
-  .css <-
-  paste0(
-    "color:", text_color, ";",
-    "background-color:", text_background, ";",
-    "font-weight:bold;",
-    "font-family:system-ui;",
-    "padding:0.2rem;",
-    "border-radius:5px;"
+  fun <- \(string, regex, class) str_replace_all(
+    string = string,
+    pattern = regex,
+    replace = str_glue("<span class='extract {class}'>\\1</span>")
   )
 
-  pattern_compiled <- regex(as.character(pattern))
-
-  text_vector <- str_replace_all(
-    string = data[[text_input]],
-    pattern = pattern_compiled,
-    replacement = glue("<span style='{.css}'>\\1</span>")
+  reduce2(
+    .x = pattern,
+    .y = names(pattern),
+    .f = fun,
+    .init = data
   )
-
-  data[[text_input]] <- text_vector
-
-  return(data)
 
 }
 
-
-wb_add_custom <- \(x,
-                    sheet,
-                    ...,
-                    data,
-                    max_width = 100,
-                    halign = "center",
-                    font_size = 8,
-                    font_color = "#222222",
-                    concept_var = NULL,
-                    concept_color = NULL,
-                    text_var = NULL,
-                    text_color = NULL,
-                    border_color = "#999999",
-                    border_type = "thin") {
+wb_add_custom <- \(
+  x,
+  sheet,
+  data,
+  max_width = 60,
+  halign = "center",
+  font_size = 8,
+  header_color = "#E5E5E5",
+  border_color = "#999999",
+  border_type = "thin",
+  color = NULL,
+  ...
+) {
 
   local_options(list(openxlsx2.maxWidth = max_width))
 
-  .dims <-
-  list(
-    full = wb_dims(x = data),
-    data = wb_dims(x = data, select = "data"),
-    cols = wb_dims(x = data, select = "col_names")
+  params <- list(
+    dims = list(
+      full = wb_dims(x = data),
+      data = wb_dims(x = data, select = "data"),
+      cols = wb_dims(x = data, select = "col_names")
+    ),
+    colors = list(
+      border = wb_color(border_color),
+      header = wb_color(header_color)
+    )
   )
 
-  .colors <-
-  list(
-    border = wb_color(border_color),
-    header = wb_color("grey90")
+  add_color <- \(wb, vars, color) wb_add_font(
+    wb = wb,
+    dims = wb_dims(x = data, cols = vars, select = "data"),
+    color = wb_color(color),
+    size = font_size,
+    bold = TRUE
   )
 
-  .xlsx_output <-
-  x |>
-    wb_add_worksheet(
-      sheet = sheet,
-      zoom = 105,
-      ...
-    ) |>
+  output <- wb_add_worksheet(
+    wb = x,
+    sheet = sheet,
+    zoom = 105,
+    ...
+  ) |>
     wb_add_data_table(
       x = data,
       na.strings = NULL
     ) |>
     wb_add_font(
-      dims = .dims$cols,
+      dims = params$dims$cols,
       size = font_size + 1,
       bold = TRUE
     ) |>
     wb_add_font(
-      dims = .dims$data,
+      dims = params$dims$data,
       size = font_size
     ) |>
     wb_add_fill(
-      dims = .dims$cols,
-      color = .colors$header
+      dims = params$dims$cols,
+      color = params$colors$header
     ) |>
     wb_set_col_widths(
-      cols = 1:ncol(data),
+      cols = seq_len(ncol(data)),
       widths = "auto"
     ) |>
     wb_add_cell_style(
-      dims = .dims$full,
+      dims = params$dims$full,
       horizontal = halign,
       vertical = "center",
       wrap_text = TRUE
     ) |>
     wb_add_border(
-      dims = .dims$data,
-      top_color = .colors$border,
+      dims = params$dims$full,
+      top_color = params$colors$border,
       top_border = border_type,
-      bottom_color = .colors$border,
+      bottom_color = params$colors$border,
       bottom_border = border_type,
-      left_color = .colors$border,
+      left_color = params$colors$border,
       left_border = border_type,
-      right_color = .colors$border,
+      right_color = params$colors$border,
       right_border = border_type,
-      inner_hcolor = .colors$border,
+      inner_hcolor = params$colors$border,
       inner_hgrid = border_type,
-      inner_vcolor = .colors$border,
+      inner_vcolor = params$colors$border,
       inner_vgrid = border_type
+    ) |>
+    reduce2(
+      .x = color,
+      .y = names(color),
+      .f = add_color,
+      .init = _
     )
 
-  .add_font <- \(wb, vars, color) {
-
-    .dims <- wb_dims(x = data, cols = vars, select = "data")
-    .color <- wb_color(color)
-
-    wb_add_font(
-      wb = wb,
-      dims = .dims,
-      color = .color,
-      size = font_size,
-      bold = TRUE
-    )
-
-  }
-
-  if (!is.null(concept_color)) {
-
-    .xlsx_output <-
-    .add_font(wb = .xlsx_output,
-              vars = concept_var,
-              color = concept_color)
-
-  }
-
-  if (!is.null(text_color)) {
-
-    .xlsx_output <-
-    .add_font(wb = .xlsx_output,
-              vars = text_var,
-              color = text_color)
-
-  }
-
-  return(.xlsx_output)
+  return(output)
 
 }
 

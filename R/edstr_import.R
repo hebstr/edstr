@@ -7,7 +7,6 @@
 #' @param password password
 #' @param connect_dir connect_dir
 #' @param tns tns
-#' @param collect collect
 #' @param load load
 #' @param ... ...
 #'
@@ -24,18 +23,13 @@ edstr_import <- \(
   password = askForPassword(),
   connect_dir = "/opt/oracle/instantclient_23_7/connect/dbconnect.yml",
   tns = "vlp",
-  collect = TRUE,
   load = FALSE,
   ...
 ) {
 
   config <- check_config("import")
 
-  query <- glue(query)
-  connect_dir <- glue(connect_dir)
-
-  cli_h1("edstr_import")
-  cli_text("\n\n")
+  cli_h1("edstr_import"); br()
 
   if (!load) {
 
@@ -56,7 +50,12 @@ edstr_import <- \(
       ...
     )
 
-    cli_text("\n\n")
+    # connection <- DBI::dbConnect(
+    #   drv = duckdb::duckdb(),
+    #   dbdir = "_extra/collect/data/test.duckdb"
+    # )
+
+    br()
 
 ### QUERY ----------------------------------------------------------------------
 
@@ -85,50 +84,38 @@ edstr_import <- \(
 
     if (!is.null(head)) {
 
-      query <- glue("{query} FETCH FIRST {head} ROWS ONLY")
+      query <- str_glue("{query} FETCH FIRST {head} ROWS ONLY")
 
     }
 
-    get_query <- \(x = connection, y = query) tbl(x, sql(y))
+    get_query <- \() tbl(connection, sql(query))
 
 ### IMPORT ---------------------------------------------------------------------
 
-    if (collect) {
+    br(); if (!is.null(user)) cli_progress_step("Import (user: {.strong {user}})")
 
-      cli_text("\n\n")
-      cli_progress_step("Import (user: {.strong {user}})")
+    data_import <- collect(get_query())
 
-      data_import <- collect(get_query())
+    if (lower) data_import <- set_names(data_import, tolower)
 
-      if (lower) data_import <- set_names(data_import, tolower)
+    cli_progress_done()
 
-      cli_progress_done()
+    cli_save(
+      data = data_import,
+      config_file = config$file,
+      config_save = config$save
+    )
 
-### CLI ------------------------------------------------------------------------
-
-      cli_save(
-        data = data_import,
-        config_file = config$file,
-        config_save = config$save
-      )
-
-      cli_text("\n\n")
-      toc()
-      cli_text("\n\n")
-
-    } else if (!is.null(head)) {
-
-      return(collect(get_query()))
-
-    } else {
-
-      return(get_query())
-
-    }
+    br(); toc(); br()
 
     DatabaseConnector::disconnect(connection)
+    # DBI::dbDisconnect(connection)
 
     .gc_r_java()
+
+    return(data_import)
+
+### LOAD -----------------------------------------------------------------------
 
   } else {
 
