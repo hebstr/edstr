@@ -1,84 +1,21 @@
-#' Title
-#'
-#' @param data data
-#' @param text_input text_input
-#' @param sample sample
-#' @param seed seed
-#' @param ano_hash ano_hash
-#' @param ano_hide ano_hide
-#' @param id id
-#' @param group group
-#' @param token token
-#' @param concepts concepts
-#' @param collapse collapse
-#' @param intersect intersect
-#' @param starts_with_only starts_with_only
-#' @param exclus_manual exclus_manual
-#' @param exclus_auto_escape exclus_auto_escape
-#' @param regex_replace regex_replace
-#' @param mismatch_data mismatch_data
-#' @param concept_color concept_color
-#' @param text_color text_color
-#' @param dirname_suffix dirname_suffix
-#' @param filename_suffix filename_suffix
-#' @param load load
-#'
-#' @return value
-#' @export
-#'
-#' @examples example
-#'
-edstr_extract <- \(
-  data,
-  text_input = getOption("edstr_text"),
-  id = check_id_key(data = data, exclude = text_input),
-  group = NULL,
-  sample = NULL,
-  seed = NULL,
-  ano_hash = NULL,
-  ano_hide = NULL,
-  token = 1,
-  concepts,
-  collapse = FALSE,
-  intersect = FALSE,
-  starts_with_only = TRUE,
-  exclus_manual = NULL,
-  exclus_auto_escape = NULL,
-  regex_replace = NULL,
-  mismatch_data = FALSE,
-  concept_color = "#0099FF",
-  text_color = "#FF0000",
-  dirname_suffix = if (!is.null(sample)) str_glue("sample_{sample}") else NULL,
-  filename_suffix = dirname_suffix,
-  load = FALSE
+.extract_save <- \(
+  data, text_input, id, group, sample, seed,
+  ano_hash, ano_hide, token, concepts, collapse,
+  intersect, starts_with_only, exclus_manual,
+  exclus_auto_escape, regex_replace, mismatch_data,
+  concept_color, text_color, save_dir, save_files,
+  save_extract
 ) {
 
   check_class(data, "data.frame")
   check_class(text_input, "character")
 
-  config <- check_config()
+  fs::dir_create(save_dir)
 
-  config_dir <- getOption('edstr_dirname')
-  filename <- getOption('edstr_filename')
-  dirname <- "extract"
-
-  save_dir <- fs::path(config_dir, dirname)
-
-  if (!is.null(dirname_suffix)) save_dir <- glue("{save_dir}_{dirname_suffix}")
-
-  save_files <- glue("{filename}_{dirname}")
-
-  if (!is.null(filename_suffix)) save_files <- glue("{save_files}_{filename_suffix}")
-
-  cli_save_file <- \(x) paste(
-    "Enregistrement du fichier", fs::path(save_files, ext = x)
+  cli_save_extract <- map(
+    set_names(c("xlsx", "rds", "csv")),
+    ~ paste("Enregistrement du fichier", fs::path(save_files, ext = .))
   )
-
-  if (!load) fs::dir_create(save_dir)
-
-  save_extract <- fs::path(save_dir, save_files)
-
-  save_extract_rds <- glue("{save_extract}.rds")
 
   if (!is.null(seed)) local_seed(seed)
 
@@ -86,15 +23,13 @@ edstr_extract <- \(
 
   cli_h1("edstr_extract")
 
-  if (!load) {
-
-### PARSE CONCEPTS -------------------------------------------------------------
+  ### PARSE CONCEPTS -------------------------------------------------------------
 
     concepts_list <- .extract_parse_concepts(
       concepts, collapse, intersect, starts_with_only
     )
 
-### CHECK IDS ------------------------------------------------------------------
+  ### CHECK IDS ------------------------------------------------------------------
 
     ids_list <- .extract_check_ids(data, sample, text_input, id, group)
 
@@ -104,7 +39,7 @@ edstr_extract <- \(
     which_group <- ids_list$which_group
     nrow_init <- ids_list$nrow_init
 
-### FORMAT ---------------------------------------------------------------------
+  ### FORMAT ---------------------------------------------------------------------
 
     cli_progress_step("{.strong Formatage du texte source}"); br()
 
@@ -112,7 +47,7 @@ edstr_extract <- \(
       data, text_input, id, group, ano_hash, ano_hide
     )
 
-### TOKENISATION ---------------------------------------------------------------
+  ### TOKENISATION ---------------------------------------------------------------
 
     cli_progress_step("{.strong Tokenisation du texte source}"); br()
 
@@ -120,7 +55,7 @@ edstr_extract <- \(
 
     data_token <- .extract_tokenize(data_token, text_input, token)
 
-### MATCHING TOKEN -------------------------------------------------------------
+  ### MATCHING TOKEN -------------------------------------------------------------
 
     cli_progress_step("{.strong Matching du texte tokenis\u00e9}"); br()
 
@@ -135,7 +70,7 @@ edstr_extract <- \(
     data_token_match <- match_tokens$data_token_match
     match_id <- match_tokens$match_id
 
-### EXCLUSIONS -----------------------------------------------------------------
+  ### EXCLUSIONS -----------------------------------------------------------------
 
     cli_progress_step("{.strong Exclusions}"); br()
 
@@ -150,7 +85,7 @@ edstr_extract <- \(
     data_count <- exclusions$data_count
     data_count_exclus <- exclusions$data_count_exclus
 
-### MATCHING SOURCE ------------------------------------------------------------
+  ### MATCHING SOURCE ------------------------------------------------------------
 
     cli_progress_step("{.strong Matching du texte source}"); br()
 
@@ -166,7 +101,7 @@ edstr_extract <- \(
     data_regex_count <- match_source$data_regex_count
     data_regex_str <- match_source$data_regex_str
 
-### MISMATCH -------------------------------------------------------------------
+  ### MISMATCH -------------------------------------------------------------------
 
     cli_progress_step("{.strong Mismatch entre texte source et texte tokenis\u00e9}"); br()
 
@@ -175,7 +110,7 @@ edstr_extract <- \(
       id, group, text_input, mismatch_data
     )
 
-### EXTRACTION -----------------------------------------------------------------
+  ### EXTRACTION -----------------------------------------------------------------
 
     cli_progress_step("{.strong Extraction}"); br()
 
@@ -184,7 +119,7 @@ edstr_extract <- \(
       concepts_list$root, id, group, text_input
     )
 
-### RESUME ---------------------------------------------------------------------
+  ### RESUME ---------------------------------------------------------------------
 
     cli_progress_step("{.strong R\u00e9sum\u00e9}"); br()
 
@@ -211,9 +146,11 @@ edstr_extract <- \(
       data_match, data_match_exclus, data_id, data_count, id, group, params
     )
 
-    fs::file_delete(fs::dir_ls(save_dir))
+    list_c(save_extract) |>
+      keep(fs::file_exists) |>
+      fs::file_delete()
 
-### SAVE XLSX ------------------------------------------------------------------
+  ### SAVE XLSX ------------------------------------------------------------------
 
     data_sheets <- .extract_sheets(
       data_extract, data_id, data_count, data_count_exclus, data_summary,
@@ -227,19 +164,19 @@ edstr_extract <- \(
       data_sheets, concepts_list, id, text_input, concept_color, text_color
     )
 
-    cli_progress_step("{.strong {cli_save_file('xlsx')}}"); br()
+    cli_progress_step("{.strong {cli_save_extract$xlsx}}"); br()
 
     wb_save(
       wb = .extract_sheets_xlsx(
         data_sheets, data_id, concepts_list,
         text_input, concept_color, text_color
       ),
-      file = glue("{save_extract}.xlsx")
+      file = save_extract$xlsx
     )
 
-### SAVE CSV -------------------------------------------------------------------
+  ### SAVE CSV -------------------------------------------------------------------
 
-    cli_progress_step("{.strong {cli_save_file('csv')}}"); br()
+    cli_progress_step("{.strong {cli_save_extract$csv}}"); br()
 
     data_csv <-
     data_extract |>
@@ -249,11 +186,11 @@ edstr_extract <- \(
       ) |>
       select(-matches(concepts_list$root))
 
-    write_excel_csv(data_csv, file = glue("{save_extract}.csv"))
+    write_excel_csv(data_csv, file = save_extract$csv)
 
-### SAVE RDS -------------------------------------------------------------------
+  ### SAVE RDS -------------------------------------------------------------------
 
-    cli_progress_step("{.strong {cli_save_file('rds')}}"); br()
+    cli_progress_step("{.strong {cli_save_extract$rds}}"); br()
 
     data_save <- list(
       data = list(
@@ -288,9 +225,9 @@ edstr_extract <- \(
       )
     )
 
-    saveRDS(data_save, file = save_extract_rds)
+    saveRDS(data_save, file = save_extract$rds)
 
-### PRINT ----------------------------------------------------------------------
+  ### PRINT ----------------------------------------------------------------------
 
     cli_progress_done()
 
@@ -322,19 +259,114 @@ edstr_extract <- \(
       sample, intersect, mismatch_data, save_dir, save_files
     )
 
-    return(invisible(data_save))
+    return(data_save)
 
-### LOAD -----------------------------------------------------------------------
+}
+
+.extract_load <- \(save_dir, save_files, save_extract) {
+
+  cli_h1("edstr_extract"); br()
+
+  cli_load(
+    dir = save_dir,
+    file = save_files,
+    save = save_extract$rds
+  )
+
+}
+
+#' Title
+#'
+#' @param data data
+#' @param text_input text_input
+#' @param sample sample
+#' @param seed seed
+#' @param ano_hash ano_hash
+#' @param ano_hide ano_hide
+#' @param id id
+#' @param group group
+#' @param token token
+#' @param concepts concepts
+#' @param collapse collapse
+#' @param intersect intersect
+#' @param starts_with_only starts_with_only
+#' @param exclus_manual exclus_manual
+#' @param exclus_auto_escape exclus_auto_escape
+#' @param regex_replace regex_replace
+#' @param mismatch_data mismatch_data
+#' @param concept_color concept_color
+#' @param text_color text_color
+#' @param dirname_suffix dirname_suffix
+#' @param filename_suffix filename_suffix
+#'
+#' @return value
+#' @export
+#'
+#' @examples example
+#'
+edstr_extract <- \(
+  data,
+  text_input = getOption("edstr_text"),
+  id = check_id_key(data = data, exclude = text_input),
+  group = NULL,
+  sample = NULL,
+  seed = NULL,
+  ano_hash = NULL,
+  ano_hide = NULL,
+  token = 1,
+  concepts,
+  collapse = FALSE,
+  intersect = FALSE,
+  starts_with_only = TRUE,
+  exclus_manual = NULL,
+  exclus_auto_escape = NULL,
+  regex_replace = NULL,
+  mismatch_data = FALSE,
+  concept_color = "#0099FF",
+  text_color = "#FF0000",
+  dirname_suffix = if (!is.null(sample)) str_glue("sample_{sample}") else NULL,
+  filename_suffix = dirname_suffix
+) {
+
+  config <- check_config()
+
+  config_dir <- getOption('edstr_dirname')
+  filename <- getOption('edstr_filename')
+  dirname <- "extract"
+
+  save_dir <- fs::path(config_dir, dirname)
+
+  if (!is.null(dirname_suffix)) save_dir <- glue("{save_dir}_{dirname_suffix}")
+
+  save_files <- glue("{filename}_{dirname}")
+
+  if (!is.null(filename_suffix)) save_files <- glue("{save_files}_{filename_suffix}")
+
+  save_extract <- map(
+    set_names(c("xlsx", "rds", "csv")),
+    ~ fs::path(save_dir, save_files, ext = .)
+  )
+
+  fun_save <- \() .extract_save(
+    data, text_input, id, group, sample, seed,
+    ano_hash, ano_hide, token, concepts, collapse,
+    intersect, starts_with_only, exclus_manual,
+    exclus_auto_escape, regex_replace, mismatch_data,
+    concept_color, text_color, save_dir, save_files,
+    save_extract
+  )
+
+  if (fs::file_exists(save_extract$rds)) {
+
+    cli_check(
+      config_file = save_files,
+      fun_save = fun_save,
+      fun_load = \() .extract_load(save_dir, save_files, save_extract)
+    )
 
   } else {
 
-    br()
-
-    cli_load(
-      dir = save_dir,
-      file = save_files,
-      save = save_extract_rds
-    )
+    fun_save()
 
   }
 

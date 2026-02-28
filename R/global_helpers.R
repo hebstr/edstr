@@ -1,5 +1,35 @@
 br <- \() cli_text("\n\n")
 
+read_query <- \(query, call = rlang::caller_env()) {
+
+  if (!fs::file_exists(query)) return(query)
+
+  lines <- read_lines(file = query, skip_empty_rows = TRUE)
+  lines <- str_remove(lines, "--.*$")
+
+  block <- str_flatten(lines, "\n")
+  block <- str_remove_all(block, "/\\*[\\s\\S]*?\\*/")
+
+  lines <- str_split_1(block, "\n")
+  lines <- lines[str_detect(lines, "\\S")]
+
+  if (length(lines) == 0) cli_abort(
+    message = c(
+      "{.arg query} : le fichier {.strong {.path {query}}}
+      est vide ou ne contient que des commentaires"
+    ),
+    call = call
+  )
+
+  cli_code(
+    lines = str_flatten(lines, "\n"),
+    language = "SQL"
+  )
+
+  str_flatten(lines, " ")
+
+}
+
 easy_flatten <- \(x) {
 
   seq_depth <- seq(pluck_depth(x))

@@ -27,8 +27,7 @@ edstr_view <- \(
   check_class(text_input, "character")
   check_class(pattern, "character")
 
-  cli_h1("edstr_view")
-  cli_text("\n\n")
+  cli_h1("edstr_view"); br()
 
   which_key <- check_id_key(
     data = data,
@@ -60,9 +59,7 @@ edstr_view <- \(
 
   print(data_view$count)
 
-  cli_text("\n\n")
-  cli_rule()
-  cli_text("\n\n")
+  br(); cli_rule(); br()
 
   match_id <- n_distinct(data_view$match[[id]])
 
@@ -70,9 +67,7 @@ edstr_view <- \(
 
   toc()
 
-  cli_text("\n\n")
-  cli_alert_info("{.strong Documents :} {nrow(data)} {id}")
-  cli_text("\n\n")
+  br(); cli_alert_info("{.strong Documents :} {nrow(data)} {id}"); br()
 
   cli_alert_info("{.strong Correspondances}")
   cli_ul()
@@ -81,9 +76,7 @@ edstr_view <- \(
     cli_li("Distinctes : {nrow(data_view$count)}")
     cli_end()
 
-  cli_text("\n\n")
-  cli_rule()
-  cli_text("\n\n")
+  br(); cli_rule(); br()
 
   return(invisible(data_view))
 

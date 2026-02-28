@@ -25,8 +25,7 @@ edstr_extract(
   concept_color = "#0099FF",
   text_color = "#FF0000",
   dirname_suffix = if (!is.null(sample)) str_glue("sample_{sample}") else NULL,
-  filename_suffix = dirname_suffix,
-  load = FALSE
+  filename_suffix = dirname_suffix
 )
 }
 \arguments{
@@ -71,8 +70,6 @@ edstr_extract(
 \item{dirname_suffix}{dirname_suffix}
 
 \item{filename_suffix}{filename_suffix}
-
-\item{load}{load}
 }
 \value{
 value

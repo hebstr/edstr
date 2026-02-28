@@ -18,7 +18,7 @@ cli_save <- \(data, config_file, config_save) {
 
   br(); cli_rule()
 
-  return(invisible(data))
+  return(data)
 
 }
 
@@ -30,15 +30,20 @@ cli_load <- \(dir, file, save) {
 
   cli_progress_done()
 
-  cli_alert_success("Ficher {.strong {file}} charg\u00e9 depuis {.strong {.path {save}}}")
+  cli_alert_success("Fichier {.strong {file}} charg\u00e9 depuis {.strong {.path {save}}}")
 
   br(); cli_rule()
 
-  return(invisible(.load))
+  return(.load)
 
 }
 
 cli_check <- \(config_file, fun_save, fun_load) {
+
+  overwrite <- getOption("edstr_overwrite")
+
+  if (isTRUE(overwrite)) return(fun_save())
+  if (isFALSE(overwrite)) return(fun_load())
 
   br(); cli_alert_warning("Le fichier {.strong {config_file}} existe d\u00e9ja.")
 

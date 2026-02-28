@@ -2,22 +2,28 @@
 #'
 #' @param edstr_dirname edstr_dirname
 #' @param edstr_filename edstr_filename
+#' @param edstr_text edstr_text
+#' @param edstr_overwrite edstr_overwrite
 #' @param ... ...
 #'
 #' @return value
 #' @export
 #'
-#' @examples example
+#' @examples "example"
 #'
 edstr_config <- \(
   edstr_dirname,
   edstr_filename,
+  edstr_text = NULL,
+  edstr_overwrite = NULL,
   ...
 ) {
 
   options(
     edstr_dirname = fs::dir_create(str_glue(edstr_dirname)),
     edstr_filename = str_glue(edstr_filename),
+    edstr_text = edstr_text,
+    edstr_overwrite = edstr_overwrite,
     ...
   )
 

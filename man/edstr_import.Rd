@@ -2,7 +2,7 @@
 % Please edit documentation in R/edstr_import.R
 \name{edstr_import}
 \alias{edstr_import}
-\title{extract}
+\title{import}
 \usage{
 edstr_import(
   query = NULL,
@@ -12,7 +12,6 @@ edstr_import(
   password = askForPassword(),
   connect_dir = "/opt/oracle/instantclient_23_7/connect/dbconnect.yml",
   tns = "vlp",
-  load = FALSE,
   ...
 )
 }
@@ -31,15 +30,13 @@ edstr_import(
 
 \item{tns}{tns}
 
-\item{load}{load}
-
 \item{...}{...}
 }
 \value{
 value
 }
 \description{
-extract
+import
 }
 \examples{
 example

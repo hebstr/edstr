@@ -25,8 +25,7 @@ edstr_extract(
   mismatch_data = FALSE,
   concept_color = "#0099FF",
   text_color = "#FF0000",
-  text_background = "#FFFF00",
-  dirname_suffix = if (!is.null(sample)) glue("sample_{sample}") else NULL,
+  dirname_suffix = if (!is.null(sample)) str_glue("sample_{sample}") else NULL,
   filename_suffix = dirname_suffix,
   load = FALSE
 )
@@ -109,10 +108,6 @@ edstr_extract(
 - text_color:
 
   text_color
-
-- text_background:
-
-  text_background
 
 - dirname_suffix:
 
@@ -246,6 +241,6 @@ example
 #>         encoding = "UTF-8", catch.aborts = catch.aborts, skip.echo = skips, 
 #>         keep.source = TRUE)
 #> }
-#> <bytecode: 0x5f81c3a27ab8>
+#> <bytecode: 0x5f314ebd24f0>
 #> <environment: namespace:utils>
 ```

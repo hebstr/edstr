@@ -1,151 +1,75 @@
-# clean
+# Nettoyer les données textuelles
 
-clean
+Applique des remplacements (regex) sur une colonne de texte via
+[`stringr::str_replace_all()`](https://stringr.tidyverse.org/reference/str_replace.html).
+Le résultat est enregistré en `.rds` dans le répertoire défini par
+[`edstr_config()`](https://cpd000001.chrul.net/9000/reference/edstr_config.md).
+Si le fichier existe déjà, l'utilisateur choisit entre charger ou
+écraser (voir option `edstr_overwrite`).
 
 ## Usage
 
 ``` r
-edstr_clean(data, text = getOption("edstr_text"), replace, sample = NULL)
+edstr_clean(data, text = getOption("edstr_text"), replace)
 ```
 
 ## Arguments
 
 - data:
 
-  data
+  Un dataframe/tibble contenant la colonne texte à nettoyer.
 
 - text:
 
-  text
+  Nom de la colonne de texte en character. Par défaut,
+  `getOption("edstr_text")`.
 
 - replace:
 
-  replace
-
-- sample:
-
-  sample
+  Vecteur nommé ou liste de vecteurs nommés de remplacements, passés à
+  [`stringr::str_replace_all()`](https://stringr.tidyverse.org/reference/str_replace.html).
 
 ## Value
 
-value
+Le tibble nettoyé
 
 ## Examples
 
 ``` r
-example
-#> function (topic, package = NULL, lib.loc = NULL, character.only = FALSE, 
-#>     give.lines = FALSE, local = FALSE, type = c("console", "html"), 
-#>     echo = TRUE, verbose = getOption("verbose"), setRNG = FALSE, 
-#>     ask = getOption("example.ask"), prompt.prefix = abbreviate(topic, 
-#>         6), catch.aborts = FALSE, run.dontrun = FALSE, run.donttest = interactive()) 
-#> {
-#>     type <- match.arg(type)
-#>     html <- type == "html"
-#>     if (html) {
-#>         enhancedHTML <- str2logical(Sys.getenv("_R_HELP_ENABLE_ENHANCED_HTML_", 
-#>             "TRUE"))
-#>         if (!interactive() || !enhancedHTML || !requireNamespace("knitr", 
-#>             quietly = TRUE)) 
-#>             html <- FALSE
-#>     }
-#>     if (html) {
-#>         port <- tools::startDynamicHelp(NA)
-#>         if (port <= 0L) 
-#>             html <- FALSE
-#>         else {
-#>             if (!is.null(lib.loc)) 
-#>                 lib.loc <- NULL
-#>             browser <- if (.Platform$GUI == "AQUA") {
-#>                 get("aqua.browser", envir = as.environment("tools:RGUI"))
-#>             }
-#>             else getOption("browser")
-#>         }
-#>     }
-#>     if (!character.only) {
-#>         topic <- substitute(topic)
-#>         if (!is.character(topic)) 
-#>             topic <- deparse(topic)[1L]
-#>     }
-#>     pkgpaths <- find.package(package, lib.loc, verbose = verbose)
-#>     file <- index.search(topic, pkgpaths, firstOnly = TRUE)
-#>     if (!length(file)) {
-#>         warning(gettextf("no help found for %s", sQuote(topic)), 
-#>             domain = NA)
-#>         return(invisible())
-#>     }
-#>     if (verbose) 
-#>         cat("Found file =", sQuote(file), "\n")
-#>     packagePath <- dirname(dirname(file))
-#>     pkgname <- basename(packagePath)
-#>     if (html) {
-#>         query <- if (local) 
-#>             ""
-#>         else "?local=FALSE"
-#>         browseURL(paste0("http://127.0.0.1:", port, "/library/", 
-#>             pkgname, "/Example/", topic, query), browser)
-#>         return(invisible())
-#>     }
-#>     lib <- dirname(packagePath)
-#>     tf <- tempfile("Rex")
-#>     tools::Rd2ex(.getHelpFile(file), tf, commentDontrun = !run.dontrun, 
-#>         commentDonttest = !run.donttest)
-#>     if (!file.exists(tf)) {
-#>         if (give.lines) 
-#>             return(character())
-#>         warning(gettextf("%s has a help file but no examples", 
-#>             sQuote(topic)), domain = NA)
-#>         return(invisible())
-#>     }
-#>     on.exit(unlink(tf))
-#>     if (give.lines) 
-#>         return(readLines(tf))
-#>     if (pkgname != "base") 
-#>         library(pkgname, lib.loc = lib, character.only = TRUE)
-#>     if (!is.logical(setRNG) || setRNG) {
-#>         if ((exists(".Random.seed", envir = .GlobalEnv))) {
-#>             oldSeed <- get(".Random.seed", envir = .GlobalEnv)
-#>             on.exit(assign(".Random.seed", oldSeed, envir = .GlobalEnv), 
-#>                 add = TRUE)
-#>         }
-#>         else {
-#>             oldRNG <- RNGkind()
-#>             on.exit(RNGkind(oldRNG[1L], oldRNG[2L], oldRNG[3L]), 
-#>                 add = TRUE)
-#>         }
-#>         if (is.logical(setRNG)) {
-#>             RNGkind("default", "default", "default")
-#>             set.seed(1)
-#>         }
-#>         else eval(setRNG)
-#>     }
-#>     zz <- readLines(tf, n = 1L)
-#>     skips <- 0L
-#>     if (echo) {
-#>         zcon <- file(tf, open = "rt")
-#>         while (length(zz) && !length(grep("^### \\*\\*", zz))) {
-#>             skips <- skips + 1L
-#>             zz <- readLines(zcon, n = 1L)
-#>         }
-#>         close(zcon)
-#>     }
-#>     if (ask == "default") 
-#>         ask <- echo && grDevices::dev.interactive(orNone = TRUE)
-#>     if (ask) {
-#>         oldask <- if (.Device != "null device") 
-#>             grDevices::devAskNewPage(ask = TRUE)
-#>         else getOption("device.ask.default", FALSE)
-#>         on.exit(if (.Device != "null device") grDevices::devAskNewPage(oldask), 
-#>             add = TRUE)
-#>         op <- options(device.ask.default = TRUE)
-#>         on.exit(options(op), add = TRUE)
-#>     }
-#>     source(tf, local, echo = echo, prompt.echo = paste0(prompt.prefix, 
-#>         getOption("prompt")), continue.echo = paste0(prompt.prefix, 
-#>         getOption("continue")), verbose = verbose, max.deparse.length = Inf, 
-#>         encoding = "UTF-8", catch.aborts = catch.aborts, skip.echo = skips, 
-#>         keep.source = TRUE)
-#> }
-#> <bytecode: 0x5f81c3a27ab8>
-#> <environment: namespace:utils>
+edstr_config(
+  edstr_dirname = "_extra/collect/data",
+  edstr_filename = "avc",
+  edstr_text = "texte",
+  edstr_overwrite = FALSE
+)
+#> 
+#> ── edstr_config ────────────────────────────────────────────────────────────────
+#> 
+#> ℹ Répertoire parent : /home/julien/Documents/pro/r_pkg/pkg_edstr
+#> 
+#> ℹ Les fichiers seront enregistrés dans le répertoire _extra/collect/data et nommés avec le préfixe avc
+#> 
+#> ────────────────────────────────────────────────────────────────────────────────
+
+df <- tibble::tibble(texte = c("la lapin mange des carrotes"))
+
+df_clean <- edstr_clean(
+  data = df,
+  replace = c("lapin" = "renard")
+)
+#> 
+#> ── edstr_clean ─────────────────────────────────────────────────────────────────
+#> 
+#> ℹ Chargement du fichier avc_clean
+#> ✔ Chargement du fichier avc_clean [21ms]
+#> 
+#> ✔ Ficher avc_clean chargé depuis _extra/collect/data/avc_clean.rds
+#> 
+#> ────────────────────────────────────────────────────────────────────────────────
+
+df_clean
+#> # A tibble: 1 × 1
+#>   texte                       
+#>   <chr>                       
+#> 1 la renard mange des carrotes
 ```

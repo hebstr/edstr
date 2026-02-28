@@ -4,12 +4,22 @@
 \alias{edstr_config}
 \title{config}
 \usage{
-edstr_config(edstr_dirname, edstr_filename, ...)
+edstr_config(
+  edstr_dirname,
+  edstr_filename,
+  edstr_text = NULL,
+  edstr_overwrite = NULL,
+  ...
+)
 }
 \arguments{
 \item{edstr_dirname}{edstr_dirname}
 
 \item{edstr_filename}{edstr_filename}
+
+\item{edstr_text}{edstr_text}
+
+\item{edstr_overwrite}{edstr_overwrite}
 
 \item{...}{...}
 }
@@ -20,6 +30,6 @@ value
 config
 }
 \examples{
-example
+"example"
 
 }

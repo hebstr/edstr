@@ -10,7 +10,7 @@
 - [`edstr_import()`](https://cpd000001.chrul.net/9000/reference/edstr_import.md)
   : extract
 - [`edstr_clean()`](https://cpd000001.chrul.net/9000/reference/edstr_clean.md)
-  : clean
+  : Nettoyer les données textuelles
 - [`edstr_extract()`](https://cpd000001.chrul.net/9000/reference/edstr_extract.md)
   : Title
 

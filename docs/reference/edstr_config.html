@@ -60,7 +60,13 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">edstr_config</span><span class="op">(</span><span class="va">edstr_dirname</span>, <span class="va">edstr_filename</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">edstr_config</span><span class="op">(</span></span>
+<span>  <span class="va">edstr_dirname</span>,</span>
+<span>  <span class="va">edstr_filename</span>,</span>
+<span>  edstr_text <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  edstr_overwrite <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -75,6 +81,14 @@
 <dd><p>edstr_filename</p></dd>
 
 
+<dt id="arg-edstr-text">edstr_text<a class="anchor" aria-label="anchor" href="#arg-edstr-text"></a></dt>
+<dd><p>edstr_text</p></dd>
+
+
+<dt id="arg-edstr-overwrite">edstr_overwrite<a class="anchor" aria-label="anchor" href="#arg-edstr-overwrite"></a></dt>
+<dd><p>edstr_overwrite</p></dd>
+
+
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
 <dd><p>...</p></dd>
 
@@ -86,121 +100,8 @@
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">example</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> function (topic, package = NULL, lib.loc = NULL, character.only = FALSE, </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     give.lines = FALSE, local = FALSE, type = c("console", "html"), </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     echo = TRUE, verbose = getOption("verbose"), setRNG = FALSE, </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     ask = getOption("example.ask"), prompt.prefix = abbreviate(topic, </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         6), catch.aborts = FALSE, run.dontrun = FALSE, run.donttest = interactive()) </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> {</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     type &lt;- match.arg(type)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     html &lt;- type == "html"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     if (html) {</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         enhancedHTML &lt;- str2logical(Sys.getenv("_R_HELP_ENABLE_ENHANCED_HTML_", </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             "TRUE"))</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         if (!interactive() || !enhancedHTML || !requireNamespace("knitr", </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             quietly = TRUE)) </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             html &lt;- FALSE</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     }</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     if (html) {</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         port &lt;- tools::startDynamicHelp(NA)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         if (port &lt;= 0L) </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             html &lt;- FALSE</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         else {</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             if (!is.null(lib.loc)) </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                 lib.loc &lt;- NULL</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             browser &lt;- if (.Platform$GUI == "AQUA") {</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                 get("aqua.browser", envir = as.environment("tools:RGUI"))</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             }</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             else getOption("browser")</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         }</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     }</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     if (!character.only) {</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         topic &lt;- substitute(topic)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         if (!is.character(topic)) </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             topic &lt;- deparse(topic)[1L]</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     }</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     pkgpaths &lt;- find.package(package, lib.loc, verbose = verbose)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     file &lt;- index.search(topic, pkgpaths, firstOnly = TRUE)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     if (!length(file)) {</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         warning(gettextf("no help found for %s", sQuote(topic)), </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             domain = NA)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         return(invisible())</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     }</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     if (verbose) </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         cat("Found file =", sQuote(file), "\n")</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     packagePath &lt;- dirname(dirname(file))</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     pkgname &lt;- basename(packagePath)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     if (html) {</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         query &lt;- if (local) </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             ""</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         else "?local=FALSE"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         browseURL(paste0("http://127.0.0.1:", port, "/library/", </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             pkgname, "/Example/", topic, query), browser)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         return(invisible())</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     }</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     lib &lt;- dirname(packagePath)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     tf &lt;- tempfile("Rex")</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     tools::Rd2ex(.getHelpFile(file), tf, commentDontrun = !run.dontrun, </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         commentDonttest = !run.donttest)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     if (!file.exists(tf)) {</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         if (give.lines) </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             return(character())</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         warning(gettextf("%s has a help file but no examples", </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             sQuote(topic)), domain = NA)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         return(invisible())</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     }</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     on.exit(unlink(tf))</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     if (give.lines) </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         return(readLines(tf))</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     if (pkgname != "base") </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         library(pkgname, lib.loc = lib, character.only = TRUE)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     if (!is.logical(setRNG) || setRNG) {</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         if ((exists(".Random.seed", envir = .GlobalEnv))) {</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             oldSeed &lt;- get(".Random.seed", envir = .GlobalEnv)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             on.exit(assign(".Random.seed", oldSeed, envir = .GlobalEnv), </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                 add = TRUE)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         }</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         else {</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             oldRNG &lt;- RNGkind()</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             on.exit(RNGkind(oldRNG[1L], oldRNG[2L], oldRNG[3L]), </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                 add = TRUE)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         }</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         if (is.logical(setRNG)) {</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             RNGkind("default", "default", "default")</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             set.seed(1)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         }</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         else eval(setRNG)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     }</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     zz &lt;- readLines(tf, n = 1L)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     skips &lt;- 0L</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     if (echo) {</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         zcon &lt;- file(tf, open = "rt")</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         while (length(zz) &amp;&amp; !length(grep("^### \\*\\*", zz))) {</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             skips &lt;- skips + 1L</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             zz &lt;- readLines(zcon, n = 1L)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         }</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         close(zcon)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     }</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     if (ask == "default") </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         ask &lt;- echo &amp;&amp; grDevices::dev.interactive(orNone = TRUE)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     if (ask) {</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         oldask &lt;- if (.Device != "null device") </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             grDevices::devAskNewPage(ask = TRUE)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         else getOption("device.ask.default", FALSE)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         on.exit(if (.Device != "null device") grDevices::devAskNewPage(oldask), </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             add = TRUE)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         op &lt;- options(device.ask.default = TRUE)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         on.exit(options(op), add = TRUE)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     }</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     source(tf, local, echo = echo, prompt.echo = paste0(prompt.prefix, </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         getOption("prompt")), continue.echo = paste0(prompt.prefix, </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         getOption("continue")), verbose = verbose, max.deparse.length = Inf, </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         encoding = "UTF-8", catch.aborts = catch.aborts, skip.echo = skips, </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         keep.source = TRUE)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> }</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;bytecode: 0x5f81c3a27ab8&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: namespace:utils&gt;</span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="st">"example"</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "example"</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
