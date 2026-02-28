@@ -18,13 +18,13 @@
   cli_intersect <- if (intersect) " \u00e0 l'intersection {concepts_list$str$inter}" else ""
 
   cli_n_id <- nrow(data_id |> filter(.data[[id]] %in% match_id[[id]]))
-  cli_p_id <- label_percent(0.1)(nrow(data) / nrow_init)
+  cli_p_id <- label_pct(nrow(data) / nrow_init)
 
   cli_n_match <- n_distinct(data_match_init[[id]])
-  cli_p_match <- label_percent(0.1)(cli_n_match / nrow(data))
+  cli_p_match <- label_pct(cli_n_match / nrow(data))
 
   cli_n_extract <- nrow(data_extract)
-  cli_p_extract <- label_percent(0.1)(cli_n_extract / nrow(data))
+  cli_p_extract <- label_pct(cli_n_extract / nrow(data))
 
   cli_alert_info("{.strong Documents}")
     cli_ul("Total : {nrow_init} {id}")
@@ -45,7 +45,7 @@
   if (mismatch_data) {
 
     cli_n_mismatch <- nrow(data_mismatch$id)
-    cli_p_mismatch <- label_percent(0.1)(cli_n_mismatch / nrow(data))
+    cli_p_mismatch <- label_pct(cli_n_mismatch / nrow(data))
 
     br(); cli_alert_info("{.strong Mismatch :} {cli_n_mismatch} {id}")
 
@@ -59,7 +59,7 @@
     cli_ul("{cli_n_extract} {id} ({cli_p_extract} {id})")
     if (!is.null(which_group)) {
       cli_n_group <- n_distinct(data_extract[[group]])
-      cli_p_group <- label_percent(0.1)(cli_n_group / n_distinct(data[[group]]))
+      cli_p_group <- label_pct(cli_n_group / n_distinct(data[[group]]))
       cli_ul("{cli_n_group} {group} ({cli_p_group} {group})")
     }
 
@@ -69,7 +69,7 @@
       cli_ul("{cli_n_mismatch} {id} ({cli_p_mismatch} {id})")
       if (!is.null(which_group)) {
         cli_n_group_mismatch <- n_distinct(data_mismatch$id[[group]])
-        cli_p_group_mismatch <- label_percent(0.1)(cli_n_group_mismatch / n_distinct(data[[group]]))
+        cli_p_group_mismatch <- label_pct(cli_n_group_mismatch / n_distinct(data[[group]]))
         cli_ul("{cli_n_group_mismatch} {group} ({cli_p_group_mismatch} {group})")
       }
 

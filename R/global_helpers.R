@@ -1,5 +1,7 @@
 br <- \() cli_text("\n\n")
 
+label_pct <- \(x) paste0(round(x * 100, 1), "%")
+
 read_query <- \(query, call = rlang::caller_env()) {
 
   if (!fs::file_exists(query)) return(query)
@@ -116,7 +118,7 @@ view_output <- \(
 
   data$match <- str_extract_all(data[[text_input]], pattern)
 
-  .data_match <- data |> unnest(match) |> select(id, match)
+  .data_match <- data |> unnest(match) |> select(.env$id, .data$match)
 
   if (nrow(.data_match) == 0) {
 
@@ -127,7 +129,7 @@ view_output <- \(
 
   }
 
-  .data_count <- .data_match |> count(match, sort = TRUE)
+  .data_count <- .data_match |> count(.data$match, sort = TRUE)
 
   .data_text <-
   data |>
@@ -143,17 +145,19 @@ view_output <- \(
 
 }
 
-gt_custom <- \(data,
-               head = 10,
-               font_size = 12,
-               ...) {
+gt_custom <- \(
+  data,
+  head = 10,
+  font_size = 12,
+  ...
+) {
 
   if (is.null(head)) {
 
     data <-
     data |>
-      gt(id = "tbl-id") |>
-      opt_css("
+      gt::gt(id = "tbl-id") |>
+      gt::opt_css("
         #tbl-id .gt_table {
           font-variant-ligatures: none;
         }
@@ -161,48 +165,58 @@ gt_custom <- \(data,
 
   } else {
 
-    data <- gt_preview(data, top_n = head)
+    data <- gt::gt_preview(data, top_n = head)
 
   }
 
   data |>
-    tab_options(table.font.names = c("luciole", "system-ui"),
-                table.font.size = px(font_size),
-                column_labels.border.top.color = "white",
-                ...) |>
-    tab_style(style = cell_text(weight = "bold"),
-              locations = cells_column_labels())
+    gt::tab_options(
+      table.font.names = c("luciole", "system-ui"),
+      table.font.size = gt::px(font_size),
+      column_labels.border.top.color = "white",
+      ...
+    ) |>
+    gt::tab_style(
+      style = gt::cell_text(weight = "bold"),
+      locations = gt::cells_column_labels()
+    )
 
 }
-
 
 gt_text_color <- \(x, column, color) {
 
-    tab_style(data = x,
-              style = cell_text(weight = "bold", color = color),
-              locations = cells_body(column))
+  gt::tab_style(
+    data = x,
+    style = gt::cell_text(weight = "bold", color = color),
+    locations = gt::cells_body(column)
+  )
 
 }
-
 
 gt_code_font <- \(x, column = everything()) {
 
-  tab_style(data = x,
-            style = cell_text(font = "fira code"),
-            locations = cells_body(column))
+  gt::tab_style(
+    data = x,
+    style = gt::cell_text(font = "fira code"),
+    locations = gt::cells_body(column)
+  )
 
 }
 
+gt_text_align <- \(
+  x,
+  column = everything(),
+  align = "center"
+) {
 
-gt_text_align <- \(x,
-                   column = everything(),
-                   align = "center") {
-
-  tab_style(data = x,
-            style = cell_text(align = align),
-            locations =
-              list(cells_column_labels(column),
-                    cells_body(column)))
+  gt::tab_style(
+    data = x,
+    style = gt::cell_text(align = align),
+    locations = list(
+      gt::cells_column_labels(column),
+      gt::cells_body(column)
+    )
+  )
 
 }
 
@@ -215,7 +229,7 @@ set_class_css <- \(data, pattern) {
   fun <- \(string, regex, class) str_replace_all(
     string = string,
     pattern = regex,
-    replace = str_glue("<span class='extract {class}'>\\1</span>")
+    replacement = str_glue("<span class='extract {class}'>\\1</span>")
   )
 
   reduce2(
@@ -321,7 +335,6 @@ wb_add_custom <- \(
   return(output)
 
 }
-
 
 .gc_r_java <- \() {
 

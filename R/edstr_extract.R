@@ -3,8 +3,8 @@
   ano_hash, ano_hide, token, concepts, collapse,
   intersect, starts_with_only, exclus_manual,
   exclus_auto_escape, regex_replace, mismatch_data,
-  concept_color, text_color, save_dir, save_files,
-  save_extract
+  concept_color, text_color, save_as_gt,
+  save_dir, save_files, save_extract
 ) {
 
   check_class(data, "data.frame")
@@ -139,7 +139,8 @@
       regex_replace = regex_replace_arg,
       mismatch_data = mismatch_data,
       concept_color = concept_color,
-      text_color = text_color
+      text_color = text_color,
+      save_as_gt = save_as_gt
     )
 
     data_summary <- .extract_summary(
@@ -160,9 +161,15 @@
 
     data_sheets_df <- map(data_sheets, ~ if (is.data.frame(.x)) .x else .x$data)
 
-    data_sheets_gt <- .extract_sheets_gt(
-      data_sheets, concepts_list, id, text_input, concept_color, text_color
-    )
+    data_sheets_gt <- if (save_as_gt) {
+
+      rlang::check_installed("gt")
+
+      .extract_sheets_gt(
+        data_sheets, concepts_list, id, text_input, concept_color, text_color
+      )
+
+    } else NULL
 
     cli_progress_step("{.strong {cli_save_extract$xlsx}}"); br()
 
@@ -181,8 +188,8 @@
     data_csv <-
     data_extract |>
       mutate(
-        across(c(extract, text_input), ~ set_class_css(., data_regex_list)),
-        extract = str_remove_all(extract, ";")
+        across(c(.data$extract, text_input), ~ set_class_css(., data_regex_list)),
+        extract = str_remove_all(.data$extract, ";")
       ) |>
       select(-matches(concepts_list$root))
 
@@ -296,13 +303,14 @@
 #' @param mismatch_data mismatch_data
 #' @param concept_color concept_color
 #' @param text_color text_color
+#' @param save_as_gt save_as_gt
 #' @param dirname_suffix dirname_suffix
 #' @param filename_suffix filename_suffix
 #'
 #' @return value
 #' @export
 #'
-#' @examples example
+#' @examples "example"
 #'
 edstr_extract <- \(
   data,
@@ -324,6 +332,7 @@ edstr_extract <- \(
   mismatch_data = FALSE,
   concept_color = "#0099FF",
   text_color = "#FF0000",
+  save_as_gt = FALSE,
   dirname_suffix = if (!is.null(sample)) str_glue("sample_{sample}") else NULL,
   filename_suffix = dirname_suffix
 ) {
@@ -352,8 +361,8 @@ edstr_extract <- \(
     ano_hash, ano_hide, token, concepts, collapse,
     intersect, starts_with_only, exclus_manual,
     exclus_auto_escape, regex_replace, mismatch_data,
-    concept_color, text_color, save_dir, save_files,
-    save_extract
+    concept_color, text_color, save_as_gt,
+    save_dir, save_files, save_extract
   )
 
   if (fs::file_exists(save_extract$rds)) {

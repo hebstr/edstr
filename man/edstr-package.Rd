@@ -9,7 +9,7 @@
 Collecter, nettoyer et extraire des données textuelles de routine depuis l'EDS.
 }
 \author{
-\strong{Maintainer}: Julien ELICES-DIEZ \email{ju.diez@protonmail.com} (\href{https://orcid.org/0009-0001-3983-5713}{ORCID})
+\strong{Maintainer}: Henry BOSTORRHUS \email{ju.diez@protonmail.com} (\href{https://orcid.org/0009-0001-3983-5713}{ORCID})
 
 }
 \keyword{internal}

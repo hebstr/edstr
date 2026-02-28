@@ -34,7 +34,7 @@ edstr_config <- \(
   cli_alert_info("{.strong R\u00e9pertoire parent : {.path {here::here()}}}"); br()
 
   cli_alert_info(str_glue(
-    "Les fichiers seront enregistrés dans le r\u00e9pertoire {set_name('dirname')} et nomm\u00e9s avec le pr\u00e9fixe {set_name('filename')}"
+    "Les fichiers seront enregistr\u00e9s dans le r\u00e9pertoire {set_name('dirname')} et nomm\u00e9s avec le pr\u00e9fixe {set_name('filename')}"
   ))
 
   br()

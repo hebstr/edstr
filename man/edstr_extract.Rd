@@ -24,6 +24,7 @@ edstr_extract(
   mismatch_data = FALSE,
   concept_color = "#0099FF",
   text_color = "#FF0000",
+  save_as_gt = FALSE,
   dirname_suffix = if (!is.null(sample)) str_glue("sample_{sample}") else NULL,
   filename_suffix = dirname_suffix
 )
@@ -67,6 +68,8 @@ edstr_extract(
 
 \item{text_color}{text_color}
 
+\item{save_as_gt}{save_as_gt}
+
 \item{dirname_suffix}{dirname_suffix}
 
 \item{filename_suffix}{filename_suffix}
@@ -78,6 +81,6 @@ value
 Title
 }
 \examples{
-example
+"example"
 
 }

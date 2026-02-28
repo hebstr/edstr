@@ -42,37 +42,14 @@
 
 #' Nettoyer les données textuelles
 #'
-#' Applique des remplacements (regex) sur une colonne de texte via
-#' [stringr::str_replace_all()]. Le résultat est enregistré en `.rds` dans le
-#' répertoire défini par [edstr_config()]. Si le fichier existe déjà,
-#' l'utilisateur choisit entre charger ou écraser (voir option
-#' `edstr_overwrite`).
+#' @param data data
+#' @param text text
+#' @param replace replace
 #'
-#' @param data Un dataframe/tibble contenant la colonne texte à nettoyer.
-#' @param text Nom de la colonne de texte en character. Par défaut,
-#'   `getOption("edstr_text")`.
-#' @param replace Vecteur nommé ou liste de vecteurs nommés de remplacements,
-#'   passés à [stringr::str_replace_all()].
-#'
-#' @returns Le tibble nettoyé
+#' @returns value
 #' @export
 #'
-#' @examples
-#' edstr_config(
-#'   edstr_dirname = "_extra/collect/data",
-#'   edstr_filename = "avc",
-#'   edstr_text = "texte",
-#'   edstr_overwrite = FALSE
-#' )
-#'
-#' df <- tibble::tibble(texte = c("la lapin mange des carrotes"))
-#'
-#' df_clean <- edstr_clean(
-#'   data = df,
-#'   replace = c("lapin" = "renard")
-#' )
-#'
-#' df_clean
+#' @examples "example"
 #'
 edstr_clean <- \(
   data,

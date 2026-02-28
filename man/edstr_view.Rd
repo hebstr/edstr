@@ -36,6 +36,6 @@ value
 Explorer
 }
 \examples{
-example
+"example"
 
 }

@@ -24,7 +24,12 @@
 
   data_token_match <- map(
     data_token_list,
-    ~ . |> count(concept, pick(text_input), name = "match", sort = TRUE)
+    ~ count(
+      x = .,
+      .data$concept, pick(text_input),
+      name = "match",
+      sort = TRUE
+    )
   )
 
   data_match_init <- imap(
@@ -36,10 +41,13 @@
   .concepts_id <- map(
     set_names(concepts_list$root),
     ~ data_match_init |>
-      distinct(pick(id, group), concept) |>
-      pivot_wider(names_from = concept, values_from = concept) |>
+      distinct(pick(id, group), .data$concept) |>
+      pivot_wider(
+        names_from = .data$concept,
+        values_from = .data$concept
+      ) |>
       filter(if_any(matches(.), ~ !is.na(.))) |>
-      select(id, group)
+      select(.env$id, .env$group)
   )
 
   match_id <- if (intersect) {
@@ -54,10 +62,10 @@
 
   data_match <-
   data_match_init |>
-    rename(concept_key = concept) |>
+    rename(concept_key = "concept") |>
     mutate(
-      concept = map_chr(concept_key, ~ concepts_list$names[[.]]),
-      .after = concept_key
+      concept = map_chr(.data$concept_key, ~ concepts_list$names[[.]]),
+      .after = .data$concept_key
     ) |>
     filter(.data[[id]] %in% match_id[[id]])
 

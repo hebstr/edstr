@@ -44,7 +44,7 @@
       list(start = "^{.}\\s", end = "\\s{.}$", start_end = "{.}.+{.}$") |>
         imap(set_exclus_auto) |>
         reduce(full_join, by = names(data_match)) |>
-        filter(token > 10)
+        filter(.data$token > 10)
         ,
     manual = filter(
       data_match,
@@ -70,16 +70,23 @@
       !!id := distinct(., pick(-group)),
       !!group := distinct(., pick(-id))
     ) |>
-      imap(~ . |> count(token, concept, pick(text_input), name = .y, sort = TRUE)) |>
+      imap(
+        ~ count(
+          x = .,
+          .data$token, .data$concept, pick(text_input),
+          name = .y,
+          sort = TRUE
+        )
+      ) |>
       reduce(left_join, by = c("concept", text_input, "token"))
   )
 
   data_count_exclus <-
   data_match_exclus |>
-    map(~ select(., -id, -group)) |>
+    map(~ select(., -.env$id, -.env$group)) |>
     list_rbind() |>
     distinct() |>
-    relocate(token, .before = concept) |>
+    relocate(.data$token, .before = .data$concept) |>
     left_join(
       y = data_count$drop,
       by = c("token", "concept", text_input)

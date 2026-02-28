@@ -5,11 +5,11 @@
   regex_replace_arg <- regex_replace
 
   regex_replace <- c(
-    "a" = "[aàâæ]",
-    "e" = "[eéèêëœ]",
-    "i" = "[iîï]",
-    "o" = "[oôœ]",
-    "u" = "[uùûü]",
+    "a" = "[a\u00e0\u00e2\u00e6]",
+    "e" = "[e\u00e9\u00e8\u00ea\u00eb\u0153]",
+    "i" = "[i\u00ee\u00ef]",
+    "o" = "[o\u00f4\u0153]",
+    "u" = "[u\u00f9\u00fb\u00fc]",
     "\\s" = "(?:<br/>)?[\\\\s\\\\-']+(?:<br/>)?"
   ) |>
     append(regex_replace) |>
@@ -24,7 +24,7 @@
 
   data_regex_replace <-
   data_count |>
-    arrange(concept) |>
+    arrange(.data$concept) |>
     mutate(!!text_input := str_replace_all(.data[[text_input]], regex_replace))
 
   data_regex_str <- glue(
@@ -34,7 +34,7 @@
 
   data_regex_df <-
   data_regex_replace |>
-    nest(!!text_input := all_of(text_input), .by = concept) |>
+    nest(!!text_input := all_of(text_input), .by = .data$concept) |>
     mutate(
       !!text_input := map_chr(.data[[text_input]], ~ str_flatten(unlist(.), "|")),
       !!text_input := glue(regex_wrap, x = .data[[text_input]])
@@ -54,11 +54,15 @@
       id = id
     ) |>
       pluck("match") |>
-      mutate(concept = .y, .before = match)
+      mutate(concept = .y, .before = .data$match)
   ) |>
     list_rbind()
 
-  data_regex_count <- data_regex_match |> count(concept, match, sort = TRUE)
+  data_regex_count <- count(
+    x = data_regex_match,
+    .data$concept, .data$match,
+    sort = TRUE
+  )
 
   list(
     regex_replace_arg = regex_replace_arg,

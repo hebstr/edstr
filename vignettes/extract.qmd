@@ -5,28 +5,28 @@ vignette: >
   %\VignetteIndexEntry{edstr_extract() : extraction du texte}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
-
-knitr:
-  opts_chunk:
-    eval: false
 ---
 
-{{< include _setup.qmd >}}
+```{r}
+library(edstr)
+```
 
 ## blabla
 
 préparation
 
 ```{r}
-edstr_config(dest_dir = "_demo/ains/data_sample",
-             dest_filename = "ains_sample",
-             replace = "_demo/config/str.RData",
-             concepts = "_demo/config/concepts_ains.RData")
+#| error: true
+edstr_config(
+  edstr_dirname = "demo/collect/data",
+  edstr_filename = "avc",
+  edstr_text = "doc_texte",
+  edstr_overwrite = FALSE
+)
 
-edstr_import(query = "select * from ains",
-             load = TRUE)
+df_import <- edstr_import()
 
-edstr_clean(load = TRUE)
+df_clean <- edstr_clean()
 ```
 
 ## extract
@@ -34,9 +34,10 @@ edstr_clean(load = TRUE)
 on y va
 
 ```{r}
-edstr_extract(ngrams = 1:2,
-              concepts = .config$concepts,
-              intersect = TRUE,
-              id = "id_entrepot",
-              group = "ipp")
+#| error: true
+edstr_extract(
+  concepts = list(fracture = "fracture"),
+  intersect = TRUE,
+  group = "ipp"
+)
 ```

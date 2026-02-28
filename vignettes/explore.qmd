@@ -5,23 +5,25 @@ vignette: >
   %\VignetteIndexEntry{edstr_view() : rechercher dans le texte}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
-
-knitr:
-  opts_chunk:
-    eval: false
 ---
 
-{{< include _setup.qmd >}}
+```{r}
+library(edstr)
+```
 
 ## préparation
 
 prep
 
 ```{r}
-edstr_config(dest_dir = "_demo/ains/data_sample",
-             dest_filename = "ains_sample")
+edstr_config(
+  edstr_dirname = "demo/collect/data",
+  edstr_filename = "avc",
+  edstr_text = "doc_texte",
+  edstr_overwrite = FALSE
+)
 
-edstr_clean(load = TRUE)
+# df_clean <- edstr_clean(data = NULL)
 ```
 
 ```{r}
@@ -33,10 +35,11 @@ ls()
 explore
 
 ```{r}
-edstr_view(data = ains_sample_clean,
-           str = "cellul\\w*",
-           id = "id_entrepot",
-           output_sample = 0)
+#| eval: false
+edstr_view(
+  data = df_clean,
+  str = "cellul\\w*",
+)
 ```
 
 assignation

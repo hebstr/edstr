@@ -2,7 +2,7 @@ Package: edstr
 Title: Exploration de données textuelles de routine dans l'EDS
 Version: 0.1.0
 Authors@R:
-    person("Julien", "ELICES-DIEZ", , "ju.diez@protonmail.com", role = c("aut", "cre"),
+    person("Henry", "BOSTORRHUS", , "ju.diez@protonmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0009-0001-3983-5713"))
 Description: Collecter, nettoyer et extraire des données textuelles de routine depuis l'EDS.
 License: GPL (>= 3)
@@ -10,24 +10,20 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 Depends:
-    R (>= 4.1.0)
+    R (>= 4.3.0)
 Imports:
     cli,
+    DatabaseConnector,
     dplyr,
+    fs,
     glue,
-    gt,
     here,
-    htmltools,
-    lifecycle,
     openxlsx2,
     purrr,
-    reactable,
     readr,
     rJava,
     rlang,
     RJDBC,
-    scales,
-    stats,
     stringr,
     tibble,
     tictoc,
@@ -38,8 +34,8 @@ Imports:
     config,
     stringi,
     rstudioapi,
-    fs
 Suggests:
+    gt,
     knitr,
     quarto,
     rmarkdown

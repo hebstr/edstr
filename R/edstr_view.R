@@ -11,7 +11,7 @@
 #' @return value
 #' @export
 #'
-#' @examples example
+#' @examples "example"
 #'
 edstr_view <- \(
   data,
@@ -63,7 +63,7 @@ edstr_view <- \(
 
   match_id <- n_distinct(data_view$match[[id]])
 
-  cli_p_match <- label_percent(0.1)(match_id / nrow(data))
+  cli_p_match <- label_pct(match_id / nrow(data))
 
   toc()
 

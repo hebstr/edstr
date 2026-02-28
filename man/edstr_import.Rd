@@ -39,6 +39,6 @@ value
 import
 }
 \examples{
-example
+"example"
 
 }

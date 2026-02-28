@@ -5,19 +5,13 @@ vignette: >
   %\VignetteIndexEntry{Vue d'ensemble}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
-
-knitr:
-  opts_chunk:
-    eval: false
 ---
-
-{{< include _setup.qmd >}}
 
 Exemple de la détection des fractures de l'extrémité supérieure du fémur (FESF).
 
 Le script correspondant :
 
-```{.r include="../_demo/ains/ains.R"}
+```{.r include="demo/collect/file_extract.R"}
 ```
 
 Le contenu suivant explicite brièvement le résultat de chaque fonction afin de montrer le process global.
@@ -37,17 +31,23 @@ library(edstr)
 La fonction `edstr_config()` définit des paramètres communs aux fonctions suivantes.
 
 ```{r}
-edstr_config(dest_dir = "_demo/ains/data_sample",
-             dest_filename = "ains_sample")
+edstr_config(
+  edstr_dirname = "demo/collect/data",
+  edstr_filename = "avc",
+  edstr_text = "doc_texte",
+  edstr_overwrite = FALSE
+)
 ```
 
 ## Collection des données
 
 Réalise l'importation de la table [nom] depuis la base et son enregistrement selon les paramètres définis dans `edstr_config()`.
 
-```{r error=TRUE}
-edstr_import(query = "select * from ains",
-             load = TRUE)
+```{r}
+#| error: true
+df_import <- edstr_import(
+  query = "SELECT * FROm import",
+)
 ```
 
 ## Nettoyage des données
@@ -56,8 +56,11 @@ Réalise le nettoyage du texte présent dans la table importée et son enregistr
 
 Prend automatiquement en input la table importée avec `edstr_import()`.
 
-```{r error=TRUE}
-edstr_clean(load = TRUE)
+```{r}
+#| error: true
+edstr_clean(
+  data = df_import
+)
 ```
 
 ## Extraction avec `edstr_extract()`

@@ -32,15 +32,15 @@
     map(as.character) |>
     enframe(name = "arg") |>
     mutate(
-      value = map_chr(value, ~ str_flatten(unlist(.), " ; ")),
-      value = ifelse(value == "", "NULL", value)
+      value = map_chr(.data$value, ~ str_flatten(unlist(.), " ; ")),
+      value = ifelse(.data$value == "", "NULL", .data$value)
     )
 
   list(
     data = data_extract |> select(-text_input),
     token_regex = concepts_list$regex_df,
-    token_match = data_id |> select(-concept_key),
-    token_count = data_count |> select(-token),
+    token_match = data_id |> select(-.data$concept_key),
+    token_count = data_count |> select(-.data$token),
     token_exclusion = .sheet_exclusions,
     concept_count = data_summary$concept,
     text_replace = regex_replace_df,
@@ -143,14 +143,24 @@
     data = list(
       id =
         data_sheets$data |>
-          select(-c(matches(concepts_list$root), concept, extract)) |>
+          select(-c(
+            matches(concepts_list$root),
+            .data$concept,
+            .data$extract
+          )) |>
           gt_custom(font_size = 11) |>
-          sub_missing() |>
+          gt::sub_missing() |>
           gt_text_align(),
       text =
         data_sheets$data |>
-          select(n, id, matches(concepts_list$root), concept, extract) |>
-          mutate(` ... ` = "...", .after = id) |>
+          select(
+            .data$n,
+            .env$id,
+            matches(concepts_list$root),
+            .data$concept,
+            .data$extract
+          ) |>
+          mutate(` ... ` = "...", .after = .env$id) |>
           gt_custom(font_size = 11) |>
           gt_text_align() |>
           gt_text_color(
@@ -194,11 +204,11 @@
                       color = concept_color) |>
         gt_text_color(column = text_input,
                       color = text_color) |>
-        sub_missing(),
+        gt::sub_missing(),
     concept_count =
       data_sheets$concept_count |>
         gt_custom() |>
-        sub_missing() |>
+        gt::sub_missing() |>
         gt_text_align() |>
         gt_text_color(column = "concept",
                       color = concept_color),
@@ -238,7 +248,7 @@
                       color = concept_color) |>
         gt_text_color(column = "match",
                       color = text_color) |>
-        sub_missing(),
+        gt::sub_missing(),
     params =
       gt_custom(data = data_sheets$params, head = NULL)
   )

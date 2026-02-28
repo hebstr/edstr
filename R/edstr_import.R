@@ -5,8 +5,8 @@
 ) {
 
   if (is.null(query)) cli_abort(c(
-    "{.arg query} : spécifier un chemin vers un fichier .sql
-    ou une requête SQL directe"
+    "{.arg query} : sp\u00e9cifier un chemin vers un fichier .sql
+    ou une requ\u00eate SQL directe"
   ))
 
   cli_h1("edstr_import"); br()
@@ -28,7 +28,7 @@
 
   # connection <- DBI::dbConnect(
   #   drv = duckdb::duckdb(),
-  #   dbdir = "_extra/collect/data/test.duckdb"
+  #   dbdir = "demo/collect/data/test.duckdb"
   # )
 
   # on.exit(DBI::dbDisconnect(connection))
@@ -41,7 +41,7 @@
   if (!is.null(head)) {
 
     if (!is.numeric(head) || length(head) != 1) cli_abort(
-      "{.arg head} doit être un entier positif"
+      "{.arg head} doit \u00eatre un entier positif"
     )
 
     query <- str_glue("{query} FETCH FIRST {as.integer(head)} ROWS ONLY")
@@ -94,7 +94,7 @@
 #' @return value
 #' @export
 #'
-#' @examples example
+#' @examples "example"
 #'
 edstr_import <- \(
   query = NULL,

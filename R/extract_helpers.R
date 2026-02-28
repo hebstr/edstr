@@ -70,9 +70,12 @@
 
   regex_end <- if (starts_with_only) "\\S*$" else ""
 
+  keys <- names(concepts)
+  root <- unique(str_remove(keys, "_.+"))
+
   lst(
-    keys = names(concepts),
-    root = unique(str_remove(keys, "_.+")),
+    keys = keys,
+    root = root,
     names = imap(concepts, ~ if (is_named(.x)) names(.x) else .y),
     str = lst(
       comma = str_flatten_comma(root),
@@ -230,9 +233,9 @@
 
   data_regex_mismatch <-
   data_match |>
-    select(id, concept, match = !!text_input) |>
+    select(.env$id, .data$concept, match = !!text_input) |>
     anti_join(
-      y = data_regex_match |> mutate(match = .conv_fun(match)),
+      y = data_regex_match |> mutate(match = .conv_fun(.data$match)),
       by = c(id, "concept", "match")
     )
 
@@ -271,16 +274,19 @@
           concept = .y
         ) |>
         drop_na(extract) |>
-        select(id, group, concept)
+        select(.env$id, .env$group, .data$concept)
     ) |>
     list_rbind() |>
-    nest(concept = concept) |>
-    mutate(concept = map_chr(concept, ~ str_flatten(unlist(.), " ; ")))
+    nest(concept = .data$concept) |>
+    mutate(concept = map_chr(.data$concept, ~ str_flatten(unlist(.), " ; ")))
 
   extract_concept_dummy <-
   data_id |>
-    distinct(pick(id, group), concept_key) |>
-    pivot_wider(names_from = concept_key, values_from = concept_key) |>
+    distinct(pick(id, group), .data$concept_key) |>
+    pivot_wider(
+      names_from = .data$concept_key,
+      values_from = .data$concept_key
+    ) |>
     mutate(across(matches(concepts_root), ~ ifelse(is.na(.), 0, 1)))
 
   lst(
@@ -289,7 +295,7 @@
     concept_dummy = extract_concept_dummy
   ) |>
     reduce(inner_join, by = c(id, group)) |>
-    relocate(concept, extract, .after = last_col()) |>
+    relocate(.data$concept, .data$extract, .after = last_col()) |>
     arrange(pick(group, id)) |>
     rownames_to_column("n")
 
@@ -317,7 +323,10 @@
     match = set_summary("concept"),
     id = imap(
       list(id, group),
-      ~ summarise(data_id, !!. := n_distinct(.data[[.]]), .by = concept)
+      ~ summarise(
+        data_id, !!. := n_distinct(.data[[.]]),
+        .by = .data$concept
+      )
     )
   )
 
