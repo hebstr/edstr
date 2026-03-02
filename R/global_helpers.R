@@ -222,9 +222,17 @@ gt_text_align <- \(
 
 set_class_css <- \(data, pattern) {
 
-  pattern <-
-  set_names(pattern, str_to_kebab) |>
-    map_chr(~ regex(as.character(.)))
+  class_flatten <- \(str) {
+
+    str_split_1(str, "_") |>
+      accumulate(paste, sep = "-") |>
+      paste(collapse = " ")
+
+  }
+
+  pattern_id <- map_chr(names(pattern), class_flatten)
+
+  pattern <- set_names(pattern, pattern_id) |> map_chr(regex)
 
   fun <- \(string, regex, class) str_replace_all(
     string = string,

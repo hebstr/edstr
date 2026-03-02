@@ -147,10 +147,6 @@
       data_match, data_match_exclus, data_id, data_count, id, group, params
     )
 
-    list_c(save_extract) |>
-      keep(fs::file_exists) |>
-      fs::file_delete()
-
   ### SAVE XLSX ------------------------------------------------------------------
 
     data_sheets <- .extract_sheets(
@@ -163,7 +159,7 @@
 
     data_sheets_gt <- if (save_as_gt) {
 
-      rlang::check_installed("gt")
+      check_installed("gt")
 
       .extract_sheets_gt(
         data_sheets, concepts_list, id, text_input, concept_color, text_color
@@ -188,7 +184,10 @@
     data_csv <-
     data_extract |>
       mutate(
-        across(c(.data$extract, text_input), ~ set_class_css(., data_regex_list)),
+        across(
+          c(.data$extract, text_input),
+          ~ set_class_css(., data_regex_list)
+        ),
         extract = str_remove_all(.data$extract, ";")
       ) |>
       select(-matches(concepts_list$root))

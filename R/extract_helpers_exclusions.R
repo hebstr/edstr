@@ -44,8 +44,7 @@
       list(start = "^{.}\\s", end = "\\s{.}$", start_end = "{.}.+{.}$") |>
         imap(set_exclus_auto) |>
         reduce(full_join, by = names(data_match)) |>
-        filter(.data$token > 10)
-        ,
+        filter(.data$token > 10),
     manual = filter(
       data_match,
       str_detect_safe(.data[[text_input]], exclus_manual)
@@ -53,14 +52,15 @@
   ) |>
     imap(~ .x |> mutate(mode = .y, .before = everything()))
 
-  .match_exclus <- list(
-    concept = data_match_exclus |> list_rbind() |> pull(text_input) |> unique(),
-    expr = expr(.data[[text_input]] %in% .match_exclus$concept)
-  )
+  .match_exclus <-
+  data_match_exclus |>
+    list_rbind() |>
+    pull(text_input) |>
+    unique()
 
   data_match_final <- list(
-    keep = filter(data_match, !eval(.match_exclus$expr)),
-    drop = filter(data_match, eval(.match_exclus$expr))
+    keep = filter(data_match, !.data[[text_input]] %in% .match_exclus),
+    drop = filter(data_match, .data[[text_input]] %in% .match_exclus)
   )
 
   data_count <- map(
