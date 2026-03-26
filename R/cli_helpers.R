@@ -1,12 +1,12 @@
 cli_save <- \(data, config_file, config_save) {
 
-  cli_progress_step("Enregistrement du fichier {.strong {config_file}}")
+  cli_progress_step("Saving file {.strong {config_file}}")
 
   saveRDS(data, file = config_save)
 
   cli_progress_done()
 
-  cli_alert_success("Fichier {.strong {config_file}} enregistr\u00e9 dans {.strong {.path {config_save}}}")
+  cli_alert_success("File {.strong {config_file}} saved to {.strong {.path {config_save}}}")
   br()
 
   cli_alert_info("{.strong Dimensions}")
@@ -18,23 +18,23 @@ cli_save <- \(data, config_file, config_save) {
 
   br(); cli_rule()
 
-  return(data)
+  data
 
 }
 
 cli_load <- \(dir, file, save) {
 
-  cli_progress_step("Chargement du fichier {.strong {file}}")
+  cli_progress_step("Loading file {.strong {file}}")
 
   .load <- readRDS(save)
 
   cli_progress_done()
 
-  cli_alert_success("Fichier {.strong {file}} charg\u00e9 depuis {.strong {.path {save}}}")
+  cli_alert_success("File {.strong {file}} loaded from {.strong {.path {save}}}")
 
   br(); cli_rule()
 
-  return(.load)
+  .load
 
 }
 
@@ -45,21 +45,21 @@ cli_check <- \(config_file, fun_save, fun_load) {
   if (isTRUE(overwrite)) return(fun_save())
   if (isFALSE(overwrite)) return(fun_load())
 
-  br(); cli_alert_warning("Le fichier {.strong {config_file}} existe d\u00e9ja.")
+  br(); cli_alert_warning("File {.strong {config_file}} already exists.")
 
-  choix <- menu(
+  choice <- menu(
     choices = c(
-      "Charger le fichier existant",
-      "\u00c9craser le fichier existant",
-      "Annuler"
+      "Load existing file",
+      "Overwrite existing file",
+      "Cancel"
     ),
     title = NULL
   )
 
-  if (choix == 1) fun_load()
+  if (choice == 1) fun_load()
 
-    else if (choix == 2) fun_save()
+    else if (choice == 2) fun_save()
 
-      else cli_abort("Op\u00e9ration annul\u00e9e.")
+      else cli_abort("Operation cancelled.")
 
 }

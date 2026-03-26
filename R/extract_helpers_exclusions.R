@@ -1,5 +1,6 @@
 .extract_exclusions <- \(
-  data_match, text_input, id, group, exclus_manual, exclus_auto_escape
+  data_match, text_input, id, group, exclus_manual, exclus_auto_escape,
+  exclus_auto_token_min
 ) {
 
   data_match$token <- as.numeric(str_remove(data_match$token, "n"))
@@ -15,10 +16,12 @@
 
   set_exclus_auto <- \(regex, name) {
 
+    .escape_regex <- \(x) str_replace_all(x, "([.\\\\|()\\[\\]{}^$*+?])", "\\\\\\1")
+
     unique(data_match[[text_input]]) |>
       map(
-        ~ data_match |>
-          filter(str_detect(.data[[text_input]], glue(regex))) |>
+        \(.) data_match |>
+          filter(str_detect(.data[[text_input]], glue(regex, . = .escape_regex(.)))) |>
           mutate(!!name := .)
       ) |>
       list_rbind()
@@ -44,7 +47,7 @@
       list(start = "^{.}\\s", end = "\\s{.}$", start_end = "{.}.+{.}$") |>
         imap(set_exclus_auto) |>
         reduce(full_join, by = names(data_match)) |>
-        filter(.data$token > 10),
+        filter(.data$token > exclus_auto_token_min),
     manual = filter(
       data_match,
       str_detect_safe(.data[[text_input]], exclus_manual)
@@ -67,13 +70,13 @@
     data_match_final,
     ~ list2(
       match = .,
-      !!id := distinct(., pick(-group)),
-      !!group := distinct(., pick(-id))
+      !!id := distinct(., pick(-all_of(group))),
+      !!group := distinct(., pick(-all_of(id)))
     ) |>
       imap(
         ~ count(
           x = .,
-          .data$token, .data$concept, pick(text_input),
+          .data$token, .data$concept, pick(all_of(text_input)),
           name = .y,
           sort = TRUE
         )
@@ -83,10 +86,10 @@
 
   data_count_exclus <-
   data_match_exclus |>
-    map(~ select(., -.env$id, -.env$group)) |>
+    map(~ select(., -all_of(c(id, group)))) |>
     list_rbind() |>
     distinct() |>
-    relocate(.data$token, .before = .data$concept) |>
+    relocate("token", .before = "concept") |>
     left_join(
       y = data_count$drop,
       by = c("token", "concept", text_input)

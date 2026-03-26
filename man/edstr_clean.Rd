@@ -2,24 +2,44 @@
 % Please edit documentation in R/edstr_clean.R
 \name{edstr_clean}
 \alias{edstr_clean}
-\title{Nettoyer les données textuelles}
+\title{Clean text data}
 \usage{
 edstr_clean(data, text = getOption("edstr_text"), replace)
 }
 \arguments{
-\item{data}{data}
+\item{data}{\verb{<data.frame>} The data to clean. Must contain the column
+specified by \code{text}.}
 
-\item{text}{text}
+\item{text}{\verb{<character(1)>} Name of the text column to clean. Defaults
+to the \code{edstr_text} option set by \code{\link[=edstr_config]{edstr_config()}}.}
 
-\item{replace}{replace}
+\item{replace}{A named character vector or a list of named character
+vectors. Names are regex patterns, values are replacements. When a list
+is provided, each element is applied sequentially via
+\code{\link[stringr:str_replace]{stringr::str_replace_all()}}.}
 }
 \value{
-value
+A \link{data.frame} with the cleaned text column.
 }
 \description{
-Nettoyer les données textuelles
+Apply regex-based replacements to a text column and save the result as an
+RDS file. If a cached file already exists, behaviour depends on the
+\code{edstr_overwrite} option (see \code{\link[=edstr_config]{edstr_config()}}).
+}
+\details{
+Requires \code{\link[=edstr_config]{edstr_config()}} to be called first.
 }
 \examples{
-"example"
+\dontrun{
+edstr_config(
+  edstr_dirname = "output", edstr_filename = "my_study",
+  edstr_text = "note_text"
+)
+
+df_clean <- edstr_clean(
+  data = df_import,
+  replace = c("\\\\s+" = " ", "\\\\n" = " ")
+)
+}
 
 }

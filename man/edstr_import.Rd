@@ -2,7 +2,7 @@
 % Please edit documentation in R/edstr_import.R
 \name{edstr_import}
 \alias{edstr_import}
-\title{import}
+\title{Import data from the EDS}
 \usage{
 edstr_import(
   query = NULL,
@@ -16,29 +16,49 @@ edstr_import(
 )
 }
 \arguments{
-\item{query}{query}
+\item{query}{\verb{<character(1)>} A SQL query string or a path to a \code{.sql}
+file. If \code{NULL}, the function errors.}
 
-\item{head}{head}
+\item{head}{\verb{<integer(1)>} Optional. Limit the query to the first \code{head}
+rows (appends \verb{FETCH FIRST ... ROWS ONLY}).}
 
-\item{lower}{lower}
+\item{lower}{\verb{<logical(1)>} If \code{TRUE} (default), column names are
+converted to lowercase.}
 
-\item{user}{user}
+\item{user}{\verb{<character(1)>} Database username.}
 
-\item{password}{password}
+\item{password}{\verb{<character(1)>} Database password. Defaults to an
+interactive prompt via \code{\link[rstudioapi:askForPassword]{rstudioapi::askForPassword()}}.}
 
-\item{connect_dir}{connect_dir}
+\item{connect_dir}{\verb{<character(1)>} Path to the YAML connection
+configuration file read by \code{\link[config:get]{config::get()}}.}
 
-\item{tns}{tns}
+\item{tns}{\verb{<character(1)>} TNS alias to select from the connection
+configuration (default \code{"vlp"}).}
 
-\item{...}{...}
+\item{...}{Additional arguments passed to
+\code{\link[DatabaseConnector:connect]{DatabaseConnector::connect()}}.}
 }
 \value{
-value
+A \link{data.frame} with the imported data.
 }
 \description{
-import
+Execute a SQL query against an Oracle database and save the result as an
+RDS file. If a cached file already exists, behaviour depends on the
+\code{edstr_overwrite} option (see \code{\link[=edstr_config]{edstr_config()}}).
+}
+\details{
+Requires \code{\link[=edstr_config]{edstr_config()}} to be called first.
 }
 \examples{
-"example"
+\dontrun{
+edstr_config(edstr_dirname = "output", edstr_filename = "my_study")
+
+df <- edstr_import(
+  query = "sql/my_query.sql",
+  head = 100,
+  user = "my_user"
+)
+}
 
 }

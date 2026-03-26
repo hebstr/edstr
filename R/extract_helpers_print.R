@@ -15,7 +15,7 @@
 
   n_concepts <- length(concepts_list$root)
 
-  cli_intersect <- if (intersect) " \u00e0 l'intersection {concepts_list$str$inter}" else ""
+  cli_intersect <- if (intersect) " at intersection {concepts_list$str$inter}" else ""
 
   cli_n_id <- nrow(data_id |> filter(.data[[id]] %in% match_id[[id]]))
   cli_p_id <- label_pct(nrow(data) / nrow_init)
@@ -27,18 +27,18 @@
   cli_p_extract <- label_pct(cli_n_extract / nrow(data))
 
   cli_alert_info("{.strong Documents}")
-    cli_ul("Total : {nrow_init} {id}")
-    if (!is.null(sample)) cli_ul("Sample : {nrow(data)} {id} ({cli_p_id})")
+    cli_ul("Total: {nrow_init} {id}")
+    if (!is.null(sample)) cli_ul("Sample: {nrow(data)} {id} ({cli_p_id})")
 
-  br(); cli_alert_info("{.strong Correspondances totales}")
-    cli_ul("{nrow(data_match_init)} parmi {cli_n_match} {id} ({cli_p_match} {id})")
-    if (nrow(data_count_exclus) == 0) cli_ul("Aucune exclusion")
+  br(); cli_alert_info("{.strong Total matches}")
+    cli_ul("{nrow(data_match_init)} across {cli_n_match} {id} ({cli_p_match} {id})")
+    if (nrow(data_count_exclus) == 0) cli_ul("No exclusions")
 
   if (nrow(data_count_exclus) > 0) {
 
     br(); cli_alert_info("{.strong Exclusions}")
-      cli_ul("Automatiques : {nrow(data_match_exclus$auto)}")
-      cli_ul("Manuelles : {nrow(data_match_exclus$manual)}")
+      cli_ul("Automatic: {nrow(data_match_exclus$auto)}")
+      cli_ul("Manual: {nrow(data_match_exclus$manual)}")
 
   }
 
@@ -53,9 +53,9 @@
 
   br(); cli_rule(); br()
 
-  cli_alert_success("{.strong {n_concepts} concept{?s} parent{?s} :} {concepts_list$str$comma}\n\n")
+  cli_alert_success("{.strong {n_concepts} root concept{?s}:} {concepts_list$str$comma}\n\n")
 
-  cli_alert_success("{.strong {cli_n_id} correspondance{?s}{glue(cli_intersect)}}")
+  cli_alert_success("{.strong {cli_n_id} match{?es}{glue(cli_intersect)}}")
     cli_ul("{cli_n_extract} {id} ({cli_p_extract} {id})")
     if (!is.null(which_group)) {
       cli_n_group <- n_distinct(data_extract[[group]])
@@ -75,15 +75,15 @@
 
   }
 
-  br(); cli_alert_success("{.strong {nrow(data_count)} correspondance{?s} distincte{?s}}")
+  br(); cli_alert_success("{.strong {nrow(data_count)} distinct match{?es}}")
 
   br(); cli_rule(); br()
 
-  cli_alert_info("{.strong R\u00e9pertoire parent : {.path {here::here()}}}\n\n")
+  cli_alert_info("{.strong Root directory: {.path {here::here()}}}\n\n")
 
   cli_path <- fs::path(save_dir, save_files, ext = "<xlsx/csv/rds>")
 
-  cli_alert_success("{.strong Fichiers enregistr\u00e9s : {cli::col_blue(cli_path)}}")
+  cli_alert_success("{.strong Files saved: {cli::col_blue(cli_path)}}")
 
   br(); cli_rule()
 

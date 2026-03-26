@@ -6,7 +6,7 @@
 
     if (!is_named(concepts)) {
 
-      cli_abort("Chaque concept doit \u00eatre nomm\u00e9")
+      cli_abort("Every concept must be named")
 
     }
 
@@ -42,7 +42,7 @@
 
     if (length(concepts) == 1) {
 
-      cli_abort("Pas de regroupement possible avec un seul concept")
+      cli_abort("Cannot collapse with a single concept")
 
     }
 
@@ -64,7 +64,7 @@
 
   if (length(names(concepts)) == 1 && intersect) {
 
-    cli_abort("Pas d'intersection possible avec un seul concept")
+    cli_abort("Cannot intersect with a single concept")
 
   }
 
@@ -79,7 +79,7 @@
     names = imap(concepts, ~ if (is_named(.x)) names(.x) else .y),
     str = lst(
       comma = str_flatten_comma(root),
-      inter = glue("[{paste(root, collapse = ' ET ')}]")
+      inter = glue("[{paste(root, collapse = ' AND ')}]")
     ),
     regex = map(concepts, ~ glue("^({.}){regex_end}")),
     regex_df = tibble(
@@ -182,7 +182,7 @@
       stri_detect_regex({{ text }}, filter)
     )
 
-    return(.data_ngram)
+    .data_ngram
 
   }
 
@@ -233,7 +233,7 @@
 
   data_regex_mismatch <-
   data_match |>
-    select(.env$id, .data$concept, match = !!text_input) |>
+    select(all_of(id), "concept", match = !!text_input) |>
     anti_join(
       y = data_regex_match |> mutate(match = .conv_fun(.data$match)),
       by = c(id, "concept", "match")
@@ -274,18 +274,18 @@
           concept = .y
         ) |>
         drop_na(extract) |>
-        select(.env$id, .env$group, .data$concept)
+        select(all_of(c(id, group)), "concept")
     ) |>
     list_rbind() |>
-    nest(concept = .data$concept) |>
+    nest(concept = "concept") |>
     mutate(concept = map_chr(.data$concept, ~ str_flatten(unlist(.), " ; ")))
 
   extract_concept_dummy <-
   data_id |>
-    distinct(pick(id, group), .data$concept_key) |>
+    distinct(pick(all_of(c(id, group))), .data$concept_key) |>
     pivot_wider(
-      names_from = .data$concept_key,
-      values_from = .data$concept_key
+      names_from = "concept_key",
+      values_from = "concept_key"
     ) |>
     mutate(across(matches(concepts_root), ~ ifelse(is.na(.), 0, 1)))
 
@@ -295,8 +295,8 @@
     concept_dummy = extract_concept_dummy
   ) |>
     reduce(inner_join, by = c(id, group)) |>
-    relocate(.data$concept, .data$extract, .after = last_col()) |>
-    arrange(pick(group, id)) |>
+    relocate("concept", "extract", .after = last_col()) |>
+    arrange(pick(all_of(c(group, id)))) |>
     rownames_to_column("n")
 
 }
@@ -325,7 +325,7 @@
       list(id, group),
       ~ summarise(
         data_id, !!. := n_distinct(.data[[.]]),
-        .by = .data$concept
+        .by = "concept"
       )
     )
   )

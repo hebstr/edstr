@@ -1,43 +1,186 @@
 ---
-title: "edstr_extract() : extraction du texte"
+title: "edstr_extract(): text extraction"
 
 vignette: >
-  %\VignetteIndexEntry{edstr_extract() : extraction du texte}
+  %\VignetteIndexEntry{edstr_extract(): text extraction}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
 ---
 
 ```{r}
+#| label: setup
 library(edstr)
 ```
 
-## blabla
+`edstr_extract()` is the core of the pipeline.
+It tokenises cleaned text, matches user-defined concepts via regex, filters false positives, and exports results as XLSX, CSV, and RDS files.
 
-préparation
+## Prerequisites
 
 ```{r}
 #| error: true
 edstr_config(
-  edstr_dirname = "demo/collect/data",
-  edstr_filename = "avc",
-  edstr_text = "doc_texte",
+  edstr_dirname = "output/my_study",
+  edstr_filename = "my_study",
+  edstr_text = "note_text",
   edstr_overwrite = FALSE
 )
 
 df_import <- edstr_import()
-
-df_clean <- edstr_clean()
+df_clean <- edstr_clean(data = df_import, replace = c("\\s+" = " "))
 ```
 
-## extract
+## Defining concepts
 
-on y va
+Concepts are named regex patterns that define the clinical entities to search for.
+A named character vector creates flat, independent concepts:
 
 ```{r}
+#| label: extract-flat
 #| error: true
-edstr_extract(
-  concepts = list(fracture = "fracture"),
-  intersect = TRUE,
-  group = "ipp"
+result <- edstr_extract(
+  data = df_clean,
+  concepts = c(fracture = "fracture", femur = "f(e|é)mur|fesf"),
+  group = "id_pat"
 )
 ```
+
+A nested named list creates sub-concepts grouped under a root:
+
+```{r}
+#| label: extract-nested
+#| error: true
+result <- edstr_extract(
+  data = df_clean,
+  concepts = list(
+    fracture = c(
+      fesf = "fesf|extremite superieure",
+      col  = "col (du )?femur"
+    )
+  ),
+  group = "id_pat"
+)
+```
+
+## Tokenisation
+
+The `token` argument controls the n-gram sizes used for tokenisation.
+Unigrams (`token = 1`) are the default; adding bigrams captures multi-word expressions.
+
+```{r}
+#| label: extract-bigrams
+#| error: true
+result <- edstr_extract(
+  data = df_clean,
+  concepts = c(fracture = "fracture"),
+  token = c(1, 2),
+  group = "id_pat"
+)
+```
+
+By default, `starts_with_only = TRUE` appends `\S*$` to patterns, matching any token that starts with the concept.
+Set `starts_with_only = FALSE` for exact matching.
+
+## Collapse and intersect
+
+When multiple concepts are defined, two modes alter the matching logic:
+
+- **`collapse = TRUE`**: OR-collapses all concept patterns into a single regex per root concept.
+  Useful when sub-concepts are synonyms that should be treated as one.
+- **`intersect = TRUE`**: keeps only documents that match **all** root-level concepts.
+  Useful for narrowing results to co-occurrences.
+
+Both require at least two concepts.
+
+```{r}
+#| label: extract-intersect
+#| error: true
+result <- edstr_extract(
+  data = df_clean,
+  concepts = c(fracture = "fracture", femur = "f(e|é)mur|fesf"),
+  intersect = TRUE,
+  group = "id_pat"
+)
+```
+
+## Exclusions
+
+False positives can be removed through two mechanisms:
+
+### Manual exclusions
+
+A regex pattern passed to `exclus_manual` removes any matched token containing that pattern.
+
+```{r}
+#| label: extract-exclus-manual
+#| error: true
+result <- edstr_extract(
+  data = df_clean,
+  concepts = c(fracture = "fracture"),
+  exclus_manual = "fracture ouverte|ancienne fracture",
+  group = "id_pat"
+)
+```
+
+### Automatic exclusions
+
+Heuristic-based filtering on long tokens.
+`exclus_auto_token_min` sets the minimum n-gram size (default `10`) above which auto-exclusion applies.
+`exclus_auto_escape` removes specific tokens from the match pool before auto-exclusion runs.
+
+## Sampling
+
+For development and testing, `sample` draws a random subset of rows before extraction.
+Use `seed` for reproducibility.
+
+```{r}
+#| label: extract-sample
+#| error: true
+result <- edstr_extract(
+  data = df_clean,
+  concepts = c(fracture = "fracture"),
+  sample = 500,
+  seed = 42,
+  group = "id_pat"
+)
+```
+
+## Pseudonymisation
+
+Two arguments handle de-identification before extraction:
+
+- `ano_hash`: column names whose values are replaced by truncated hashes.
+- `ano_hide`: column names whose values are masked with `"---"`.
+
+```{r}
+#| label: extract-ano
+#| error: true
+result <- edstr_extract(
+  data = df_clean,
+  concepts = c(fracture = "fracture"),
+  ano_hash = "id_pat",
+  ano_hide = "patient_name",
+  group = "id_pat"
+)
+```
+
+## Output structure
+
+`edstr_extract()` returns a nested list and saves three files:
+
+| File    | Contents |
+|---------|----------|
+| `.xlsx` | Excel workbook with one sheet per result type (extraction, token counts, exclusions, source matching, mismatch, parameters) |
+| `.csv`  | Flat extraction table for downstream analysis |
+| `.rds`  | Full list with all intermediate objects |
+
+The returned list contains:
+
+- `data`: data frames (`base`, `match`, `extract`, `csv`)
+- `regex`: parsed patterns, replacement rules, source-level matches
+- `match`: initial and final (post-exclusion) matches
+- `count`: token-level and distinct match counts
+- `exclus`: excluded matches and counts
+- `mismatch`: discrepancies between token and source matching
+- `summary`: summaries by token and concept, plus call parameters
+- `sheets`: data frames and optional `gt` tables for each Excel sheet

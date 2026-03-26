@@ -2,7 +2,8 @@
   data, text_input, id, group, sample, seed,
   ano_hash, ano_hide, token, concepts, collapse,
   intersect, starts_with_only, exclus_manual,
-  exclus_auto_escape, regex_replace, mismatch_data,
+  exclus_auto_escape, exclus_auto_token_min,
+  regex_replace, mismatch_data,
   concept_color, text_color, save_as_gt,
   save_dir, save_files, save_extract
 ) {
@@ -14,7 +15,7 @@
 
   cli_save_extract <- map(
     set_names(c("xlsx", "rds", "csv")),
-    ~ paste("Enregistrement du fichier", fs::path(save_files, ext = .))
+    ~ paste("Saving file", fs::path(save_files, ext = .))
   )
 
   if (!is.null(seed)) local_seed(seed)
@@ -41,7 +42,7 @@
 
   ### FORMAT ---------------------------------------------------------------------
 
-    cli_progress_step("{.strong Formatage du texte source}"); br()
+    cli_progress_step("{.strong Formatting source text}"); br()
 
     data_token <- .extract_format_text(
       data, text_input, id, group, ano_hash, ano_hide
@@ -49,7 +50,7 @@
 
   ### TOKENISATION ---------------------------------------------------------------
 
-    cli_progress_step("{.strong Tokenisation du texte source}"); br()
+    cli_progress_step("{.strong Tokenising source text}"); br()
 
     token <- set_names(token, paste0("n", token))
 
@@ -57,7 +58,7 @@
 
   ### MATCHING TOKEN -------------------------------------------------------------
 
-    cli_progress_step("{.strong Matching du texte tokenis\u00e9}"); br()
+    cli_progress_step("{.strong Matching tokenised text}"); br()
 
     match_tokens <- .extract_match_token(
       data, data_token, token, text_input, concepts_list, id, group, intersect
@@ -75,7 +76,8 @@
     cli_progress_step("{.strong Exclusions}"); br()
 
     exclusions <- .extract_exclusions(
-      data_match, text_input, id, group, exclus_manual, exclus_auto_escape
+      data_match, text_input, id, group, exclus_manual, exclus_auto_escape,
+      exclus_auto_token_min
     )
 
     data_match <- exclusions$data_match
@@ -87,7 +89,7 @@
 
   ### MATCHING SOURCE ------------------------------------------------------------
 
-    cli_progress_step("{.strong Matching du texte source}"); br()
+    cli_progress_step("{.strong Matching source text}"); br()
 
     match_source <- .extract_match_source(
       data_match_df, data_count, text_input, id, regex_replace
@@ -103,7 +105,7 @@
 
   ### MISMATCH -------------------------------------------------------------------
 
-    cli_progress_step("{.strong Mismatch entre texte source et texte tokenis\u00e9}"); br()
+    cli_progress_step("{.strong Mismatch between source and tokenised text}"); br()
 
     data_mismatch <- .extract_mismatch(
       data, data_match, data_match_init, data_regex_match,
@@ -119,9 +121,9 @@
       concepts_list$root, id, group, text_input
     )
 
-  ### RESUME ---------------------------------------------------------------------
+  ### SUMMARY --------------------------------------------------------------------
 
-    cli_progress_step("{.strong R\u00e9sum\u00e9}"); br()
+    cli_progress_step("{.strong Summary}"); br()
 
     params <- list(
       sample = sample,
@@ -136,6 +138,7 @@
       starts_with_only = starts_with_only,
       exclus_manual = exclus_manual,
       exclus_auto_escape = exclus_auto_escape,
+      exclus_auto_token_min = exclus_auto_token_min,
       regex_replace = regex_replace_arg,
       mismatch_data = mismatch_data,
       concept_color = concept_color,
@@ -185,7 +188,7 @@
     data_extract |>
       mutate(
         across(
-          c(.data$extract, text_input),
+          all_of(c("extract", text_input)),
           ~ set_class_css(., data_regex_list)
         ),
         extract = str_remove_all(.data$extract, ";")
@@ -265,7 +268,7 @@
       sample, intersect, mismatch_data, save_dir, save_files
     )
 
-    return(data_save)
+    data_save
 
 }
 
@@ -281,35 +284,106 @@
 
 }
 
-#' Title
+#' Extract structured variables from clinical text
 #'
-#' @param data data
-#' @param text_input text_input
-#' @param sample sample
-#' @param seed seed
-#' @param ano_hash ano_hash
-#' @param ano_hide ano_hide
-#' @param id id
-#' @param group group
-#' @param token token
-#' @param concepts concepts
-#' @param collapse collapse
-#' @param intersect intersect
-#' @param starts_with_only starts_with_only
-#' @param exclus_manual exclus_manual
-#' @param exclus_auto_escape exclus_auto_escape
-#' @param regex_replace regex_replace
-#' @param mismatch_data mismatch_data
-#' @param concept_color concept_color
-#' @param text_color text_color
-#' @param save_as_gt save_as_gt
-#' @param dirname_suffix dirname_suffix
-#' @param filename_suffix filename_suffix
+#' Tokenize source text, match concept patterns (regex), apply exclusions,
+#' perform source-level re-matching with accent normalisation, and save
+#' results as XLSX, CSV, and RDS files.
 #'
-#' @return value
+#' Requires [edstr_config()] to be called first.
+#'
+#' @param data `<data.frame>` Input data containing at least a text column
+#'   and a unique identifier column.
+#' @param text_input `<character(1)>` Name of the text column to analyse.
+#'   Defaults to `getOption("edstr_text")` set by [edstr_config()].
+#' @param id `<character(1)>` Name of the unique identifier column. If not
+#'   supplied, automatically detected (first column with no duplicates and
+#'   no `NA`).
+#' @param group `<character(1)>` Optional grouping column (e.g. patient ID
+#'   when rows are documents). If `NULL`, a sequential `id_group` is created.
+#' @param sample `<integer(1)>` Optional. Number of rows to randomly sample
+#'   from `data` before extraction.
+#' @param seed `<integer(1)>` Optional. Random seed for reproducibility when
+#'   `sample` is used.
+#' @param ano_hash `<character>` Column name(s) to pseudonymise by hashing.
+#' @param ano_hide `<character>` Column name(s) to pseudonymise by masking
+#'   (replaced with `"---"`).
+#' @param token `<integer>` N-gram sizes to use for tokenisation. Default `1`
+#'   (unigrams). Use `c(1, 2)` for unigrams and bigrams.
+#' @param concepts `<character|list>` Named vector or nested named list of
+#'   regex patterns defining the concepts to search for. Each name becomes a
+#'   concept key; nested names create sub-concepts (e.g.
+#'   `list(cancer = c(sein = "sein|mammaire", poumon = "poumon"))`.
+#' @param collapse `<logical(1)>` If `TRUE`, OR-collapse all concept patterns
+#'   into a single regex per root concept. Requires at least 2 concepts.
+#' @param intersect `<logical(1)>` If `TRUE`, keep only documents matching
+#'   ALL root-level concepts. Requires at least 2 concepts.
+#' @param starts_with_only `<logical(1)>` If `TRUE` (default), token matching
+#'   uses prefix mode: the pattern must match the start of a token, and the
+#'   rest of the token is accepted (`\\S*$` appended).
+#' @param exclus_manual `<character(1)>` Optional regex pattern. Matched
+#'   tokens containing this pattern are excluded (manual false-positive
+#'   filter).
+#' @param exclus_auto_escape `<character(1)>` Optional regex pattern. Tokens
+#'   matching this pattern are removed from `data_match` before
+#'   auto-exclusion runs.
+#' @param exclus_auto_token_min `<numeric(1)>` Minimum n-gram size for
+#'   automatic exclusion heuristics (default `10`). Auto-exclusions only
+#'   apply to tokens with `n > exclus_auto_token_min`.
+#' @param regex_replace `<character>` Optional named vector of additional
+#'   regex replacements for source matching (appended to the built-in accent
+#'   normalisation rules).
+#' @param mismatch_data `<logical(1)>` If `TRUE`, include unmatched documents
+#'   in the mismatch output. Default `FALSE`.
+#' @param concept_color `<character(1)>` Hex colour for concept highlighting
+#'   in XLSX and gt output. Default `"#0099FF"`.
+#' @param text_color `<character(1)>` Hex colour for text/extract
+#'   highlighting in XLSX and gt output. Default `"#FF0000"`.
+#' @param save_as_gt `<logical(1)>` If `TRUE`, generate [gt::gt()] tables
+#'   alongside XLSX output. Requires the `gt` package.
+#' @param dirname_suffix `<character(1)>` Optional suffix appended to the
+#'   output directory name. Defaults to `"sample_{sample}"` when `sample` is
+#'   set.
+#' @param filename_suffix `<character(1)>` Optional suffix appended to output
+#'   file names. Defaults to `dirname_suffix`.
+#'
+#' @return A nested list (invisibly returned from cache when the RDS file
+#'   already exists) with elements:
+#' \describe{
+#'   \item{`data`}{List of data frames: `base` (input without text),
+#'     `match` (initial matches), `extract` (final extraction), `csv`
+#'     (CSV-ready output).}
+#'   \item{`regex`}{List: `concepts` (parsed patterns), `replace`
+#'     (replacement rules), `final` (combined regex), `match` (source-level
+#'     matches).}
+#'   \item{`match`}{List: `init` (all matches), `final` (keep/drop after
+#'     exclusions).}
+#'   \item{`count`}{List: `init` (token-level counts), `final` (distinct
+#'     match counts).}
+#'   \item{`exclus`}{List: `match` (excluded matches), `count` (exclusion
+#'     counts).}
+#'   \item{`mismatch`}{List: `id` (unmatched IDs), `regex` (token vs source
+#'     discrepancies).}
+#'   \item{`summary`}{List: `token` (summary by token), `concept` (summary
+#'     by concept), `params` (call parameters).}
+#'   \item{`sheets`}{List: `df` (data frames per Excel sheet), `gt` (gt
+#'     tables if `save_as_gt = TRUE`).}
+#' }
 #' @export
 #'
-#' @examples "example"
+#' @examples
+#' \dontrun{
+#' edstr_config(edstr_dirname = "output", edstr_filename = "my_study")
+#'
+#' df <- edstr_import(query = "sql/my_query.sql")
+#'
+#' result <- edstr_extract(
+#'   data = df,
+#'   concepts = c(diabete = "diabet", cancer = "cancer|tumeur"),
+#'   token = c(1, 2),
+#'   intersect = TRUE
+#' )
+#' }
 #'
 edstr_extract <- \(
   data,
@@ -327,6 +401,7 @@ edstr_extract <- \(
   starts_with_only = TRUE,
   exclus_manual = NULL,
   exclus_auto_escape = NULL,
+  exclus_auto_token_min = 10,
   regex_replace = NULL,
   mismatch_data = FALSE,
   concept_color = "#0099FF",
@@ -359,7 +434,8 @@ edstr_extract <- \(
     data, text_input, id, group, sample, seed,
     ano_hash, ano_hide, token, concepts, collapse,
     intersect, starts_with_only, exclus_manual,
-    exclus_auto_escape, regex_replace, mismatch_data,
+    exclus_auto_escape, exclus_auto_token_min,
+    regex_replace, mismatch_data,
     concept_color, text_color, save_as_gt,
     save_dir, save_files, save_extract
   )

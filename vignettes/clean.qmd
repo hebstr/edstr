@@ -1,50 +1,95 @@
 ---
-title: "edstr_clean() : nettoyage du texte"
+title: "edstr_clean(): text cleaning"
 
 vignette: >
-  %\VignetteIndexEntry{edstr_clean() : nettoyage du texte}
+  %\VignetteIndexEntry{edstr_clean(): text cleaning}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
 ---
 
 ```{r}
+#| label: setup
 library(edstr)
 ```
 
-## Prérequis test
+`edstr_clean()` applies regex-based replacements to a text column and saves the cleaned data as an RDS file.
+It requires `edstr_config()` to be called first.
 
-La fonction `edstr_clean()` dépend des paramètres définis avec `edstr_config()` : celle-ci doit alors être exécutée en amont.
+## Prerequisites
 
 ```{r}
 edstr_config(
-  edstr_dirname = "demo/collect/data",
-  edstr_filename = "avc",
+  edstr_dirname = "output/my_study",
+  edstr_filename = "my_study",
+  edstr_text = "note_text",
   edstr_overwrite = FALSE
 )
 ```
 
-La fonction `edstr_clean` produit un dataframe portant le nom défini dans `edstr_config()` (argument `dest_filename`) suivi du suffixe `_clean`. Dans cet exemple, il sera donc nommé glue("{.config$file}_clean").
+## Defining replacement rules
 
-Il peut être produit de deux façons :
-
-  - Nettoyage d'un dataframe chargé dans l'environnement
-  - Chargement d'un dataframe déjà nettoyé
-
-## Nettoyage d'un dataframe
+The `replace` argument takes a named character vector where names are regex patterns and values are their replacements.
+Replacements are applied sequentially via `stringr::str_replace_all()`.
 
 ```{r}
-df_import <- edstr_import()
-df_import
-```
-
-On peut ensuite procéder à son nettoyage avec `edstr_clean()`, en appliquant a minima une règle via l'argument `replace`.
-
-Le dataframe nettoyé est automatiquement sauvegardé en .RData dans le répertoire défini avec `edstr_config()` (argument `dest_dir`).
-
-```{r}
+#| error: true
 df_clean <- edstr_clean(
-  data = df_import[1:100, ],
-  replace = c("fracture" = "carotte")
+  data = df_import,
+  replace = c(
+    "\\p{Zs}{2,}" = " ",
+    "&amp;"        = "&",
+    "&lt;"         = "<",
+    "&gt;"         = ">"
+  )
 )
-df_clean
 ```
+
+## Using a list for ordered replacements
+
+When the order matters (e.g. fixing HTML entities before stripping tags), pass a list of named vectors.
+Each element is applied in sequence.
+
+```{r}
+#| error: true
+df_clean <- edstr_clean(
+  data = df_import,
+  replace = list(
+    entities = c("&amp;" = "&", "&lt;" = "<", "&gt;" = ">"),
+    whitespace = c("\\p{Zs}{2,}" = " ", "\\n+" = " ")
+  )
+)
+```
+
+## Externalising cleaning rules
+
+For complex or project-specific patterns, define replacements in a standalone R file and load them with `source()`.
+This keeps the cleaning logic versioned, testable, and reusable across scripts.
+
+```{r}
+#| error: true
+df_clean <- edstr_clean(
+  data = df_import,
+  replace = source(here::here("config/clean.R"))$value
+)
+```
+
+The sourced file should return a named character vector or list — see `demo/config/clean.R` for an example.
+
+## Specifying the text column
+
+By default, `edstr_clean()` uses the `edstr_text` option set in `edstr_config()`.
+To override it for a specific call:
+
+```{r}
+#| error: true
+df_clean <- edstr_clean(
+  data = df_import,
+  text = "other_column",
+  replace = c("\\s+" = " ")
+)
+```
+
+## Caching
+
+Like other pipeline functions, `edstr_clean()` saves its output as `{filename}_clean.rds`.
+On subsequent calls, it loads from cache based on the `edstr_overwrite` setting.

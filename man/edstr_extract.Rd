@@ -2,7 +2,7 @@
 % Please edit documentation in R/edstr_extract.R
 \name{edstr_extract}
 \alias{edstr_extract}
-\title{Title}
+\title{Extract structured variables from clinical text}
 \usage{
 edstr_extract(
   data,
@@ -20,6 +20,7 @@ edstr_extract(
   starts_with_only = TRUE,
   exclus_manual = NULL,
   exclus_auto_escape = NULL,
+  exclus_auto_token_min = 10,
   regex_replace = NULL,
   mismatch_data = FALSE,
   concept_color = "#0099FF",
@@ -30,57 +31,127 @@ edstr_extract(
 )
 }
 \arguments{
-\item{data}{data}
+\item{data}{\verb{<data.frame>} Input data containing at least a text column
+and a unique identifier column.}
 
-\item{text_input}{text_input}
+\item{text_input}{\verb{<character(1)>} Name of the text column to analyse.
+Defaults to \code{getOption("edstr_text")} set by \code{\link[=edstr_config]{edstr_config()}}.}
 
-\item{id}{id}
+\item{id}{\verb{<character(1)>} Name of the unique identifier column. If not
+supplied, automatically detected (first column with no duplicates and
+no \code{NA}).}
 
-\item{group}{group}
+\item{group}{\verb{<character(1)>} Optional grouping column (e.g. patient ID
+when rows are documents). If \code{NULL}, a sequential \code{id_group} is created.}
 
-\item{sample}{sample}
+\item{sample}{\verb{<integer(1)>} Optional. Number of rows to randomly sample
+from \code{data} before extraction.}
 
-\item{seed}{seed}
+\item{seed}{\verb{<integer(1)>} Optional. Random seed for reproducibility when
+\code{sample} is used.}
 
-\item{ano_hash}{ano_hash}
+\item{ano_hash}{\verb{<character>} Column name(s) to pseudonymise by hashing.}
 
-\item{ano_hide}{ano_hide}
+\item{ano_hide}{\verb{<character>} Column name(s) to pseudonymise by masking
+(replaced with \code{"---"}).}
 
-\item{token}{token}
+\item{token}{\verb{<integer>} N-gram sizes to use for tokenisation. Default \code{1}
+(unigrams). Use \code{c(1, 2)} for unigrams and bigrams.}
 
-\item{concepts}{concepts}
+\item{concepts}{\verb{<character|list>} Named vector or nested named list of
+regex patterns defining the concepts to search for. Each name becomes a
+concept key; nested names create sub-concepts (e.g.
+\code{list(cancer = c(sein = "sein|mammaire", poumon = "poumon"))}.}
 
-\item{collapse}{collapse}
+\item{collapse}{\verb{<logical(1)>} If \code{TRUE}, OR-collapse all concept patterns
+into a single regex per root concept. Requires at least 2 concepts.}
 
-\item{intersect}{intersect}
+\item{intersect}{\verb{<logical(1)>} If \code{TRUE}, keep only documents matching
+ALL root-level concepts. Requires at least 2 concepts.}
 
-\item{starts_with_only}{starts_with_only}
+\item{starts_with_only}{\verb{<logical(1)>} If \code{TRUE} (default), token matching
+uses prefix mode: the pattern must match the start of a token, and the
+rest of the token is accepted (\verb{\\\\S*$} appended).}
 
-\item{exclus_manual}{exclus_manual}
+\item{exclus_manual}{\verb{<character(1)>} Optional regex pattern. Matched
+tokens containing this pattern are excluded (manual false-positive
+filter).}
 
-\item{exclus_auto_escape}{exclus_auto_escape}
+\item{exclus_auto_escape}{\verb{<character(1)>} Optional regex pattern. Tokens
+matching this pattern are removed from \code{data_match} before
+auto-exclusion runs.}
 
-\item{regex_replace}{regex_replace}
+\item{exclus_auto_token_min}{\verb{<numeric(1)>} Minimum n-gram size for
+automatic exclusion heuristics (default \code{10}). Auto-exclusions only
+apply to tokens with \code{n > exclus_auto_token_min}.}
 
-\item{mismatch_data}{mismatch_data}
+\item{regex_replace}{\verb{<character>} Optional named vector of additional
+regex replacements for source matching (appended to the built-in accent
+normalisation rules).}
 
-\item{concept_color}{concept_color}
+\item{mismatch_data}{\verb{<logical(1)>} If \code{TRUE}, include unmatched documents
+in the mismatch output. Default \code{FALSE}.}
 
-\item{text_color}{text_color}
+\item{concept_color}{\verb{<character(1)>} Hex colour for concept highlighting
+in XLSX and gt output. Default \code{"#0099FF"}.}
 
-\item{save_as_gt}{save_as_gt}
+\item{text_color}{\verb{<character(1)>} Hex colour for text/extract
+highlighting in XLSX and gt output. Default \code{"#FF0000"}.}
 
-\item{dirname_suffix}{dirname_suffix}
+\item{save_as_gt}{\verb{<logical(1)>} If \code{TRUE}, generate \code{\link[gt:gt]{gt::gt()}} tables
+alongside XLSX output. Requires the \code{gt} package.}
 
-\item{filename_suffix}{filename_suffix}
+\item{dirname_suffix}{\verb{<character(1)>} Optional suffix appended to the
+output directory name. Defaults to \code{"sample_{sample}"} when \code{sample} is
+set.}
+
+\item{filename_suffix}{\verb{<character(1)>} Optional suffix appended to output
+file names. Defaults to \code{dirname_suffix}.}
 }
 \value{
-value
+A nested list (invisibly returned from cache when the RDS file
+already exists) with elements:
+\describe{
+\item{\code{data}}{List of data frames: \code{base} (input without text),
+\code{match} (initial matches), \code{extract} (final extraction), \code{csv}
+(CSV-ready output).}
+\item{\code{regex}}{List: \code{concepts} (parsed patterns), \code{replace}
+(replacement rules), \code{final} (combined regex), \code{match} (source-level
+matches).}
+\item{\code{match}}{List: \code{init} (all matches), \code{final} (keep/drop after
+exclusions).}
+\item{\code{count}}{List: \code{init} (token-level counts), \code{final} (distinct
+match counts).}
+\item{\code{exclus}}{List: \code{match} (excluded matches), \code{count} (exclusion
+counts).}
+\item{\code{mismatch}}{List: \code{id} (unmatched IDs), \code{regex} (token vs source
+discrepancies).}
+\item{\code{summary}}{List: \code{token} (summary by token), \code{concept} (summary
+by concept), \code{params} (call parameters).}
+\item{\code{sheets}}{List: \code{df} (data frames per Excel sheet), \code{gt} (gt
+tables if \code{save_as_gt = TRUE}).}
+}
 }
 \description{
-Title
+Tokenize source text, match concept patterns (regex), apply exclusions,
+perform source-level re-matching with accent normalisation, and save
+results as XLSX, CSV, and RDS files.
+}
+\details{
+Requires \code{\link[=edstr_config]{edstr_config()}} to be called first.
 }
 \examples{
-"example"
+\dontrun{
+edstr_config(edstr_dirname = "output", edstr_filename = "my_study")
+
+df <- edstr_import(query = "sql/my_query.sql")
+
+result <- edstr_extract(
+  data = df,
+  concepts = c(diabete = "diabet", cancer = "cancer|tumeur"),
+  token = c(1, 2),
+  intersect = TRUE
+)
+}
 
 }

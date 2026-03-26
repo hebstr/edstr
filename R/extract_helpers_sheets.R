@@ -37,10 +37,10 @@
     )
 
   list(
-    data = data_extract |> select(-text_input),
+    data = data_extract |> select(-all_of(text_input)),
     token_regex = concepts_list$regex_df,
-    token_match = data_id |> select(-.data$concept_key),
-    token_count = data_count |> select(-.data$token),
+    token_match = data_id |> select(-"concept_key"),
+    token_count = data_count |> select(-"token"),
     token_exclusion = .sheet_exclusions,
     concept_count = data_summary$concept,
     text_replace = regex_replace_df,
@@ -145,8 +145,8 @@
         data_sheets$data |>
           select(-c(
             matches(concepts_list$root),
-            .data$concept,
-            .data$extract
+            "concept",
+            "extract"
           )) |>
           gt_custom(font_size = 11) |>
           gt::sub_missing() |>
@@ -154,13 +154,13 @@
       text =
         data_sheets$data |>
           select(
-            .data$n,
+            "n",
             .env$id,
             matches(concepts_list$root),
-            .data$concept,
-            .data$extract
+            "concept",
+            "extract"
           ) |>
-          mutate(` ... ` = "...", .after = .env$id) |>
+          mutate(` ... ` = "...", .after = all_of(id)) |>
           gt_custom(font_size = 11) |>
           gt_text_align() |>
           gt_text_color(

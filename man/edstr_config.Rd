@@ -2,7 +2,7 @@
 % Please edit documentation in R/edstr_config.R
 \name{edstr_config}
 \alias{edstr_config}
-\title{config}
+\title{Configure the edstr pipeline}
 \usage{
 edstr_config(
   edstr_dirname,
@@ -13,23 +13,44 @@ edstr_config(
 )
 }
 \arguments{
-\item{edstr_dirname}{edstr_dirname}
+\item{edstr_dirname}{\verb{<character(1)>} Path to the output directory.
+Created via \code{\link[fs:create]{fs::dir_create()}} if it does not exist.}
 
-\item{edstr_filename}{edstr_filename}
+\item{edstr_filename}{\verb{<character(1)>} Prefix used to name output files
+(e.g. \code{"my_study"} produces \code{my_study_import.rds}, \code{my_study_clean.rds},
+etc.). Supports \link[stringr:str_glue]{glue syntax}.}
 
-\item{edstr_text}{edstr_text}
+\item{edstr_text}{\verb{<character(1)>} Name of the text column in the data.
+Used as the default \code{text} argument in \code{edstr_clean()} and \code{edstr_view()}.}
 
-\item{edstr_overwrite}{edstr_overwrite}
+\item{edstr_overwrite}{\verb{<logical(1)>} Controls caching behaviour when an
+output file already exists:
+\itemize{
+\item \code{TRUE}: overwrite without prompting.
+\item \code{FALSE}: load the cached file without prompting.
+\item \code{NULL} (default): prompt the user interactively.
+}}
 
-\item{...}{...}
+\item{...}{Additional options passed to \code{\link[=options]{options()}}.}
 }
 \value{
-value
+Invisibly returns \code{NULL}. Called for its side effects (setting
+R options and printing a configuration summary).
 }
 \description{
-config
+Set global options used by all downstream functions (\code{edstr_import()},
+\code{edstr_clean()}, \code{edstr_extract()}, \code{edstr_view()}). Creates the output
+directory if it does not exist. \code{edstr_dirname} and \code{edstr_filename}
+support \link[stringr:str_glue]{glue syntax} (e.g. \code{"{Sys.Date()}"}).
 }
 \examples{
-"example"
+\dontrun{
+edstr_config(
+  edstr_dirname = "output/{Sys.Date()}",
+  edstr_filename = "my_study",
+  edstr_text = "note_text",
+  edstr_overwrite = TRUE
+)
+}
 
 }

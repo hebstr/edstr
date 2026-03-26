@@ -1,74 +1,178 @@
 ---
-title: "Vue d'ensemble"
+title: "Get started"
 
 vignette: >
-  %\VignetteIndexEntry{Vue d'ensemble}
+  %\VignetteIndexEntry{Get started}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
 ---
 
-Exemple de la détection des fractures de l'extrémité supérieure du fémur (FESF).
-
-Le script correspondant :
-
-```{.r include="demo/collect/file_extract.R"}
-```
-
-Le contenu suivant explicite brièvement le résultat de chaque fonction afin de montrer le process global.
-
-Pour plus de détails sur une fonction, se référer à la page correspondante dans la partie "Articles".
-
-## Charger le package
-
-Le package `{edstr}` doit être chargé dans l'environnement.
-
 ```{r}
+#| label: setup
 library(edstr)
 ```
 
-## Configuration par défaut
+The `{edstr}` package extracts structured variables from clinical free text stored in a Clinical Data Warehouse (EDS).
+The pipeline runs in four steps: **configure**, **import**, **clean**, **extract**.
+A fifth function, `edstr_view()`, lets you explore matches interactively without saving any files.
 
-La fonction `edstr_config()` définit des paramètres communs aux fonctions suivantes.
+## Pipeline overview
+
+```{mermaid}
+%%| label: fig-pipeline
+%%| fig-cap: "edstr pipeline"
+flowchart LR
+  A["edstr_config()"] --> B["edstr_import()"]
+  B --> C["edstr_clean()"]
+  C --> D["edstr_extract()"]
+  C -.-> E["edstr_view()"]
+```
+
+Each step (except `edstr_view()`) saves an `.rds` file in the output directory.
+If the file already exists, behaviour depends on the `edstr_overwrite` option set in `edstr_config()`.
+
+## Configuration
+
+`edstr_config()` sets shared parameters used by all downstream functions.
+Two arguments are required: the output directory and the file name prefix.
 
 ```{r}
 edstr_config(
-  edstr_dirname = "demo/collect/data",
-  edstr_filename = "avc",
+  edstr_dirname = "output/fesf",
+  edstr_filename = "fesf",
   edstr_text = "doc_texte",
-  edstr_overwrite = FALSE
+  edstr_overwrite = TRUE
 )
 ```
 
-## Collection des données
+`edstr_dirname` and `edstr_filename` support [glue](https://glue.tidyverse.org/) syntax, e.g. `"output/{Sys.Date()}"`.
 
-Réalise l'importation de la table [nom] depuis la base et son enregistrement selon les paramètres définis dans `edstr_config()`.
+::: {.callout-tip}
+## Caching behaviour
+
+- `edstr_overwrite = TRUE`: overwrite without prompting.
+- `edstr_overwrite = FALSE`: load the cached file without prompting.
+- `edstr_overwrite = NULL` (default): prompt an interactive menu (load / overwrite / cancel).
+:::
+
+## Import
+
+`edstr_import()` runs a SQL query against the Oracle database and saves the result.
 
 ```{r}
-#| error: true
 df_import <- edstr_import(
-  query = "SELECT * FROm import",
+  query = "sql/fesf.sql",
+  head = 500,
+  user = "my_user"
 )
 ```
 
-## Nettoyage des données
+The `query` argument accepts either a SQL string or a path to a `.sql` file.
+`head` limits the number of returned rows — useful during development.
 
-Réalise le nettoyage du texte présent dans la table importée et son enregistrement selon les paramètres définis dans `edstr_config()`.
+## Cleaning
 
-Prend automatiquement en input la table importée avec `edstr_import()`.
+`edstr_clean()` applies regex replacements to the text column.
+Cleaning patterns are defined as a named character vector (or a list of named vectors): names are patterns, values are replacements.
 
 ```{r}
-#| error: true
-edstr_clean(
-  data = df_import
+df_clean <- edstr_clean(
+  data = df_import,
+  replace = c("\\p{Zs}{2,}" = " ", "&amp;" = "&")
 )
 ```
 
-## Extraction avec `edstr_extract()`
+::: {.callout-tip}
+## Reusable cleaning patterns
 
-Réalise une extraction à partir du texte présent dans la table nettoyée et son enregistrement selon les paramètres définis dans `edstr_config()`.
-
-Prend automatiquement en input la table nettoyée avec `edstr_clean()`.
+For complex patterns, define them in a separate R file and load them with `source()`:
 
 ```{r}
-#edstr_extract()
+df_clean <- edstr_clean(
+  data = df_import,
+  replace = source(here::here("config/clean.R"))$value
+)
 ```
+:::
+
+## Extraction
+
+`edstr_extract()` is the core of the pipeline.
+From cleaned text, it tokenises, matches concepts (regex), applies false-positive exclusions, and saves results as XLSX, CSV, and RDS files.
+
+### Concepts
+
+Concepts are named regex patterns defining the clinical entities to search for.
+A simple vector creates independent concepts; a named list creates sub-concepts.
+
+```{r}
+#| label: extract-simple
+df_extract <- edstr_extract(
+  data = df_clean,
+  concepts = c(fracture = "fracture", femur = "f(e|é)mur|fesf"),
+  token = c(1, 2),
+  group = "id_pat"
+)
+```
+
+### Collapse and intersect
+
+Two modes alter extraction behaviour when multiple concepts are defined:
+
+- `collapse = TRUE`: combines all patterns into a single regex (logical OR).
+- `intersect = TRUE`: keeps only documents matching **all** root concepts.
+
+```{r}
+#| label: extract-intersect
+df_extract <- edstr_extract(
+  data = df_clean,
+  concepts = c(fracture = "fracture", femur = "f(e|é)mur|fesf"),
+  intersect = TRUE,
+  group = "id_pat"
+)
+```
+
+### Exclusions
+
+False positives can be filtered in two ways:
+
+- **Manual**: a regex pattern via `exclus_manual`.
+- **Automatic**: heuristics on long tokens (controlled by `exclus_auto_token_min`).
+
+```{r}
+#| label: extract-exclusions
+df_extract <- edstr_extract(
+  data = df_clean,
+  concepts = c(fracture = "fracture"),
+  exclus_manual = "fracture ouverte",
+  exclus_auto_token_min = 10,
+  group = "id_pat"
+)
+```
+
+## Interactive exploration
+
+`edstr_view()` lets you test regex patterns without running a full extraction.
+This function does not save anything — it is designed for fast iteration.
+
+```{r}
+df_view <- edstr_view(
+  data = df_clean,
+  pattern = "fractur",
+  ngrams = 3
+)
+```
+
+`ngrams` controls the number of tokens captured after the initial match: `ngrams = 3` with `pattern = "fractur"` matches e.g. `"fracture col femoral"`.
+
+## Output summary
+
+`edstr_extract()` returns a nested list and saves three files:
+
+| File    | Contents |
+|---------|----------|
+| `.xlsx` | Excel workbook with one sheet per result type (extraction, counts, exclusions, mismatch, parameters) |
+| `.csv`  | Flat extraction table, ready for analysis |
+| `.rds`  | Full list with all intermediate objects |
+
+The `.rds` file is the one automatically reloaded by the caching system when it already exists.

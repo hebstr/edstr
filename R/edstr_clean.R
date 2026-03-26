@@ -7,10 +7,18 @@
 
   check_class(data, "data.frame")
   check_class(text, "character")
+  check_replace(replace)
+
+  if (!(text %in% names(data))) {
+    cli_abort(
+      "{.arg text}: column {.strong {text}} not found in {.arg data}",
+      call = rlang::caller_env()
+    )
+  }
 
   cli_h1("edstr_clean"); br()
 
-  cli_progress_step("Nettoyage du texte ({.strong {text}})")
+  cli_progress_step("Cleaning text ({.strong {text}})")
 
   data_clean <- easy_replace(
     data = data,
@@ -40,22 +48,51 @@
 
 }
 
-#' Nettoyer les données textuelles
+#' Clean text data
 #'
-#' @param data data
-#' @param text text
-#' @param replace replace
+#' Apply regex-based replacements to a text column and save the result as an
+#' RDS file. If a cached file already exists, behaviour depends on the
+#' `edstr_overwrite` option (see [edstr_config()]).
 #'
-#' @returns value
+#' Requires [edstr_config()] to be called first.
+#'
+#' @param data `<data.frame>` The data to clean. Must contain the column
+#'   specified by `text`.
+#' @param text `<character(1)>` Name of the text column to clean. Defaults
+#'   to the `edstr_text` option set by [edstr_config()].
+#' @param replace A named character vector or a list of named character
+#'   vectors. Names are regex patterns, values are replacements. When a list
+#'   is provided, each element is applied sequentially via
+#'   [stringr::str_replace_all()].
+#'
+#' @return A [data.frame] with the cleaned text column.
 #' @export
 #'
-#' @examples "example"
+#' @examples
+#' \dontrun{
+#' edstr_config(
+#'   edstr_dirname = "output", edstr_filename = "my_study",
+#'   edstr_text = "note_text"
+#' )
+#'
+#' df_clean <- edstr_clean(
+#'   data = df_import,
+#'   replace = c("\\s+" = " ", "\\n" = " ")
+#' )
+#' }
 #'
 edstr_clean <- \(
   data,
   text = getOption("edstr_text"),
   replace
 ) {
+
+  if (is.null(text)) {
+    cli_abort(c(
+      "{.arg text} is not set",
+      "i" = "Set {.code edstr_text} via {.fn edstr_config} or pass {.arg text} explicitly"
+    ))
+  }
 
   config <- check_config("clean")
 

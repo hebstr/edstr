@@ -5,12 +5,12 @@ check_config <- \(suffix = NULL) {
   .dirname <- getOption(id)
   .filename <- getOption("edstr_filename")
 
-  if (is.null(.dirname)) {
+  if (is.null(.dirname) || is.null(.filename)) {
 
     cli_abort(
       message = c(
-        "{.field {id}} n'est pas configur\u00e9",
-        "i" = "D\u00e9finir un r\u00e9pertoire et un nom de fichier avec {.fn edstr_config}"
+        "{.field edstr_dirname} or {.field edstr_filename} is not set",
+        "i" = "Run {.fn edstr_config} first"
       ),
       call = rlang::caller_env()
     )
@@ -37,14 +37,43 @@ check_class <- \(
   if (!inherits(x, class)) {
 
     cli_abort(
-      "{.arg {arg}} doit \u00eatre un objet de type
-      {.cls {class}}, pas {.cls {class(x)}}.",
+      "{.arg {arg}} must be a {.cls {class}} object, not {.cls {class(x)}}",
       call = call
     )
 
   }
 
   invisible(x)
+
+}
+
+check_replace <- \(
+  replace,
+  arg = rlang::caller_arg(replace),
+  call = rlang::caller_env()
+) {
+
+  ok <- is.character(replace) || is.list(replace)
+
+  if (!ok) {
+    cli_abort(
+      "{.arg {arg}} must be a named character vector or a list of named character vectors",
+      call = call
+    )
+  }
+
+  elements <- if (is.list(replace)) replace else list(replace)
+
+  bad <- !vapply(elements, \(x) is.character(x) && is_named(x), logical(1))
+
+  if (any(bad)) {
+    cli_abort(
+      "Every element of {.arg {arg}} must be a named character vector (names = patterns, values = replacements)",
+      call = call
+    )
+  }
+
+  invisible(replace)
 
 }
 
@@ -64,8 +93,8 @@ check_id_key <- \(data, exclude, error = TRUE) {
 
       cli_abort(
         message = c(
-          "{.arg id} : aucune cl\u00e9 primaire identifi\u00e9e dans {.strong {filename}}",
-          "i" = "{.strong {filename}} doit contenir au moins un identifiant unique et sans valeur manquante"
+          "{.arg id}: no primary key found in {.strong {filename}}",
+          "i" = "{.strong {filename}} must contain at least one column with unique, non-missing values"
         ),
         call = rlang::caller_env()
       )
@@ -76,8 +105,8 @@ check_id_key <- \(data, exclude, error = TRUE) {
 
       cli_abort(
         message = c(
-          "{.arg id} : plusieurs cl\u00e9s primaires potentielles identifi\u00e9es dans {.strong {filename}}",
-          "i" = "Choisir un identifiant parmi : {str_id_key}"
+          "{.arg id}: multiple candidate primary keys found in {.strong {filename}}",
+          "i" = "Choose one of: {str_id_key}"
         ),
         call = rlang::caller_env()
       )
@@ -90,7 +119,7 @@ check_id_key <- \(data, exclude, error = TRUE) {
 
   }
 
-  return(invisible(id_key))
+  invisible(id_key)
 
 }
 
@@ -106,7 +135,7 @@ check_id_group <- \(
   if (!(id %in% names(data))) {
 
     cli_abort(
-      message = "{.arg {arg}}: la colonne {.strong {id}} n'existe pas",
+      message = "{.arg {arg}}: column {.strong {id}} not found",
       call = call
     )
 
@@ -116,14 +145,14 @@ check_id_group <- \(
 
     cli_abort(
       message = c(
-        "{.arg {arg}}: {.strong {id}} contient au moins une valeur manquante",
-        "i" = "Grouper sur un identifiant sans valeur manquante"
+        "{.arg {arg}}: {.strong {id}} contains missing values",
+        "i" = "Group on a column with no missing values"
       ),
       call = call
     )
 
   }
 
-  return(invisible(id))
+  invisible(id)
 
 }

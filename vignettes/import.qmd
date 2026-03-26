@@ -1,66 +1,81 @@
 ---
-title: "edstr_import() : collection des données"
+title: "edstr_import(): importing data"
 
 vignette: >
-  %\VignetteIndexEntry{edstr_import() : collection des données}
+  %\VignetteIndexEntry{edstr_import(): importing data}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
 ---
 
 ```{r}
+#| label: setup
 library(edstr)
 ```
 
-# Prérequis
+`edstr_import()` executes a SQL query against an Oracle database and saves the result as an RDS file.
+It requires `edstr_config()` to be called first.
 
-La fonction `edstr_import()` dépend des paramètres définis avec `edstr_config()` : celle-ci doit alors être exécutée en amont.
+## Prerequisites
 
 ```{r}
 edstr_config(
-  edstr_dirname = "demo/collect/data",
-  edstr_filename = "avc",
-  edstr_text = "doc_texte",
+  edstr_dirname = "output/my_study",
+  edstr_filename = "my_study",
+  edstr_text = "note_text",
   edstr_overwrite = FALSE
 )
 ```
 
-La fonction `edstr_import()` produit un dataframe portant le nom défini dans `edstr_config()` (argument `dest_filename`) suivi du suffixe `_import`. Dans cet exemple, il sera donc nommé glue("{.config$file}_import").
+## Running a query
 
-Il peut être produit de deux façons :
-
-  - Importation d'un dataframe depuis une base de données
-  - Chargement d'un dataframe déjà importé
-
-# Importation d'un dataframe
-
-On peut procéder à l'importation avec `edstr_import()` en précisant a minima la requête et les paramètres de connexion de la base.
-
-Le dataframe importé est automatiquement sauvegardé en .RData dans le répertoire défini avec `edstr_config()` (argument `dest_dir`).
-
-## Mode collecte et sauvegarde automatique
+The `query` argument accepts either a SQL string or a path to a `.sql` file.
+Connection parameters (`user`, `password`, `tns`) configure access to the Oracle database.
 
 ```{r}
 #| error: true
-edstr_import(
-  query = "SELECT * FROM import",
-  user = "w_etudes"
+df_import <- edstr_import(
+  query = "SELECT * FROM clinical_notes WHERE rownum <= 1000",
+  user = "my_user"
 )
 ```
 
-## Mode sans collecte
+Using a `.sql` file keeps queries out of R scripts and makes them easier to version:
 
 ```{r}
 #| error: true
-edstr_import(
-  query = "SELECT * FROM import",
-  user = "w_etudes",
-  head = 500
+df_import <- edstr_import(
+  query = "sql/clinical_notes.sql",
+  user = "my_user"
 )
 ```
 
-# Chargement d'un dataframe déjà importé
+## Limiting rows
+
+The `head` argument appends `FETCH FIRST ... ROWS ONLY` to the query.
+This is useful for development and testing without modifying the SQL itself.
+
+```{r}
+#| error: true
+df_import <- edstr_import(
+  query = "sql/clinical_notes.sql",
+  head = 500,
+  user = "my_user"
+)
+```
+
+## Loading cached data
+
+When the output file already exists, `edstr_import()` skips the database query entirely and loads from cache.
+The behaviour depends on the `edstr_overwrite` option set in `edstr_config()`.
 
 ```{r}
 #| error: true
 df_import <- edstr_import()
 ```
+
+::: {.callout-note}
+## Column names
+
+By default, `lower = TRUE` converts all column names to lowercase after import.
+Set `lower = FALSE` to preserve the original casing from the database.
+:::

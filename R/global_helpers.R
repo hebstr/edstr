@@ -17,8 +17,7 @@ read_query <- \(query, call = rlang::caller_env()) {
 
   if (length(lines) == 0) cli_abort(
     message = c(
-      "{.arg query} : le fichier {.strong {.path {query}}}
-      est vide ou ne contient que des commentaires"
+      "{.arg query}: file {.strong {.path {query}}} is empty or contains only comments"
     ),
     call = call
   )
@@ -89,7 +88,7 @@ easy_ano <- \(x,
 
   }
 
-  return(.ano_data)
+  .ano_data
 
 }
 
@@ -118,12 +117,12 @@ view_output <- \(
 
   data$match <- str_extract_all(data[[text_input]], pattern)
 
-  .data_match <- data |> unnest(match) |> select(.env$id, .data$match)
+  .data_match <- data |> unnest(match) |> select(all_of(id), "match")
 
   if (nrow(.data_match) == 0) {
 
     cli_abort(
-      message = "{.strong Aucune correspondance}",
+      message = "{.strong No matches found}",
       call = rlang::caller_env()
     )
 
@@ -340,7 +339,7 @@ wb_add_custom <- \(
       .init = _
     )
 
-  return(output)
+  output
 
 }
 

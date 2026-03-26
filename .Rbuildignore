@@ -10,3 +10,5 @@
 ^vignettes/*_files$
 ^vignettes/\.quarto$
 ^demo$
+^CLAUDE.md$
+^DEFERRED.md$

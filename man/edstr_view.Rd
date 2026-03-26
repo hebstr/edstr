@@ -2,12 +2,12 @@
 % Please edit documentation in R/edstr_view.R
 \name{edstr_view}
 \alias{edstr_view}
-\title{Explorer}
+\title{Explore text matches interactively}
 \usage{
 edstr_view(
   data,
   text_input = getOption("edstr_text"),
-  id = check_id_key(data = data, exclude = text_input),
+  id = NULL,
   replace = NULL,
   pattern,
   ngrams = 1,
@@ -15,27 +15,48 @@ edstr_view(
 )
 }
 \arguments{
-\item{data}{data}
+\item{data}{\verb{<data.frame>} The data to search.}
 
-\item{text_input}{text_input}
+\item{text_input}{\verb{<character(1)>} Name of the text column. Defaults to
+the \code{edstr_text} option set by \code{\link[=edstr_config]{edstr_config()}}.}
 
-\item{id}{id}
+\item{id}{\verb{<character(1)>} Name of the unique identifier column. Auto-
+detected automatically if not provided.}
 
-\item{replace}{replace}
+\item{replace}{A named character vector or list of named character vectors.
+Optional regex replacements applied to the text \emph{before} matching
+(see \code{\link[=edstr_clean]{edstr_clean()}} for details).}
 
-\item{pattern}{pattern}
+\item{pattern}{\verb{<character(1)>} Regex pattern to search for.}
 
-\item{ngrams}{ngrams}
+\item{ngrams}{\verb{<integer(1)>} Number of tokens to capture after the
+initial match (default \code{1}). For example, \code{ngrams = 3} with
+\code{pattern = "diabete"} matches \code{"diabete type 2"}.}
 
-\item{...}{...}
+\item{...}{Additional arguments passed to \code{\link[stringr:str_view]{stringr::str_view()}}.}
 }
 \value{
-value
+Invisibly returns a list with three elements:
+\describe{
+\item{\code{match}}{A \link[tibble:tibble]{tibble::tibble} of all matches with the \code{id} and \code{match}
+columns.}
+\item{\code{count}}{A \link[tibble:tibble]{tibble::tibble} of distinct matches with their frequency.}
+\item{\code{text}}{Output of \code{\link[stringr:str_view]{stringr::str_view()}} for visual inspection.}
+}
 }
 \description{
-Explorer
+Search for regex patterns in a text column and display matching tokens,
+counts, and highlighted text. Unlike other pipeline functions, \code{edstr_view()}
+does not save results — it is meant for iterating on patterns before
+extraction.
 }
 \examples{
-"example"
+\dontrun{
+edstr_view(
+  data = df_clean,
+  pattern = "diabete",
+  ngrams = 3
+)
+}
 
 }

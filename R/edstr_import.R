@@ -5,8 +5,7 @@
 ) {
 
   if (is.null(query)) cli_abort(c(
-    "{.arg query} : sp\u00e9cifier un chemin vers un fichier .sql
-    ou une requ\u00eate SQL directe"
+    "{.arg query}: provide a path to a .sql file or a SQL query string"
   ))
 
   cli_h1("edstr_import"); br()
@@ -41,7 +40,7 @@
   if (!is.null(head)) {
 
     if (!is.numeric(head) || length(head) != 1) cli_abort(
-      "{.arg head} doit \u00eatre un entier positif"
+      "{.arg head} must be a positive integer"
     )
 
     query <- str_glue("{query} FETCH FIRST {as.integer(head)} ROWS ONLY")
@@ -64,7 +63,7 @@
 
   br(); toc(); br()
 
-  return(data_import)
+  data_import
 
 }
 
@@ -80,21 +79,43 @@
 
 }
 
-#' import
+#' Import data from the EDS
 #'
-#' @param query query
-#' @param head head
-#' @param lower lower
-#' @param user user
-#' @param password password
-#' @param connect_dir connect_dir
-#' @param tns tns
-#' @param ... ...
+#' Execute a SQL query against an Oracle database and save the result as an
+#' RDS file. If a cached file already exists, behaviour depends on the
+#' `edstr_overwrite` option (see [edstr_config()]).
 #'
-#' @return value
+#' Requires [edstr_config()] to be called first.
+#'
+#' @param query `<character(1)>` A SQL query string or a path to a `.sql`
+#'   file. If `NULL`, the function errors.
+#' @param head `<integer(1)>` Optional. Limit the query to the first `head`
+#'   rows (appends `FETCH FIRST ... ROWS ONLY`).
+#' @param lower `<logical(1)>` If `TRUE` (default), column names are
+#'   converted to lowercase.
+#' @param user `<character(1)>` Database username.
+#' @param password `<character(1)>` Database password. Defaults to an
+#'   interactive prompt via [rstudioapi::askForPassword()].
+#' @param connect_dir `<character(1)>` Path to the YAML connection
+#'   configuration file read by [config::get()].
+#' @param tns `<character(1)>` TNS alias to select from the connection
+#'   configuration (default `"vlp"`).
+#' @param ... Additional arguments passed to
+#'   [DatabaseConnector::connect()].
+#'
+#' @return A [data.frame] with the imported data.
 #' @export
 #'
-#' @examples "example"
+#' @examples
+#' \dontrun{
+#' edstr_config(edstr_dirname = "output", edstr_filename = "my_study")
+#'
+#' df <- edstr_import(
+#'   query = "sql/my_query.sql",
+#'   head = 100,
+#'   user = "my_user"
+#' )
+#' }
 #'
 edstr_import <- \(
   query = NULL,

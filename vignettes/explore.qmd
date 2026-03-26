@@ -1,49 +1,88 @@
 ---
-title: "edstr_view() : rechercher dans le texte"
+title: "edstr_view(): interactive exploration"
 
 vignette: >
-  %\VignetteIndexEntry{edstr_view() : rechercher dans le texte}
+  %\VignetteIndexEntry{edstr_view(): interactive exploration}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
 ---
 
 ```{r}
+#| label: setup
 library(edstr)
 ```
 
-## préparation
+`edstr_view()` searches for regex patterns in a text column and displays matching tokens, counts, and highlighted text.
+Unlike other pipeline functions, it does not save any files — it is designed for fast, iterative pattern development before running `edstr_extract()`.
 
-prep
+## Prerequisites
 
 ```{r}
+#| error: true
 edstr_config(
-  edstr_dirname = "demo/collect/data",
-  edstr_filename = "avc",
-  edstr_text = "doc_texte",
+  edstr_dirname = "output/my_study",
+  edstr_filename = "my_study",
+  edstr_text = "note_text",
   edstr_overwrite = FALSE
 )
 
-# df_clean <- edstr_clean(data = NULL)
+df_clean <- edstr_clean()
 ```
 
-```{r}
-ls()
-```
+## Basic usage
 
-## Recherche dans le texte
-
-explore
+Pass a regex pattern to search for in the text column.
 
 ```{r}
-#| eval: false
-edstr_view(
+#| error: true
+result <- edstr_view(
   data = df_clean,
-  str = "cellul\\w*",
+  pattern = "fractur"
 )
 ```
 
-assignation
+The function prints a frequency table of distinct matches and a summary of match counts, then invisibly returns a list with three elements:
+
+- `match`: a tibble of all matches (one row per match, with the document ID)
+- `count`: a tibble of distinct matches sorted by frequency
+- `text`: highlighted output from `stringr::str_view()`
+
+## Capturing multi-word expressions
+
+The `ngrams` argument controls how many tokens are captured after the initial match.
+This is useful for discovering common multi-word patterns.
 
 ```{r}
-ls()
+#| error: true
+result <- edstr_view(
+  data = df_clean,
+  pattern = "fractur",
+  ngrams = 3
+)
 ```
+
+With `ngrams = 3`, a match on `"fractur"` captures up to two additional tokens — e.g. `"fracture col femoral"` or `"fracture extremite superieure"`.
+
+## Applying cleaning rules inline
+
+The `replace` argument accepts the same format as `edstr_clean()` and applies replacements before matching.
+This lets you test cleaning rules without modifying the data.
+
+```{r}
+#| error: true
+result <- edstr_view(
+  data = df_clean,
+  pattern = "diabete",
+  replace = c("diabète" = "diabete"),
+  ngrams = 2
+)
+```
+
+## Typical workflow
+
+A common pattern is to iterate with `edstr_view()` until the regex captures the right matches, then use the finalised pattern in `edstr_extract()`:
+
+1. Start broad: `edstr_view(data, pattern = "diabet", ngrams = 3)`
+2. Review the `count` table to identify common expressions and false positives
+3. Refine the pattern or add exclusions
+4. Once satisfied, pass the pattern as a concept to `edstr_extract()`

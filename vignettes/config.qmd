@@ -1,28 +1,88 @@
 ---
-title: "edstr_config() : configuration par défaut"
+title: "edstr_config(): pipeline configuration"
 
 vignette: >
-  %\VignetteIndexEntry{edstr_config() : configuration par défaut}
+  %\VignetteIndexEntry{edstr_config(): pipeline configuration}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
 ---
 
 ```{r}
+#| label: setup
 library(edstr)
 ```
 
-## Configuration minimale
+`edstr_config()` sets global options that all downstream functions rely on.
+It must be called before any other `edstr_*` function.
 
-Seuls deux arguments sont indispensables :
+## Required arguments
 
-- Le répertoire de destination (`edstr_dirname`)
-- Le nom à donner aux fichiers qui seront produits (`edstr_filename`)
+Two arguments are mandatory: the output directory and the file name prefix.
 
 ```{r}
 edstr_config(
-  edstr_dirname = "demo/collect/data",
-  edstr_filename = "avc"
+  edstr_dirname = "output/my_study",
+  edstr_filename = "my_study"
 )
 ```
 
-Si l'argument `edstr_text` n'est pas renseigné, l'information devra être ajoutée dans les fonctions en aval.
+The directory is created automatically if it does not exist.
+Output files are named `{edstr_filename}_{step}.rds` — e.g. `my_study_import.rds`, `my_study_clean.rds`.
+
+## Glue syntax
+
+Both `edstr_dirname` and `edstr_filename` support [glue](https://glue.tidyverse.org/) expressions, which are evaluated at call time.
+
+```{r}
+edstr_config(
+  edstr_dirname = "output/{Sys.Date()}",
+  edstr_filename = "study_{format(Sys.Date(), '%Y%m%d')}"
+)
+```
+
+## Text column
+
+Setting `edstr_text` avoids repeating the column name in `edstr_clean()`, `edstr_extract()`, and `edstr_view()`.
+
+```{r}
+edstr_config(
+  edstr_dirname = "output/my_study",
+  edstr_filename = "my_study",
+  edstr_text = "note_text"
+)
+```
+
+If omitted, the text column must be passed explicitly to each function.
+
+## Caching behaviour
+
+The `edstr_overwrite` option controls what happens when an output file already exists.
+
+| Value   | Behaviour |
+|---------|-----------|
+| `TRUE`  | Overwrite without prompting |
+| `FALSE` | Load the cached file without prompting |
+| `NULL`  | Prompt an interactive menu (load / overwrite / cancel) |
+
+`NULL` is the default — useful during interactive development.
+Set `TRUE` when re-running a full pipeline, `FALSE` when resuming work on a cached dataset.
+
+```{r}
+edstr_config(
+  edstr_dirname = "output/my_study",
+  edstr_filename = "my_study",
+  edstr_overwrite = TRUE
+)
+```
+
+## Additional options
+
+Extra named arguments are passed directly to `options()`, which can be useful for setting project-level options alongside `edstr`.
+
+```{r}
+edstr_config(
+  edstr_dirname = "output/my_study",
+  edstr_filename = "my_study",
+  dplyr.summarise.inform = FALSE
+)
+```

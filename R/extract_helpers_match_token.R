@@ -10,7 +10,7 @@
         mutate(
           !!text_input := str_extract(.data[[text_input]], .x),
           concept = .y,
-          .before = text_input
+          .before = all_of(text_input)
         ) |>
         drop_na()
     )
@@ -26,7 +26,7 @@
     data_token_list,
     ~ count(
       x = .,
-      .data$concept, pick(text_input),
+      .data$concept, pick(all_of(text_input)),
       name = "match",
       sort = TRUE
     )
@@ -41,13 +41,13 @@
   .concepts_id <- map(
     set_names(concepts_list$root),
     ~ data_match_init |>
-      distinct(pick(id, group), .data$concept) |>
+      distinct(pick(all_of(c(id, group))), .data$concept) |>
       pivot_wider(
-        names_from = .data$concept,
-        values_from = .data$concept
+        names_from = "concept",
+        values_from = "concept"
       ) |>
       filter(if_any(matches(.), ~ !is.na(.))) |>
-      select(.env$id, .env$group)
+      select(all_of(c(id, group)))
   )
 
   match_id <- if (intersect) {
@@ -65,22 +65,22 @@
     rename(concept_key = "concept") |>
     mutate(
       concept = map_chr(.data$concept_key, ~ concepts_list$names[[.]]),
-      .after = .data$concept_key
+      .after = "concept_key"
     ) |>
     filter(.data[[id]] %in% match_id[[id]])
 
   data_match_init_df <-
   data |>
-    select(-text_input) |>
+    select(-all_of(text_input)) |>
     filter(.data[[id]] %in% data_match_init[[id]])
 
   data_match_df <- data |> filter(.data[[id]] %in% data_match[[id]])
 
   if (nrow(data_match) == 0) {
 
-    abort_intersect <- if (intersect) " \u00e0 l'intersection" else ""
+    abort_intersect <- if (intersect) " at intersection" else ""
 
-    cli_abort("{.strong Aucune correspondance{abort_intersect}}")
+    cli_abort("{.strong No matches found{abort_intersect}}")
 
   }
 

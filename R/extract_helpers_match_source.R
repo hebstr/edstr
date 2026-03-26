@@ -34,7 +34,7 @@
 
   data_regex_df <-
   data_regex_replace |>
-    nest(!!text_input := all_of(text_input), .by = .data$concept) |>
+    nest(!!text_input := all_of(text_input), .by = "concept") |>
     mutate(
       !!text_input := map_chr(.data[[text_input]], ~ str_flatten(unlist(.), "|")),
       !!text_input := glue(regex_wrap, x = .data[[text_input]])
@@ -54,7 +54,7 @@
       id = id
     ) |>
       pluck("match") |>
-      mutate(concept = .y, .before = .data$match)
+      mutate(concept = .y, .before = "match")
   ) |>
     list_rbind()
 
