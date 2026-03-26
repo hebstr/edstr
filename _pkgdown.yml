@@ -1,11 +1,11 @@
-url: https://cpd000001.chrul.net/9000
+url: https://codeberg.org/hebstr/edstr/
 
 template:
   bootstrap: 5
   bslib:
     primary: "#0099FF"
     secondary: "#FF0000"
-    code_font: {google: "Fira Code"}
+    code_font: "Fira Code"
     font_scale: 0.9
   light-switch: true
 
@@ -15,34 +15,34 @@ repo:
     source: https://codeberg.org/hebstr/edstr/src/branch/main/
 
 reference:
-- title: Configuration par défaut
+- title: Configuration
   contents:
   - edstr_config
 
-- title: Traitement du texte
+- title: Text processing
   contents:
   - edstr_import
   - edstr_clean
   - edstr_extract
 
-- title: Recharche dans le texte
+- title: Text search
   contents:
   - edstr_view
 
 articles:
 - title: ~
-  navbar: Configuration par défaut
+  navbar: Configuration
   contents:
   - config
 
 - title: ~
-  navbar: Traitement du texte
+  navbar: Text processing
   contents:
   - import
   - clean
   - extract
 
 - title: ~
-  navbar: Recherche dans le texte
+  navbar: Text search
   contents:
   - explore

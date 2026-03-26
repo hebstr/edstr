@@ -4,9 +4,17 @@
 \name{edstr-package}
 \alias{edstr}
 \alias{edstr-package}
-\title{edstr: Exploration de données textuelles de routine dans l'EDS}
+\title{edstr: Extract Structured Data from Clinical Free Text}
 \description{
-Collecter, nettoyer et extraire des données textuelles de routine depuis l'EDS.
+Extract structured variables from clinical text. Import tables from an Oracle database, clean text with regex rules, tokenise and match user-defined concepts, and filter false positives. Results are exported as 'Excel', CSV, and RDS files for downstream analysis.
+}
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://codeberg.org/hebstr/edstr}
+  \item Report bugs at \url{https://codeberg.org/hebstr/edstr/issues}
+}
+
 }
 \author{
 \strong{Maintainer}: Henry BOSTORRHUS \email{ju.diez@protonmail.com} (\href{https://orcid.org/0009-0001-3983-5713}{ORCID})

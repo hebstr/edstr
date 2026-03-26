@@ -2,7 +2,7 @@ Package: edstr
 Title: Extract Structured Data from Clinical Free Text
 Version: 0.2.0
 Authors@R:
-    person("Henry", "BOSTORRHUS", , "ju.diez@protonmail.com", role = c("aut", "cre", "cph"),
+    person("Henry", "BOSTORRHUS", , "ju.diez@protonmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0009-0001-3983-5713"))
 Description: Extract structured variables from clinical text. Import
     tables from an Oracle database, clean text with regex rules,

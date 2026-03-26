@@ -61,7 +61,7 @@ test_that("edstr_view() errors when no match is found", {
     suppressMessages(
       edstr_view(data = input, pattern = "introuvable")
     ),
-    "Aucune correspondance"
+    "No matches found"
   )
 })
 

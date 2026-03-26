@@ -43,7 +43,7 @@ test_that("parse_concepts: multiple unnamed concepts errors", {
       intersect = FALSE,
       starts_with_only = TRUE
     ),
-    "nomm"
+    "must be named"
   )
 })
 
@@ -67,7 +67,7 @@ test_that("parse_concepts: collapse with single concept errors", {
       intersect = FALSE,
       starts_with_only = TRUE
     ),
-    "regroupement"
+    "Cannot collapse"
   )
 })
 
@@ -79,7 +79,7 @@ test_that("parse_concepts: intersect with single concept errors", {
       intersect = TRUE,
       starts_with_only = TRUE
     ),
-    "intersection"
+    "Cannot intersect"
   )
 })
 
@@ -459,7 +459,7 @@ test_that("match_token: no match at all errors", {
       group = "id_group",
       intersect = FALSE
     ),
-    "correspondance"
+    "No matches found"
   )
 })
 

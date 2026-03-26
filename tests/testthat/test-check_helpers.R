@@ -66,6 +66,6 @@ test_that("cli_check() aborts when menu choice is 3 (cancel)", {
         fun_load = \() "loaded"
       )
     ),
-    "annul"
+    "cancelled"
   )
 })

@@ -6,8 +6,6 @@ filters:
 format:
   html:
     toc: true
-    number-sections: true
-    monofont: fira code
 
 knitr:
   opts_chunk:
