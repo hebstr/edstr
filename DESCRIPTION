@@ -1,11 +1,17 @@
 Package: edstr
-Title: Exploration de données textuelles de routine dans l'EDS
-Version: 0.1.0
+Title: Extract Structured Data from Clinical Free Text
+Version: 0.2.0
 Authors@R:
-    person("Henry", "BOSTORRHUS", , "ju.diez@protonmail.com", role = c("aut", "cre"),
+    person("Henry", "BOSTORRHUS", , "ju.diez@protonmail.com", role = c("aut", "cre", "cph"),
            comment = c(ORCID = "0009-0001-3983-5713"))
-Description: Collecter, nettoyer et extraire des données textuelles de routine depuis l'EDS.
+Description: Extract structured variables from clinical text. Import
+    tables from an Oracle database, clean text with regex rules,
+    tokenise and match user-defined concepts, and filter false
+    positives. Results are exported as 'Excel', CSV, and RDS
+    files for downstream analysis.
 License: GPL (>= 3)
+URL: https://codeberg.org/hebstr/edstr
+BugReports: https://codeberg.org/hebstr/edstr/issues
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
@@ -38,6 +44,8 @@ Suggests:
     gt,
     knitr,
     quarto,
-    rmarkdown
+    rmarkdown,
+    testthat (>= 3.0.0)
 VignetteBuilder:
     quarto
+Config/testthat/edition: 3
