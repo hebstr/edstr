@@ -12,3 +12,5 @@
 ^demo$
 ^\.claude$
 ^prek.toml$
+^\.vscode$
+^[.]?air[.]toml$

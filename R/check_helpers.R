@@ -1,12 +1,10 @@
 check_config <- \(suffix = NULL) {
-
   id <- "edstr_dirname"
 
   .dirname <- getOption(id)
   .filename <- getOption("edstr_filename")
 
   if (is.null(.dirname) || is.null(.filename)) {
-
     cli_abort(
       message = c(
         "{.field edstr_dirname} or {.field edstr_filename} is not set",
@@ -14,17 +12,13 @@ check_config <- \(suffix = NULL) {
       ),
       call = rlang::caller_env()
     )
-
   } else {
-
     lst(
       dir = .dirname,
       file = str_glue("{.filename}_{suffix}"),
       save = str_glue("{dir}/{file}.rds")
     )
-
   }
-
 }
 
 check_class <- \(
@@ -33,18 +27,14 @@ check_class <- \(
   arg = rlang::caller_arg(x),
   call = rlang::caller_env()
 ) {
-
   if (!inherits(x, class)) {
-
     cli_abort(
       "{.arg {arg}} must be a {.cls {class}} object, not {.cls {class(x)}}",
       call = call
     )
-
   }
 
   invisible(x)
-
 }
 
 check_replace <- \(
@@ -52,7 +42,6 @@ check_replace <- \(
   arg = rlang::caller_arg(replace),
   call = rlang::caller_env()
 ) {
-
   ok <- is.character(replace) || is.list(replace)
 
   if (!ok) {
@@ -74,23 +63,19 @@ check_replace <- \(
   }
 
   invisible(replace)
-
 }
 
 check_id_key <- \(data, exclude, error = TRUE) {
-
   filename <- enexpr(data)
 
   id_key <-
-  data |>
+    data |>
     select(-all_of(exclude)) |>
     keep(~ anyDuplicated(.) == 0L && !anyNA(.)) |>
     names()
 
   if (length(id_key) != 1) {
-
     if (length(id_key) < 1) {
-
       cli_abort(
         message = c(
           "{.arg id}: no primary key found in {.strong {filename}}",
@@ -98,9 +83,7 @@ check_id_key <- \(data, exclude, error = TRUE) {
         ),
         call = rlang::caller_env()
       )
-
     } else if (error) {
-
       str_id_key <- str_flatten_comma(id_key)
 
       cli_abort(
@@ -110,17 +93,12 @@ check_id_key <- \(data, exclude, error = TRUE) {
         ),
         call = rlang::caller_env()
       )
-
     } else {
-
       return(invisible(id_key))
-
     }
-
   }
 
   invisible(id_key)
-
 }
 
 check_id_group <- \(
@@ -129,20 +107,18 @@ check_id_group <- \(
   arg = rlang::caller_arg(id),
   call = rlang::caller_env()
 ) {
-
-  if (is.null(id)) return(NULL)
+  if (is.null(id)) {
+    return(NULL)
+  }
 
   if (!(id %in% names(data))) {
-
     cli_abort(
       message = "{.arg {arg}}: column {.strong {id}} not found",
       call = call
     )
-
   }
 
   if (anyNA(data[[id]])) {
-
     cli_abort(
       message = c(
         "{.arg {arg}}: {.strong {id}} contains missing values",
@@ -150,9 +126,7 @@ check_id_group <- \(
       ),
       call = call
     )
-
   }
 
   invisible(id)
-
 }

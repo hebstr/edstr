@@ -46,12 +46,12 @@ edstr_view <- \(
   ngrams = 1,
   ...
 ) {
-
   check_class(data, "data.frame")
   check_class(text_input, "character")
   check_class(pattern, "character")
 
-  cli_h1("edstr_view"); br()
+  cli_h1("edstr_view")
+  br()
 
   which_key <- check_id_key(
     data = data,
@@ -68,13 +68,11 @@ edstr_view <- \(
   tic("Full steps")
 
   if (!is.null(replace)) {
-
     data <- easy_replace(
       data = data,
       pattern = replace,
       text = text_input
     )
-
   }
 
   data_view <- view_output(
@@ -87,7 +85,9 @@ edstr_view <- \(
 
   print(data_view$count)
 
-  br(); cli_rule(); br()
+  br()
+  cli_rule()
+  br()
 
   match_id <- n_distinct(data_view$match[[id]])
 
@@ -95,17 +95,22 @@ edstr_view <- \(
 
   toc()
 
-  br(); cli_alert_info("{.strong Documents:} {nrow(data)} {id}"); br()
+  br()
+  cli_alert_info("{.strong Documents:} {nrow(data)} {id}")
+  br()
 
   cli_alert_info("{.strong Matches}")
   cli_ul()
   cli_ul()
-    cli_li("Total: {nrow(data_view$match)} across {match_id} {id} ({cli_p_match} {id})")
-    cli_li("Distinct: {nrow(data_view$count)}")
-    cli_end()
+  cli_li(
+    "Total: {nrow(data_view$match)} across {match_id} {id} ({cli_p_match} {id})"
+  )
+  cli_li("Distinct: {nrow(data_view$count)}")
+  cli_end()
 
-  br(); cli_rule(); br()
+  br()
+  cli_rule()
+  br()
 
   invisible(data_view)
-
 }
