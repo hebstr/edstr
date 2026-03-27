@@ -11,3 +11,4 @@
 ^vignettes/\.quarto$
 ^demo$
 ^\.claude$
+^prek.toml$
