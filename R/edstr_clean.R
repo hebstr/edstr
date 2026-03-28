@@ -69,10 +69,15 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' edstr_config(
-#'   edstr_dirname = "output", edstr_filename = "my_study",
-#'   edstr_text = "note_text"
+#'   edstr_dirname = tempdir(), edstr_filename = "my_study",
+#'   edstr_text = "note_text", edstr_overwrite = TRUE
+#' )
+#'
+#' df_import <- data.frame(
+#'   id = 1:3,
+#'   note_text = c("diabete  type\n2", "bilan normal", "diabete gestationnel")
 #' )
 #'
 #' df_clean <- edstr_clean(

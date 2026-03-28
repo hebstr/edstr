@@ -8,6 +8,11 @@
     "{.arg query}: provide a path to a .sql file or a SQL query string"
   ))
 
+  if (is.null(connect_dir)) cli_abort(c(
+    "{.arg connect_dir} is not set",
+    "i" = "Set {.code options(edstr_connect_dir = ...)} or pass {.arg connect_dir} explicitly"
+  ))
+
   cli_h1("edstr_import"); br()
 
   tic("Full steps")
@@ -16,7 +21,11 @@
 
   dbconfig <- config::get(file = connect_dir)
 
-  password <- password %||% askForPassword()
+  password <- password %||% if (rlang::is_installed("rstudioapi") && rstudioapi::isAvailable()) {
+    rstudioapi::askForPassword()
+  } else {
+    readline("Password: ")
+  }
 
   connection <- DatabaseConnector::connect(
     dbms = dbconfig$db$driver,
@@ -41,7 +50,7 @@
 
   if (!is.null(head)) {
 
-    if (!is.numeric(head) || length(head) != 1 || head < 1) cli_abort(
+    if (!is.numeric(head) || length(head) != 1 || !is.finite(head) || head < 1) cli_abort(
       "{.arg head} must be a positive integer"
     )
 
@@ -97,9 +106,11 @@
 #'   converted to lowercase.
 #' @param user `<character(1)>` Database username.
 #' @param password `<character(1)>` Database password. Defaults to an
-#'   interactive prompt via [rstudioapi::askForPassword()].
+#'   interactive prompt via `rstudioapi::askForPassword()` (if available)
+#'   or `readline()`.
 #' @param connect_dir `<character(1)>` Path to the YAML connection
-#'   configuration file read by [config::get()].
+#'   configuration file read by [config::get()]. Defaults to
+#'   `getOption("edstr_connect_dir")`.
 #' @param tns `<character(1)>` TNS alias to select from the connection
 #'   configuration (default `"vlp"`).
 #' @param ... Additional arguments passed to
@@ -125,7 +136,7 @@ edstr_import <- \(
   lower = TRUE,
   user = NULL,
   password = NULL,
-  connect_dir = "/opt/oracle/instantclient_23_7/connect/dbconnect.yml",
+  connect_dir = getOption("edstr_connect_dir"),
   tns = "vlp",
   ...
 ) {

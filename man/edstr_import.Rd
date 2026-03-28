@@ -10,7 +10,7 @@ edstr_import(
   lower = TRUE,
   user = NULL,
   password = NULL,
-  connect_dir = "/opt/oracle/instantclient_23_7/connect/dbconnect.yml",
+  connect_dir = getOption("edstr_connect_dir"),
   tns = "vlp",
   ...
 )
@@ -28,10 +28,12 @@ converted to lowercase.}
 \item{user}{\verb{<character(1)>} Database username.}
 
 \item{password}{\verb{<character(1)>} Database password. Defaults to an
-interactive prompt via \code{\link[rstudioapi:askForPassword]{rstudioapi::askForPassword()}}.}
+interactive prompt via \code{rstudioapi::askForPassword()} (if available)
+or \code{readline()}.}
 
 \item{connect_dir}{\verb{<character(1)>} Path to the YAML connection
-configuration file read by \code{\link[config:get]{config::get()}}.}
+configuration file read by \code{\link[config:get]{config::get()}}. Defaults to
+\code{getOption("edstr_connect_dir")}.}
 
 \item{tns}{\verb{<character(1)>} TNS alias to select from the connection
 configuration (default \code{"vlp"}).}

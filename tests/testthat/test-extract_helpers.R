@@ -108,7 +108,7 @@ test_that("parse_concepts: nested list keeps single root key", {
   expect_equal(unname(result$regex_df$concept_name), c("sein", "poumon"))
 })
 
-test_that("parse_concepts: concept names are cleaned to lowercase alpha", {
+test_that("parse_concepts: concept names are cleaned to lowercase alphanumeric", {
   result <- edstr:::.extract_parse_concepts(
     concepts = c("Diab-2" = "diabet"),
     collapse = FALSE,
@@ -116,7 +116,7 @@ test_that("parse_concepts: concept names are cleaned to lowercase alpha", {
     starts_with_only = TRUE
   )
 
-  expect_equal(result$keys, "diab")
+  expect_equal(result$keys, "diab2")
 })
 
 

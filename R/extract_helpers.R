@@ -30,7 +30,7 @@
 
     if (!is.list(x)) return(x)
 
-    names(x) <- names(x) |> tolower() |> str_remove_all("[^a-z]")
+    names(x) <- names(x) |> tolower() |> str_remove_all("[^a-z0-9]")
 
     map(x, .clean_concepts_names)
 
@@ -97,7 +97,11 @@
 
   which_key <- check_id_key(data = data, exclude = text_input, error = FALSE)
 
-  if (!(id %in% which_key)) rlang::arg_match(id, which_key)
+  if (is.null(id)) {
+    id <- check_id_key(data = data, exclude = text_input)
+  } else if (!(id %in% which_key)) {
+    rlang::arg_match(id, which_key)
+  }
 
   which_group <- check_id_group(data = data, id = group)
 
@@ -115,7 +119,11 @@
 
   nrow_init <- nrow(data)
 
-  if (!is.null(sample)) data <- data[sample(nrow_init, sample), ]
+  if (!is.null(sample)) {
+    if (sample > nrow_init)
+      cli_abort("{.arg sample} ({sample}) exceeds number of rows in {.arg data} ({nrow_init})")
+    data <- data[sample(nrow_init, sample), ]
+  }
 
   list(
     data = data,

@@ -44,13 +44,11 @@ directory if it does not exist. \code{edstr_dirname} and \code{edstr_filename}
 support \link[stringr:str_glue]{glue syntax} (e.g. \code{"{Sys.Date()}"}).
 }
 \examples{
-\dontrun{
 edstr_config(
-  edstr_dirname = "output/{Sys.Date()}",
+  edstr_dirname = tempdir(),
   edstr_filename = "my_study",
   edstr_text = "note_text",
   edstr_overwrite = TRUE
 )
-}
 
 }

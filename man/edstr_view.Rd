@@ -29,8 +29,8 @@ Optional regex replacements applied to the text \emph{before} matching
 
 \item{pattern}{\verb{<character(1)>} Regex pattern to search for.}
 
-\item{ngrams}{\verb{<integer(1)>} Number of tokens to capture after the
-initial match (default \code{1}). For example, \code{ngrams = 3} with
+\item{ngrams}{\verb{<integer(1)>} Total n-gram window size including the
+matched token (default \code{1}). For example, \code{ngrams = 3} with
 \code{pattern = "diabete"} matches \code{"diabete type 2"}.}
 
 \item{...}{Additional arguments passed to \code{\link[stringr:str_view]{stringr::str_view()}}.}
@@ -51,12 +51,10 @@ does not save results — it is meant for iterating on patterns before
 extraction.
 }
 \examples{
-\dontrun{
-edstr_view(
-  data = df_clean,
-  pattern = "diabete",
-  ngrams = 3
+df <- data.frame(
+  id = 1:3,
+  note = c("diabete type 2", "bilan normal", "diabete gestationnel")
 )
-}
+edstr_view(data = df, text_input = "note", pattern = "diabete", ngrams = 3)
 
 }

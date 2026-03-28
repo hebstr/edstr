@@ -24,14 +24,12 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
 #' edstr_config(
-#'   edstr_dirname = "output/{Sys.Date()}",
+#'   edstr_dirname = tempdir(),
 #'   edstr_filename = "my_study",
 #'   edstr_text = "note_text",
 #'   edstr_overwrite = TRUE
 #' )
-#' }
 #'
 edstr_config <- \(
   edstr_dirname,

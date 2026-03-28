@@ -388,7 +388,7 @@
 edstr_extract <- \(
   data,
   text_input = getOption("edstr_text"),
-  id = check_id_key(data = data, exclude = text_input),
+  id = NULL,
   group = NULL,
   sample = NULL,
   seed = NULL,

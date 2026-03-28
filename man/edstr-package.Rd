@@ -6,7 +6,7 @@
 \alias{edstr-package}
 \title{edstr: Extract Structured Data from Clinical Free Text}
 \description{
-Extract structured variables from clinical text. Import tables from an Oracle database, clean text with regex rules, tokenise and match user-defined concepts, and filter false positives. Results are exported as 'Excel', CSV, and RDS files for downstream analysis.
+Extract structured variables from clinical text. Import tables from an 'Oracle' database, clean text with regex rules, tokenise and match user-defined concepts, and filter false positives. Results are exported as 'Excel', CSV, and RDS files for downstream analysis.
 }
 \seealso{
 Useful links:

@@ -14,8 +14,8 @@
 #'   Optional regex replacements applied to the text *before* matching
 #'   (see [edstr_clean()] for details).
 #' @param pattern `<character(1)>` Regex pattern to search for.
-#' @param ngrams `<integer(1)>` Number of tokens to capture after the
-#'   initial match (default `1`). For example, `ngrams = 3` with
+#' @param ngrams `<integer(1)>` Total n-gram window size including the
+#'   matched token (default `1`). For example, `ngrams = 3` with
 #'   `pattern = "diabete"` matches `"diabete type 2"`.
 #' @param ... Additional arguments passed to [stringr::str_view()].
 #'
@@ -29,13 +29,11 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' edstr_view(
-#'   data = df_clean,
-#'   pattern = "diabete",
-#'   ngrams = 3
+#' df <- data.frame(
+#'   id = 1:3,
+#'   note = c("diabete type 2", "bilan normal", "diabete gestationnel")
 #' )
-#' }
+#' edstr_view(data = df, text_input = "note", pattern = "diabete", ngrams = 3)
 #'
 edstr_view <- \(
   data,
