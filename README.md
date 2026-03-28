@@ -7,8 +7,6 @@
 
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
-[![CRAN
-status](https://www.r-pkg.org/badges/version/edstr)](https://CRAN.R-project.org/package=edstr)
 <!-- badges: end -->
 
 edstr extracts structured variables from unstructured French clinical
@@ -23,6 +21,7 @@ and exports results as Excel, CSV, and RDS files.
 Install the development version from GitHub:
 
 ``` r
+#install.packages("pak")
 pak::pak("hebstr/edstr")
 ```
 
@@ -65,13 +64,13 @@ exploration and does not save anything.
 
 ## Exported functions
 
-| Function | Description |
-|----|----|
-| `edstr_config()` | Set global options: output directory, file prefix, text column, and caching behaviour. Must be called first. |
-| `edstr_import()` | Execute a SQL query against an Oracle database and cache the result as RDS. |
-| `edstr_clean()` | Apply sequential regex replacements to a text column and cache the result. |
+| Function          | Description                                                                                                                    |
+|-------------------|--------------------------------------------------------------------------------------------------------------------------------|
+| `edstr_config()`  | Set global options: output directory, file prefix, text column, and caching behaviour. Must be called first.                   |
+| `edstr_import()`  | Execute a SQL query against an Oracle database and cache the result as RDS.                                                    |
+| `edstr_clean()`   | Apply sequential regex replacements to a text column and cache the result.                                                     |
 | `edstr_extract()` | Tokenize text, match concepts, filter false positives, re-match against source text, and export results as XLSX, CSV, and RDS. |
-| `edstr_view()` | Interactively search for a regex pattern in text and display match frequencies. Does not save. |
+| `edstr_view()`    | Interactively search for a regex pattern in text and display match frequencies. Does not save.                                 |
 
 ## Quick start
 
@@ -173,11 +172,11 @@ interactive prompt.
 
 `edstr_extract()` returns a nested list and saves three files:
 
-| File | Contents |
-|----|----|
+| File    | Contents                                                                                             |
+|---------|------------------------------------------------------------------------------------------------------|
 | `.xlsx` | Excel workbook with one sheet per result type (extraction, counts, exclusions, mismatch, parameters) |
-| `.csv` | Flat extraction table for downstream analysis |
-| `.rds` | Full nested list with all intermediate objects, reloaded by the caching system |
+| `.csv`  | Flat extraction table for downstream analysis                                                        |
+| `.rds`  | Full nested list with all intermediate objects, reloaded by the caching system                       |
 
 ## Vignettes
 
@@ -193,9 +192,9 @@ Detailed documentation is available in six vignettes:
 ## Contributing
 
 Bug reports and feature requests:
-<https://codeberg.org/hebstr/edstr/issues>
+<https://github.com/hebstr/edstr/issues>
 
-Source code: <https://codeberg.org/hebstr/edstr>
+Source code: <https://github.com/hebstr/edstr>
 
 ## License
 

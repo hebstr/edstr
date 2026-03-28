@@ -188,9 +188,9 @@ Detailed documentation is available in six vignettes:
 
 ## Contributing
 
-Bug reports and feature requests: <https://codeberg.org/hebstr/edstr/issues>
+Bug reports and feature requests: <https://github.com/hebstr/edstr/issues>
 
-Source code: <https://codeberg.org/hebstr/edstr>
+Source code: <https://github.com/hebstr/edstr>
 
 ## License
 
