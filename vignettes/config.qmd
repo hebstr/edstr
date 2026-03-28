@@ -20,6 +20,7 @@ It must be called before any other `edstr_*` function.
 Two arguments are mandatory: the output directory and the file name prefix.
 
 ```{r}
+#| eval: false
 edstr_config(
   edstr_dirname = "output/my_study",
   edstr_filename = "my_study"
@@ -34,6 +35,7 @@ Output files are named `{edstr_filename}_{step}.rds` — e.g. `my_study_import.r
 Both `edstr_dirname` and `edstr_filename` support [glue](https://glue.tidyverse.org/) expressions, which are evaluated at call time.
 
 ```{r}
+#| eval: false
 edstr_config(
   edstr_dirname = "output/{Sys.Date()}",
   edstr_filename = "study_{format(Sys.Date(), '%Y%m%d')}"
@@ -45,6 +47,7 @@ edstr_config(
 Setting `edstr_text` avoids repeating the column name in `edstr_clean()`, `edstr_extract()`, and `edstr_view()`.
 
 ```{r}
+#| eval: false
 edstr_config(
   edstr_dirname = "output/my_study",
   edstr_filename = "my_study",
@@ -68,6 +71,7 @@ The `edstr_overwrite` option controls what happens when an output file already e
 Set `TRUE` when re-running a full pipeline, `FALSE` when resuming work on a cached dataset.
 
 ```{r}
+#| eval: false
 edstr_config(
   edstr_dirname = "output/my_study",
   edstr_filename = "my_study",
@@ -80,6 +84,7 @@ edstr_config(
 Extra named arguments are passed directly to `options()`, which can be useful for setting project-level options alongside `edstr`.
 
 ```{r}
+#| eval: false
 edstr_config(
   edstr_dirname = "output/my_study",
   edstr_filename = "my_study",

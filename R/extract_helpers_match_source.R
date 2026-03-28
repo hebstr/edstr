@@ -51,7 +51,8 @@
       data = data_match_df,
       text_input = text_input,
       pattern = .x,
-      id = id
+      id = id,
+      error_empty = FALSE
     ) |>
       pluck("match") |>
       mutate(concept = .y, .before = "match")

@@ -4,7 +4,13 @@ label_pct <- \(x) paste0(round(x * 100, 1), "%")
 
 read_query <- \(query, call = rlang::caller_env()) {
 
-  if (!fs::file_exists(query)) return(query)
+
+  if (!fs::file_exists(query)) {
+    if (str_ends(query, "\\.sql")) {
+      cli_abort("{.arg query}: file {.path {query}} not found", call = call)
+    }
+    return(query)
+  }
 
   lines <- read_lines(file = query, skip_empty_rows = TRUE)
   lines <- str_remove(lines, "--.*$")
@@ -112,7 +118,8 @@ view_output <- \(
   text_input,
   pattern,
   id,
-  ...
+  ...,
+  error_empty = TRUE
 ) {
 
   data$match <- str_extract_all(data[[text_input]], pattern)
@@ -121,10 +128,18 @@ view_output <- \(
 
   if (nrow(.data_match) == 0) {
 
-    cli_abort(
-      message = "{.strong No matches found}",
-      call = rlang::caller_env()
-    )
+    if (error_empty) {
+      cli_abort(
+        message = "{.strong No matches found}",
+        call = rlang::caller_env()
+      )
+    }
+
+    return(lst(
+      match = .data_match,
+      count = tibble(match = character(), n = integer()),
+      text = character()
+    ))
 
   }
 

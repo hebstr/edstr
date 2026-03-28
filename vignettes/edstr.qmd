@@ -37,6 +37,7 @@ If the file already exists, behaviour depends on the `edstr_overwrite` option se
 Two arguments are required: the output directory and the file name prefix.
 
 ```{r}
+#| eval: false
 edstr_config(
   edstr_dirname = "output/fesf",
   edstr_filename = "fesf",
@@ -60,6 +61,7 @@ edstr_config(
 `edstr_import()` runs a SQL query against the Oracle database and saves the result.
 
 ```{r}
+#| eval: false
 df_import <- edstr_import(
   query = "sql/fesf.sql",
   head = 500,
@@ -76,6 +78,7 @@ The `query` argument accepts either a SQL string or a path to a `.sql` file.
 Cleaning patterns are defined as a named character vector (or a list of named vectors): names are patterns, values are replacements.
 
 ```{r}
+#| eval: false
 df_clean <- edstr_clean(
   data = df_import,
   replace = c("\\p{Zs}{2,}" = " ", "&amp;" = "&")
@@ -88,6 +91,7 @@ df_clean <- edstr_clean(
 For complex patterns, define them in a separate R file and load them with `source()`:
 
 ```{r}
+#| eval: false
 df_clean <- edstr_clean(
   data = df_import,
   replace = source(here::here("config/clean.R"))$value
@@ -107,6 +111,7 @@ A simple vector creates independent concepts; a named list creates sub-concepts.
 
 ```{r}
 #| label: extract-simple
+#| eval: false
 df_extract <- edstr_extract(
   data = df_clean,
   concepts = c(fracture = "fracture", femur = "f(e|é)mur|fesf"),
@@ -124,6 +129,7 @@ Two modes alter extraction behaviour when multiple concepts are defined:
 
 ```{r}
 #| label: extract-intersect
+#| eval: false
 df_extract <- edstr_extract(
   data = df_clean,
   concepts = c(fracture = "fracture", femur = "f(e|é)mur|fesf"),
@@ -141,6 +147,7 @@ False positives can be filtered in two ways:
 
 ```{r}
 #| label: extract-exclusions
+#| eval: false
 df_extract <- edstr_extract(
   data = df_clean,
   concepts = c(fracture = "fracture"),
@@ -156,6 +163,7 @@ df_extract <- edstr_extract(
 This function does not save anything — it is designed for fast iteration.
 
 ```{r}
+#| eval: false
 df_view <- edstr_view(
   data = df_clean,
   pattern = "fractur",

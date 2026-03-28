@@ -9,7 +9,7 @@ edstr_import(
   head = NULL,
   lower = TRUE,
   user = NULL,
-  password = askForPassword(),
+  password = NULL,
   connect_dir = "/opt/oracle/instantclient_23_7/connect/dbconnect.yml",
   tns = "vlp",
   ...

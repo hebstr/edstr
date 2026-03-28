@@ -98,7 +98,7 @@
 #' @importFrom rlang list2
 #' @importFrom rlang set_names
 #' @importFrom rstudioapi askForPassword
-#' @importFrom stringi stri_detect_regex
+#' @importFrom stringi stri_detect_regex stri_trans_general
 #' @importFrom stringr regex
 #' @importFrom stringr str_c
 #' @importFrom stringr str_detect

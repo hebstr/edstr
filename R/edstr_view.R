@@ -60,7 +60,11 @@ edstr_view <- \(
   )
 
   if (is.null(id)) {
-    id <- check_id_key(data = data, exclude = text_input)
+    if (length(which_key) == 1) {
+      id <- which_key
+    } else {
+      id <- check_id_key(data = data, exclude = text_input)
+    }
   } else if (!(id %in% which_key)) {
     rlang::arg_match(id, which_key)
   }

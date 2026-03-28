@@ -16,6 +16,8 @@
 
   dbconfig <- config::get(file = connect_dir)
 
+  password <- password %||% askForPassword()
+
   connection <- DatabaseConnector::connect(
     dbms = dbconfig$db$driver,
     pathToDriver = dbconfig$db$path,
@@ -39,7 +41,7 @@
 
   if (!is.null(head)) {
 
-    if (!is.numeric(head) || length(head) != 1) cli_abort(
+    if (!is.numeric(head) || length(head) != 1 || head < 1) cli_abort(
       "{.arg head} must be a positive integer"
     )
 
@@ -122,7 +124,7 @@ edstr_import <- \(
   head = NULL,
   lower = TRUE,
   user = NULL,
-  password = askForPassword(),
+  password = NULL,
   connect_dir = "/opt/oracle/instantclient_23_7/connect/dbconnect.yml",
   tns = "vlp",
   ...

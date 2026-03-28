@@ -30,7 +30,7 @@
 
     if (!is.list(x)) return(x)
 
-    names(x) <- names(x) |> tolower() |> str_remove_all("[^[a-z]]")
+    names(x) <- names(x) |> tolower() |> str_remove_all("[^a-z]")
 
     map(x, .clean_concepts_names)
 
@@ -154,7 +154,7 @@
           paste(collapse = " ")
       ) |>
       str_squish() |>
-      iconv(from = "UTF-8", to = "ASCII//TRANSLIT")
+      stri_trans_general("Latin-ASCII")
 
   }
 
@@ -225,7 +225,7 @@
   .conv_fun <- \(x) {
 
     x |>
-      iconv(from = "UTF-8", to = "ASCII//TRANSLIT") |>
+      stri_trans_general("Latin-ASCII") |>
       tolower() |>
       str_replace_all(c("-(<br/>)?|-?<br/>" = " ", "\\s+" = " "))
 
