@@ -642,6 +642,7 @@ test_that("edstr_extract: loads cached RDS when file exists", {
   )
 
   withr::local_options(edstr_overwrite = NULL)
+  local_mocked_bindings(is_interactive = \() TRUE, .package = "rlang")
   local_mocked_bindings(menu = \(...) 1, .package = "edstr")
 
   result2 <- suppressMessages(

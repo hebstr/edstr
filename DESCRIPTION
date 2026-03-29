@@ -20,6 +20,7 @@ Depends:
     R (>= 4.3.0)
 Imports:
     cli,
+    config,
     DatabaseConnector,
     dplyr,
     fs,
@@ -29,17 +30,16 @@ Imports:
     purrr,
     readr,
     rJava,
-    rlang,
     RJDBC,
+    rlang,
+    stringi,
     stringr,
     tibble,
     tictoc,
     tidyr,
     tidytext,
     utils,
-    withr,
-    config,
-    stringi,
+    withr
 Suggests:
     gt,
     rstudioapi,

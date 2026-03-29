@@ -411,7 +411,7 @@ edstr_extract <- \(
   filename_suffix = dirname_suffix
 ) {
 
-  config <- check_config()
+  check_config()
 
   config_dir <- getOption('edstr_dirname')
   filename <- getOption('edstr_filename')

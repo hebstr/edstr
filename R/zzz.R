@@ -1,18 +1,21 @@
 .edstr_java_prev <- NULL
+.edstr_java_changed <- FALSE
 
 .onLoad <- \(libname, pkgname) {
 
-  if (is.null(getOption("java.parameters"))) {
+  .edstr_java_prev <<- getOption("java.parameters")
 
-    .edstr_java_prev <<- getOption("java.parameters")
+  if (is.null(.edstr_java_prev)) {
     options(java.parameters = "-Xmx8g")
-
+    .edstr_java_changed <<- TRUE
   }
 
 }
 
 .onUnload <- \(libpath) {
 
-  options(java.parameters = .edstr_java_prev)
+  if (.edstr_java_changed) {
+    options(java.parameters = .edstr_java_prev)
+  }
 
 }

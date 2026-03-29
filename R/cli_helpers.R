@@ -47,6 +47,10 @@ cli_check <- \(config_file, fun_save, fun_load) {
 
   br(); cli_alert_warning("File {.strong {config_file}} already exists.")
 
+  if (!rlang::is_interactive()) {
+    cli_abort("File {.strong {config_file}} already exists. Set option {.code edstr_overwrite} to {.val TRUE} or {.val FALSE} in non-interactive sessions.")
+  }
+
   choice <- menu(
     choices = c(
       "Load existing file",

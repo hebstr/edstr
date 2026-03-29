@@ -6,7 +6,12 @@
 <!-- badges: start -->
 
 [![Lifecycle:
-experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
+[![R-CMD-check](https://github.com/hebstr/edstr/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/hebstr/edstr/actions/workflows/R-CMD-check.yaml)
+[![Codecov test
+coverage](https://codecov.io/gh/hebstr/edstr/graph/badge.svg)](https://app.codecov.io/gh/hebstr/edstr)
+[![License: GPL (>=
+3)](https://img.shields.io/badge/license-GPL%20(%3E%3D%203)-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 <!-- badges: end -->
 
 edstr extracts structured variables from unstructured French clinical

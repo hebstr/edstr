@@ -24,6 +24,7 @@ test_that("check_config() errors when edstr_dirname is not set", {
 test_that("cli_check() calls fun_load when menu choice is 1", {
   withr::local_options(edstr_overwrite = NULL)
 
+  local_mocked_bindings(is_interactive = \() TRUE, .package = "rlang")
   local_mocked_bindings(menu = \(...) 1, .package = "edstr")
 
   result <- suppressMessages(
@@ -40,6 +41,7 @@ test_that("cli_check() calls fun_load when menu choice is 1", {
 test_that("cli_check() calls fun_save when menu choice is 2", {
   withr::local_options(edstr_overwrite = NULL)
 
+  local_mocked_bindings(is_interactive = \() TRUE, .package = "rlang")
   local_mocked_bindings(menu = \(...) 2, .package = "edstr")
 
   result <- suppressMessages(
@@ -56,6 +58,7 @@ test_that("cli_check() calls fun_save when menu choice is 2", {
 test_that("cli_check() aborts when menu choice is 3 (cancel)", {
   withr::local_options(edstr_overwrite = NULL)
 
+  local_mocked_bindings(is_interactive = \() TRUE, .package = "rlang")
   local_mocked_bindings(menu = \(...) 3, .package = "edstr")
 
   expect_error(
