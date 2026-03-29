@@ -145,9 +145,11 @@ view_output <- \(
 
   .data_count <- .data_match |> count(.data$match, sort = TRUE)
 
+  .matched_ids <- .data_match[[id]]
+
   .data_text <-
   data |>
-    filter(.data[[id]] %in% .data_match[[id]]) |>
+    filter(.data[[id]] %in% .matched_ids) |>
     pull(text_input) |>
     str_view(pattern, ...)
 

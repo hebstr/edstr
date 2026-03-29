@@ -14,3 +14,4 @@
 ^prek.toml$
 ^\.vscode$
 ^[.]?air[.]toml$
+^\.github$

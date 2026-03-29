@@ -10,7 +10,7 @@ stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://
 [![R-CMD-check](https://github.com/hebstr/edstr/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/hebstr/edstr/actions/workflows/R-CMD-check.yaml)
 [![Codecov test
 coverage](https://codecov.io/gh/hebstr/edstr/graph/badge.svg)](https://app.codecov.io/gh/hebstr/edstr)
-[![License: GPL (>=
+[![License: GPL (\>=
 3)](https://img.shields.io/badge/license-GPL%20(%3E%3D%203)-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 <!-- badges: end -->
 
@@ -69,13 +69,13 @@ exploration and does not save anything.
 
 ## Exported functions
 
-| Function          | Description                                                                                                                    |
-|-------------------|--------------------------------------------------------------------------------------------------------------------------------|
-| `edstr_config()`  | Set global options: output directory, file prefix, text column, and caching behaviour. Must be called first.                   |
-| `edstr_import()`  | Execute a SQL query against an Oracle database and cache the result as RDS.                                                    |
-| `edstr_clean()`   | Apply sequential regex replacements to a text column and cache the result.                                                     |
+| Function | Description |
+|----|----|
+| `edstr_config()` | Set global options: output directory, file prefix, text column, and caching behaviour. Must be called first. |
+| `edstr_import()` | Execute a SQL query against an Oracle database and cache the result as RDS. |
+| `edstr_clean()` | Apply sequential regex replacements to a text column and cache the result. |
 | `edstr_extract()` | Tokenize text, match concepts, filter false positives, re-match against source text, and export results as XLSX, CSV, and RDS. |
-| `edstr_view()`    | Interactively search for a regex pattern in text and display match frequencies. Does not save.                                 |
+| `edstr_view()` | Interactively search for a regex pattern in text and display match frequencies. Does not save. |
 
 ## Quick start
 
@@ -177,11 +177,11 @@ interactive prompt.
 
 `edstr_extract()` returns a nested list and saves three files:
 
-| File    | Contents                                                                                             |
-|---------|------------------------------------------------------------------------------------------------------|
+| File | Contents |
+|----|----|
 | `.xlsx` | Excel workbook with one sheet per result type (extraction, counts, exclusions, mismatch, parameters) |
-| `.csv`  | Flat extraction table for downstream analysis                                                        |
-| `.rds`  | Full nested list with all intermediate objects, reloaded by the caching system                       |
+| `.csv` | Flat extraction table for downstream analysis |
+| `.rds` | Full nested list with all intermediate objects, reloaded by the caching system |
 
 ## Vignettes
 
