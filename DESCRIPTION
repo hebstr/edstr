@@ -10,7 +10,7 @@ Description: Extract structured variables from clinical text. Import
     positives. Results are exported as 'Excel', CSV, and RDS
     files for downstream analysis.
 License: GPL (>= 3)
-URL: https://github.com/hebstr/edstr
+URL: https://hebstr.github.io/edstr/, https://github.com/hebstr/edstr
 BugReports: https://github.com/hebstr/edstr/issues
 SystemRequirements: Java (>= 8), Oracle Instant Client
 Encoding: UTF-8

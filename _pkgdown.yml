@@ -1,4 +1,4 @@
-url: https://codeberg.org/hebstr/edstr/
+url: https://hebstr.github.io/edstr/
 
 template:
   bootstrap: 5
@@ -8,11 +8,6 @@ template:
     code_font: "Fira Code"
     font_scale: 0.9
   light-switch: true
-
-repo:
-  url:
-    home: https://codeberg.org/hebstr/edstr/
-    source: https://codeberg.org/hebstr/edstr/src/branch/main/
 
 reference:
 - title: Configuration

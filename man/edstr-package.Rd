@@ -11,6 +11,7 @@ Extract structured variables from clinical text. Import tables from an 'Oracle' 
 \seealso{
 Useful links:
 \itemize{
+  \item \url{https://hebstr.github.io/edstr/}
   \item \url{https://github.com/hebstr/edstr}
   \item Report bugs at \url{https://github.com/hebstr/edstr/issues}
 }
