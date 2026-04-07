@@ -1,19 +1,36 @@
 .import_save <- \(
-  query, head, lower, user, password,
-  connect_dir, tns, config,
+  query,
+  head,
+  lower,
+  user,
+  password,
+  connect_dir,
+  tns,
+  config,
   ...
 ) {
+  if (is.null(query)) {
+    cli_abort(c(
+      "{.arg query}: provide a path to a .sql file or a SQL query string"
+    ))
+  }
 
-  if (is.null(query)) cli_abort(c(
-    "{.arg query}: provide a path to a .sql file or a SQL query string"
-  ))
+  if (is.null(connect_dir)) {
+    cli_abort(c(
+      "{.arg connect_dir} is not set",
+      "i" = "Set {.code options(edstr_connect_dir = ...)} or pass {.arg connect_dir} explicitly"
+    ))
+  }
 
-  if (is.null(connect_dir)) cli_abort(c(
-    "{.arg connect_dir} is not set",
-    "i" = "Set {.code options(edstr_connect_dir = ...)} or pass {.arg connect_dir} explicitly"
-  ))
+  if (!fs::file_exists(connect_dir)) {
+    cli_abort(c(
+      "{.arg connect_dir} file not found: {.path {connect_dir}}",
+      "i" = "Check the path passed to {.arg connect_dir} or {.code options(edstr_connect_dir)}"
+    ))
+  }
 
-  cli_h1("edstr_import"); br()
+  cli_h1("edstr_import")
+  br()
 
   tic("Full steps")
 
@@ -21,11 +38,12 @@
 
   dbconfig <- config::get(file = connect_dir)
 
-  password <- password %||% if (rlang::is_installed("rstudioapi") && rstudioapi::isAvailable()) {
-    rstudioapi::askForPassword()
-  } else {
-    readline("Password: ")
-  }
+  password <- password %||%
+    if (rlang::is_installed("rstudioapi") && rstudioapi::isAvailable()) {
+      rstudioapi::askForPassword()
+    } else {
+      readline("Password: ")
+    }
 
   connection <- DatabaseConnector::connect(
     dbms = dbconfig$db$driver,
@@ -49,22 +67,28 @@
   query <- read_query(query)
 
   if (!is.null(head)) {
-
-    if (!is.numeric(head) || length(head) != 1 || !is.finite(head) || head < 1) cli_abort(
-      "{.arg head} must be a positive integer"
-    )
+    if (
+      !is.numeric(head) || length(head) != 1 || !is.finite(head) || head < 1
+    ) {
+      cli_abort(
+        "{.arg head} must be a positive integer"
+      )
+    }
 
     query <- str_glue("{query} FETCH FIRST {as.integer(head)} ROWS ONLY")
-
   }
 
-  br(); cli_progress_step("Import")
+  br()
+  cli_progress_step("Import")
 
   data_import <- tbl(connection, sql(query)) |> collect()
 
-  if (lower) data_import <- set_names(data_import, tolower)
+  if (lower) {
+    data_import <- set_names(data_import, tolower)
+  }
 
-  cli_progress_done(); br()
+  cli_progress_done()
+  br()
 
   cli_save(
     data = data_import,
@@ -72,22 +96,22 @@
     config_save = config$save
   )
 
-  br(); toc(); br()
+  br()
+  toc()
+  br()
 
   data_import
-
 }
 
 .import_load <- \(config) {
-
-  cli_h1("edstr_import"); br()
+  cli_h1("edstr_import")
+  br()
 
   cli_load(
     dir = config$dir,
     file = config$file,
     save = config$save
   )
-
 }
 
 #' Import data from the EDS
@@ -140,27 +164,29 @@ edstr_import <- \(
   tns = "vlp",
   ...
 ) {
-
   config <- check_config("import")
 
-  fun_save <- \() .import_save(
-    query, head, lower, user, password,
-    connect_dir, tns, config,
-    ...
-  )
+  fun_save <- \() {
+    .import_save(
+      query,
+      head,
+      lower,
+      user,
+      password,
+      connect_dir,
+      tns,
+      config,
+      ...
+    )
+  }
 
   if (fs::file_exists(config$save)) {
-
     cli_check(
       config_file = config$file,
       fun_save = fun_save,
       fun_load = \() .import_load(config)
     )
-
   } else {
-
     fun_save()
-
   }
-
 }

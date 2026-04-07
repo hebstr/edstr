@@ -16,7 +16,7 @@ check_config <- \(suffix = NULL) {
     lst(
       dir = .dirname,
       file = str_glue("{.filename}_{suffix}"),
-      save = str_glue("{dir}/{file}.rds")
+      save = fs::path(dir, file, ext = "rds")
     )
   }
 }

@@ -199,7 +199,7 @@
   data_id_mismatch <- if (mismatch_data) {
     data_id_mismatch_base |> filter(!.data[[id]] %in% data_match_init[[id]])
   } else {
-    data_id_mismatch_base |> filter(.data[[id]] %in% NA_character_)
+    data_id_mismatch_base |> slice(0)
   }
 
   .conv_fun <- \(x) {

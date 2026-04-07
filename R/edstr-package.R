@@ -31,6 +31,7 @@
 #' @importFrom dplyr everything
 #' @importFrom dplyr filter
 #' @importFrom dplyr full_join
+#' @importFrom dplyr if_any
 #' @importFrom dplyr inner_join
 #' @importFrom dplyr last_col
 #' @importFrom dplyr left_join
