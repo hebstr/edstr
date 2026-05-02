@@ -9,7 +9,7 @@ Description: Extract structured variables from clinical text. Import
     tokenise and match user-defined concepts, and filter false
     positives. Results are exported as 'Excel', CSV, and RDS
     files for downstream analysis.
-License: MIT + file LICENSE
+License: GPL (>= 3)
 URL: https://hebstr.github.io/edstr/, https://github.com/hebstr/edstr
 BugReports: https://github.com/hebstr/edstr/issues
 SystemRequirements: Java (>= 8), Oracle Instant Client
