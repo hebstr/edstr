@@ -9,4 +9,7 @@ inst/doc
 /demo/
 /.quarto/
 /.claude/
+
+# CRAN
 cran-comments.md
+LICENSE
