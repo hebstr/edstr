@@ -38,9 +38,9 @@ matched token (default \code{1}). For example, \code{ngrams = 3} with
 \value{
 Invisibly returns a list with three elements:
 \describe{
-\item{\code{match}}{A \link[tibble:tibble]{tibble::tibble} of all matches with the \code{id} and \code{match}
+\item{\code{match}}{A \link[tibble:tibble]{tibble} of all matches with the \code{id} and \code{match}
 columns.}
-\item{\code{count}}{A \link[tibble:tibble]{tibble::tibble} of distinct matches with their frequency.}
+\item{\code{count}}{A \link[tibble:tibble]{tibble} of distinct matches with their frequency.}
 \item{\code{text}}{Output of \code{\link[stringr:str_view]{stringr::str_view()}} for visual inspection.}
 }
 }

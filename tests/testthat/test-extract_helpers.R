@@ -602,7 +602,19 @@ test_that("edstr_extract: full pipeline runs and produces expected output", {
   )
 
   expect_type(result, "list")
-  expect_named(result, c("data", "regex", "match", "count", "exclus", "mismatch", "summary", "sheets"))
+  expect_named(
+    result,
+    c(
+      "data",
+      "regex",
+      "match",
+      "count",
+      "exclus",
+      "mismatch",
+      "summary",
+      "sheets"
+    )
+  )
 
   expect_true(nrow(result$data$extract) > 0)
   expect_true("doc_id" %in% names(result$data$extract))
@@ -698,21 +710,24 @@ test_that("check_ids: sample + seed produce reproducible rows", {
 
   withr::local_seed(42)
   result1 <- edstr:::.extract_check_ids(
-    data = df, sample = 10, text_input = "texte",
-    id = "doc_id", group = NULL
+    data = df,
+    sample = 10,
+    text_input = "texte",
+    id = "doc_id",
+    group = NULL
   )
 
   withr::local_seed(42)
   result2 <- edstr:::.extract_check_ids(
-    data = df, sample = 10, text_input = "texte",
-    id = "doc_id", group = NULL
+    data = df,
+    sample = 10,
+    text_input = "texte",
+    id = "doc_id",
+    group = NULL
   )
 
   expect_equal(result1$data$doc_id, result2$data$doc_id)
 })
-
-
-
 
 
 test_that("edstr_extract: dirname_suffix and filename_suffix affect paths", {
@@ -958,6 +973,7 @@ test_that("exclusions: exclus_auto_token_min = 0 activates auto-exclusion on uni
   )
 
   expect_true(
-    nrow(result_zero$data_match_exclus$auto) >= nrow(result_default$data_match_exclus$auto)
+    nrow(result_zero$data_match_exclus$auto) >=
+      nrow(result_default$data_match_exclus$auto)
   )
 })

@@ -93,14 +93,30 @@ test_that("edstr_config() rejects invalid edstr_filename", {
 
 test_that("edstr_config() rejects invalid edstr_text", {
   tmp <- withr::local_tempdir()
-  expect_error(edstr_config(edstr_dirname = tmp, edstr_filename = "x", edstr_text = 42))
-  expect_error(edstr_config(edstr_dirname = tmp, edstr_filename = "x", edstr_text = c("a", "b")))
+  expect_error(edstr_config(
+    edstr_dirname = tmp,
+    edstr_filename = "x",
+    edstr_text = 42
+  ))
+  expect_error(edstr_config(
+    edstr_dirname = tmp,
+    edstr_filename = "x",
+    edstr_text = c("a", "b")
+  ))
 })
 
 test_that("edstr_config() rejects invalid edstr_overwrite", {
   tmp <- withr::local_tempdir()
-  expect_error(edstr_config(edstr_dirname = tmp, edstr_filename = "x", edstr_overwrite = "yes"))
-  expect_error(edstr_config(edstr_dirname = tmp, edstr_filename = "x", edstr_overwrite = 42))
+  expect_error(edstr_config(
+    edstr_dirname = tmp,
+    edstr_filename = "x",
+    edstr_overwrite = "yes"
+  ))
+  expect_error(edstr_config(
+    edstr_dirname = tmp,
+    edstr_filename = "x",
+    edstr_overwrite = 42
+  ))
 })
 
 test_that("edstr_config() defaults text and overwrite to NULL", {

@@ -1,23 +1,21 @@
 Package: edstr
 Title: Extract Structured Data from Clinical Free Text
-Version: 0.2.0
+Version: 0.3.0
 Authors@R:
-    person("Henry", "BOSTORRHUS", , "ju.diez@protonmail.com", role = c("aut", "cre"),
+    person("Henry", "BOSTORRHUS", , "ju.diez@protonmail.com", role = c("aut", "cre", "cph"),
            comment = c(ORCID = "0009-0001-3983-5713"))
 Description: Extract structured variables from clinical text. Import
     tables from an 'Oracle' database, clean text with regex rules,
     tokenise and match user-defined concepts, and filter false
     positives. Results are exported as 'Excel', CSV, and RDS
     files for downstream analysis.
-License: GPL (>= 3)
+License: MIT + file LICENSE
 URL: https://hebstr.github.io/edstr/, https://github.com/hebstr/edstr
 BugReports: https://github.com/hebstr/edstr/issues
 SystemRequirements: Java (>= 8), Oracle Instant Client
 Encoding: UTF-8
-Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.3
 Depends:
-    R (>= 4.3.0)
+    R (>= 4.4.0)
 Imports:
     cli,
     config,
@@ -49,4 +47,6 @@ Suggests:
     testthat (>= 3.0.0)
 VignetteBuilder:
     quarto
+Config/roxygen2/markdown: TRUE
+Config/roxygen2/version: 8.0.0
 Config/testthat/edition: 3

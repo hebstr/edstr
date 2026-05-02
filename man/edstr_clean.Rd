@@ -16,7 +16,7 @@ to the \code{edstr_text} option set by \code{\link[=edstr_config]{edstr_config()
 \item{replace}{A named character vector or a list of named character
 vectors. Names are regex patterns, values are replacements. When a list
 is provided, each element is applied sequentially via
-\code{\link[stringr:str_replace]{stringr::str_replace_all()}}.}
+\code{\link[stringr:str_replace_all]{stringr::str_replace_all()}}.}
 }
 \value{
 A \link{data.frame} with the cleaned text column.

@@ -10,8 +10,8 @@ stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://
 [![R-CMD-check](https://github.com/hebstr/edstr/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/hebstr/edstr/actions/workflows/R-CMD-check.yaml)
 [![Codecov test
 coverage](https://codecov.io/gh/hebstr/edstr/graph/badge.svg)](https://app.codecov.io/gh/hebstr/edstr)
-[![License: GPL (\>=
-3)](https://img.shields.io/badge/license-GPL%20(%3E%3D%203)-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![License:
+MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 <!-- badges: end -->
 
 edstr extracts structured variables from unstructured French clinical
@@ -23,7 +23,13 @@ and exports results as Excel, CSV, and RDS files.
 
 ## Installation
 
-Install the development version from GitHub:
+Install from CRAN:
+
+``` r
+install.packages("edstr")
+```
+
+Or install the development version from GitHub:
 
 ``` r
 #install.packages("pak")
@@ -203,4 +209,4 @@ Source code: <https://github.com/hebstr/edstr>
 
 ## License
 
-GPL (\>= 3)
+MIT

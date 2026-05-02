@@ -38,15 +38,32 @@ edstr_config <- \(
   edstr_overwrite = NULL,
   ...
 ) {
-
-  if (!is.character(edstr_dirname) || length(edstr_dirname) != 1L)
-    cli_abort("{.arg edstr_dirname} must be a single character string ({.cls character(1)})")
-  if (!is.character(edstr_filename) || length(edstr_filename) != 1L)
-    cli_abort("{.arg edstr_filename} must be a single character string ({.cls character(1)})")
-  if (!is.null(edstr_text) && (!is.character(edstr_text) || length(edstr_text) != 1L))
-    cli_abort("{.arg edstr_text} must be a single character string ({.cls character(1)}) or {.code NULL}")
-  if (!is.null(edstr_overwrite) && (!is.logical(edstr_overwrite) || length(edstr_overwrite) != 1L))
-    cli_abort("{.arg edstr_overwrite} must be {.code TRUE}, {.code FALSE}, or {.code NULL}")
+  if (!is.character(edstr_dirname) || length(edstr_dirname) != 1L) {
+    cli_abort(
+      "{.arg edstr_dirname} must be a single character string ({.cls character(1)})"
+    )
+  }
+  if (!is.character(edstr_filename) || length(edstr_filename) != 1L) {
+    cli_abort(
+      "{.arg edstr_filename} must be a single character string ({.cls character(1)})"
+    )
+  }
+  if (
+    !is.null(edstr_text) &&
+      (!is.character(edstr_text) || length(edstr_text) != 1L)
+  ) {
+    cli_abort(
+      "{.arg edstr_text} must be a single character string ({.cls character(1)}) or {.code NULL}"
+    )
+  }
+  if (
+    !is.null(edstr_overwrite) &&
+      (!is.logical(edstr_overwrite) || length(edstr_overwrite) != 1L)
+  ) {
+    cli_abort(
+      "{.arg edstr_overwrite} must be {.code TRUE}, {.code FALSE}, or {.code NULL}"
+    )
+  }
 
   options(
     edstr_dirname = fs::dir_create(str_glue(edstr_dirname)),
@@ -56,9 +73,11 @@ edstr_config <- \(
     ...
   )
 
-  cli_h1("edstr_config"); br()
+  cli_h1("edstr_config")
+  br()
 
-  cli_alert_info("{.strong Root : {.path {here::here()}}}"); br()
+  cli_alert_info("{.strong Root : {.path {here::here()}}}")
+  br()
 
   cli_alert_info(
     "Files will be saved in {.strong {.path {getOption('edstr_dirname')}}} with prefix {.strong {.path {getOption('edstr_filename')}}}"
@@ -69,5 +88,4 @@ edstr_config <- \(
   cli_rule()
 
   invisible(NULL)
-
 }

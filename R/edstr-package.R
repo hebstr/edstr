@@ -45,6 +45,7 @@
 #' @importFrom dplyr rename
 #' @importFrom dplyr row_number
 #' @importFrom dplyr select
+#' @importFrom dplyr slice
 #' @importFrom dplyr sql
 #' @importFrom dplyr starts_with
 #' @importFrom dplyr summarise

@@ -14,7 +14,7 @@ edstr_config(
 }
 \arguments{
 \item{edstr_dirname}{\verb{<character(1)>} Path to the output directory.
-Created via \code{\link[fs:create]{fs::dir_create()}} if it does not exist.}
+Created via \code{\link[fs:dir_create]{fs::dir_create()}} if it does not exist.}
 
 \item{edstr_filename}{\verb{<character(1)>} Prefix used to name output files
 (e.g. \code{"my_study"} produces \code{my_study_import.rds}, \code{my_study_clean.rds},

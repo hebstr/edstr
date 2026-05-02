@@ -9,7 +9,7 @@ test_that("check_config() returns correct paths", {
 
   expect_equal(as.character(result$dir), as.character(tmp))
   expect_equal(result$file, "myfile_import")
-  expect_equal(result$save, file.path(tmp, "myfile_import.rds"))
+  expect_equal(result$save, fs::path(tmp, "myfile_import", ext = "rds"))
 })
 
 test_that("check_config() errors when edstr_dirname is not set", {

@@ -18,7 +18,12 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Henry BOSTORRHUS \email{ju.diez@protonmail.com} (\href{https://orcid.org/0009-0001-3983-5713}{ORCID})
+\strong{Maintainer}: Henry BOSTORRHUS \email{ju.diez@protonmail.com} (\href{https://orcid.org/0009-0001-3983-5713}{ORCID}) [copyright holder]
+
+Authors:
+\itemize{
+  \item Henry BOSTORRHUS \email{ju.diez@protonmail.com} (\href{https://orcid.org/0009-0001-3983-5713}{ORCID}) [copyright holder]
+}
 
 }
 \keyword{internal}

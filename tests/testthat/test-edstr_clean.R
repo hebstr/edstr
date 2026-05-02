@@ -1,5 +1,9 @@
 test_that("edstr_clean() errors when edstr_config is not set", {
-  withr::local_options(edstr_dirname = NULL, edstr_filename = NULL, edstr_text = "x")
+  withr::local_options(
+    edstr_dirname = NULL,
+    edstr_filename = NULL,
+    edstr_text = "x"
+  )
 
   expect_error(
     edstr_clean(data = data.frame(x = 1), replace = c("a" = "b")),
@@ -48,7 +52,10 @@ test_that("edstr_clean() errors when text column does not exist in data", {
 
   expect_error(
     suppressMessages(
-      edstr_clean(data = data.frame(id = 1, note = "abc"), replace = c("a" = "b"))
+      edstr_clean(
+        data = data.frame(id = 1, note = "abc"),
+        replace = c("a" = "b")
+      )
     ),
     "not found"
   )
@@ -66,8 +73,14 @@ test_that("edstr_clean() errors when replace is not a named character vector", {
   df <- data.frame(id = 1, note = "abc")
 
   expect_error(edstr_clean(data = df, replace = 123), "named character vector")
-  expect_error(edstr_clean(data = df, replace = c("a", "b")), "named character vector")
-  expect_error(edstr_clean(data = df, replace = list(c("a", "b"))), "named character vector")
+  expect_error(
+    edstr_clean(data = df, replace = c("a", "b")),
+    "named character vector"
+  )
+  expect_error(
+    edstr_clean(data = df, replace = list(c("a", "b"))),
+    "named character vector"
+  )
 })
 
 test_that("edstr_clean() applies regex replacements and saves RDS", {

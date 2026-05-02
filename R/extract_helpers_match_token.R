@@ -1,9 +1,14 @@
 .extract_match_token <- \(
-  data, data_token, token, text_input, concepts_list, id, group, intersect
+  data,
+  data_token,
+  token,
+  text_input,
+  concepts_list,
+  id,
+  group,
+  intersect
 ) {
-
   token_extract <- \(x, n) {
-
     imap(
       x,
       ~ data_token[[n]] |>
@@ -14,7 +19,6 @@
         ) |>
         drop_na()
     )
-
   }
 
   data_token_list <- map(
@@ -26,7 +30,8 @@
     data_token_list,
     ~ count(
       x = .,
-      .data$concept, pick(all_of(text_input)),
+      .data$concept,
+      pick(all_of(text_input)),
       name = "match",
       sort = TRUE
     )
@@ -51,17 +56,13 @@
   )
 
   match_id <- if (intersect) {
-
     reduce(.concepts_id, inner_join, by = c(id, group))
-
   } else {
-
     data_match_init[id]
-
   }
 
   data_match <-
-  data_match_init |>
+    data_match_init |>
     rename(concept_key = "concept") |>
     mutate(
       concept = map_chr(.data$concept_key, ~ concepts_list$names[[.]]),
@@ -70,18 +71,16 @@
     filter(.data[[id]] %in% match_id[[id]])
 
   data_match_init_df <-
-  data |>
+    data |>
     select(-all_of(text_input)) |>
     filter(.data[[id]] %in% data_match_init[[id]])
 
   data_match_df <- data |> filter(.data[[id]] %in% data_match[[id]])
 
   if (nrow(data_match) == 0) {
-
     abort_intersect <- if (intersect) " at intersection" else ""
 
     cli_abort("{.strong No matches found{abort_intersect}}")
-
   }
 
   lst(
@@ -92,5 +91,4 @@
     data_token_match = data_token_match,
     match_id = match_id
   )
-
 }

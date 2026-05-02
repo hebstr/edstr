@@ -1,7 +1,10 @@
 .extract_match_source <- \(
-  data_match_df, data_count, text_input, id, regex_replace
+  data_match_df,
+  data_count,
+  text_input,
+  id,
+  regex_replace
 ) {
-
   regex_replace_arg <- regex_replace
 
   regex_replace <- c(
@@ -23,7 +26,7 @@
   )
 
   data_regex_replace <-
-  data_count |>
+    data_count |>
     arrange(.data$concept) |>
     mutate(!!text_input := str_replace_all(.data[[text_input]], regex_replace))
 
@@ -33,15 +36,18 @@
   )
 
   data_regex_df <-
-  data_regex_replace |>
+    data_regex_replace |>
     nest(!!text_input := all_of(text_input), .by = "concept") |>
     mutate(
-      !!text_input := map_chr(.data[[text_input]], ~ str_flatten(unlist(.), "|")),
+      !!text_input := map_chr(
+        .data[[text_input]],
+        ~ str_flatten(unlist(.), "|")
+      ),
       !!text_input := glue(regex_wrap, x = .data[[text_input]])
     )
 
   data_regex_list <-
-  data_regex_df[[text_input]] |>
+    data_regex_df[[text_input]] |>
     as.list() |>
     set_names(data_regex_df$concept)
 
@@ -61,7 +67,8 @@
 
   data_regex_count <- count(
     x = data_regex_match,
-    .data$concept, .data$match,
+    .data$concept,
+    .data$match,
     sort = TRUE
   )
 
@@ -74,5 +81,4 @@
     data_regex_count = data_regex_count,
     data_regex_str = data_regex_str
   )
-
 }

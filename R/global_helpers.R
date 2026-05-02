@@ -3,8 +3,6 @@ br <- \() cli_text("\n\n")
 label_pct <- \(x) paste0(round(x * 100, 1), "%")
 
 read_query <- \(query, call = rlang::caller_env()) {
-
-
   if (!fs::file_exists(query)) {
     if (str_ends(query, "\\.sql")) {
       cli_abort("{.arg query}: file {.path {query}} not found", call = call)
@@ -21,12 +19,14 @@ read_query <- \(query, call = rlang::caller_env()) {
   lines <- str_split_1(block, "\n")
   lines <- lines[str_detect(lines, "\\S")]
 
-  if (length(lines) == 0) cli_abort(
-    message = c(
-      "{.arg query}: file {.strong {.path {query}}} is empty or contains only comments"
-    ),
-    call = call
-  )
+  if (length(lines) == 0) {
+    cli_abort(
+      message = c(
+        "{.arg query}: file {.strong {.path {query}}} is empty or contains only comments"
+      ),
+      call = call
+    )
+  }
 
   cli_code(
     lines = str_flatten(lines, "\n"),
@@ -34,73 +34,59 @@ read_query <- \(query, call = rlang::caller_env()) {
   )
 
   str_flatten(lines, " ")
-
 }
 
 easy_flatten <- \(x) {
-
   seq_depth <- seq(pluck_depth(x))
 
   reduce(seq_depth, ~ list_flatten(.), .init = x)
-
 }
 
-easy_ano <- \(x,
-              to_hash = NULL,
-              to_hide = NULL,
-              hash_trunc = 25,
-              hide_pattern = "---") {
-
+easy_ano <- \(
+  x,
+  to_hash = NULL,
+  to_hide = NULL,
+  hash_trunc = 25,
+  hide_pattern = "---"
+) {
   .ano_hash_fun <- \(x_hash, to_hash) {
-
     hash_trunc <- as.character(hash_trunc)
 
     x_hash |>
       mutate(
-        "{to_hash}" :=
-          .data[[to_hash]] |>
-            rlang::hash() |>
-            str_remove_all(glue(".{{{hash_trunc}}}$")),
-          .by = all_of(to_hash))
-
+        "{to_hash}" := .data[[to_hash]] |>
+          rlang::hash() |>
+          str_remove_all(glue(".{{{hash_trunc}}}$")),
+        .by = all_of(to_hash)
+      )
   }
 
   .ano_hide_fun <- \(x_hide) {
-
-    x_hide |> mutate(across(matches(to_hide), ~ hide_pattern))
-
+    x_hide |> mutate(across(matches(to_hide), ~hide_pattern))
   }
 
   if (!is.null(to_hash)) {
-
     .ano_data <-
-    names(x) |>
+      names(x) |>
       str_subset(to_hash |> paste(collapse = "|")) |>
       reduce(.ano_hash_fun, .init = x)
 
     if (!is.null(to_hide)) {
-
       .ano_data <- .ano_hide_fun(.ano_data)
-
     }
-
   } else if (!is.null(to_hide)) {
-
     .ano_data <- .ano_hide_fun(x)
-
   } else {
-
     .ano_data <- x
-
   }
 
   .ano_data
-
 }
 
 easy_replace <- \(data, pattern, text) {
-
-  if (!is.list(pattern)) pattern <- list(pattern)
+  if (!is.list(pattern)) {
+    pattern <- list(pattern)
+  }
 
   mutate(
     .data = data,
@@ -110,7 +96,6 @@ easy_replace <- \(data, pattern, text) {
       .init = .data[[text]]
     )
   )
-
 }
 
 view_output <- \(
@@ -121,13 +106,11 @@ view_output <- \(
   ...,
   error_empty = TRUE
 ) {
-
   data$match <- str_extract_all(data[[text_input]], pattern)
 
   .data_match <- data |> unnest(match) |> select(all_of(id), "match")
 
   if (nrow(.data_match) == 0) {
-
     if (error_empty) {
       cli_abort(
         message = "{.strong No matches found}",
@@ -140,7 +123,6 @@ view_output <- \(
       count = tibble(match = character(), n = integer()),
       text = character()
     ))
-
   }
 
   .data_count <- .data_match |> count(.data$match, sort = TRUE)
@@ -148,7 +130,7 @@ view_output <- \(
   .matched_ids <- .data_match[[id]]
 
   .data_text <-
-  data |>
+    data |>
     filter(.data[[id]] %in% .matched_ids) |>
     pull(text_input) |>
     str_view(pattern, ...)
@@ -158,7 +140,6 @@ view_output <- \(
     count = .data_count,
     text = .data_text
   )
-
 }
 
 gt_custom <- \(
@@ -167,22 +148,19 @@ gt_custom <- \(
   font_size = 12,
   ...
 ) {
-
   if (is.null(head)) {
-
     data <-
-    data |>
+      data |>
       gt::gt(id = "tbl-id") |>
-      gt::opt_css("
+      gt::opt_css(
+        "
         #tbl-id .gt_table {
           font-variant-ligatures: none;
         }
-      ")
-
+      "
+      )
   } else {
-
     data <- gt::gt_preview(data, top_n = head)
-
   }
 
   data |>
@@ -196,27 +174,22 @@ gt_custom <- \(
       style = gt::cell_text(weight = "bold"),
       locations = gt::cells_column_labels()
     )
-
 }
 
 gt_text_color <- \(x, column, color) {
-
   gt::tab_style(
     data = x,
     style = gt::cell_text(weight = "bold", color = color),
     locations = gt::cells_body(column)
   )
-
 }
 
 gt_code_font <- \(x, column = everything()) {
-
   gt::tab_style(
     data = x,
     style = gt::cell_text(font = "fira code"),
     locations = gt::cells_body(column)
   )
-
 }
 
 gt_text_align <- \(
@@ -224,7 +197,6 @@ gt_text_align <- \(
   column = everything(),
   align = "center"
 ) {
-
   gt::tab_style(
     data = x,
     style = gt::cell_text(align = align),
@@ -233,28 +205,26 @@ gt_text_align <- \(
       gt::cells_body(column)
     )
   )
-
 }
 
 set_class_css <- \(data, pattern) {
-
   class_flatten <- \(str) {
-
     str_split_1(str, "_") |>
       accumulate(paste, sep = "-") |>
       paste(collapse = " ")
-
   }
 
   pattern_id <- map_chr(names(pattern), class_flatten)
 
   pattern <- set_names(pattern, pattern_id) |> map_chr(regex)
 
-  fun <- \(string, regex, class) str_replace_all(
-    string = string,
-    pattern = regex,
-    replacement = str_glue("<span class='extract {class}'>\\1</span>")
-  )
+  fun <- \(string, regex, class) {
+    str_replace_all(
+      string = string,
+      pattern = regex,
+      replacement = str_glue("<span class='extract {class}'>\\1</span>")
+    )
+  }
 
   reduce2(
     .x = pattern,
@@ -262,7 +232,6 @@ set_class_css <- \(data, pattern) {
     .f = fun,
     .init = data
   )
-
 }
 
 wb_add_custom <- \(
@@ -278,7 +247,6 @@ wb_add_custom <- \(
   color = NULL,
   ...
 ) {
-
   local_options(list(openxlsx2.maxWidth = max_width))
 
   params <- list(
@@ -293,13 +261,15 @@ wb_add_custom <- \(
     )
   )
 
-  add_color <- \(wb, vars, color) wb_add_font(
-    wb = wb,
-    dims = wb_dims(x = data, cols = vars, select = "data"),
-    color = wb_color(color),
-    size = font_size,
-    bold = TRUE
-  )
+  add_color <- \(wb, vars, color) {
+    wb_add_font(
+      wb = wb,
+      dims = wb_dims(x = data, cols = vars, select = "data"),
+      color = wb_color(color),
+      size = font_size,
+      bold = TRUE
+    )
+  }
 
   output <- wb_add_worksheet(
     wb = x,
@@ -357,15 +327,12 @@ wb_add_custom <- \(
     )
 
   output
-
 }
 
 .gc_r_java <- \() {
-
   gc(full = TRUE)
 
   rJava::J("java.lang.Runtime")$getRuntime()$gc()
 
   invisible(NULL)
-
 }

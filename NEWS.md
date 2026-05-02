@@ -1,3 +1,16 @@
+# edstr 0.3.0 (2026-05-02)
+
+## Internal changes
+
+* Code style unified across all R files with `air` formatter.
+* Pre-commit hooks added: `air-format` (posit-dev/air-pre-commit v0.9.0) and
+  `jarl-check` (etiennebacher/jarl-pre-commit v0.4.0), both scoped to `.R` files.
+* `.Rbuildignore` regex patterns fixed (`^air\.toml$`, added `^jarl\.toml$`).
+* `.Rprofile` removed (JVM auto-detection via `find` no longer needed).
+* `DESCRIPTION`: migrated from legacy `Roxygen`/`RoxygenNote` fields to
+  `Config/roxygen2/markdown` and `Config/roxygen2/version`.
+* `dplyr::if_any` and `dplyr::slice` added to explicit imports.
+
 # edstr 0.2.0 (2026-03-26)
 
 ## Breaking changes

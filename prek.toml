@@ -10,9 +10,32 @@ hooks = [
 [[repos]]
 repo = "https://github.com/gitleaks/gitleaks"
 rev = "v8.30.1"
-hooks = [{ id = "gitleaks" }]
+hooks = [
+  { id = "gitleaks" }
+]
+
+[[repos]]
+repo = "https://github.com/posit-dev/air-pre-commit"
+rev = "0.9.0"
+hooks = [
+  { id = "air-format", files = '\.(R|r)$' }
+]
 
 [[repos]]
 repo = "https://github.com/etiennebacher/jarl-pre-commit"
 rev = "0.4.0"
-hooks = [{ id = "jarl-check" }]
+hooks = [
+  { id = "jarl-check", files = '\.(R|r)$' }
+]
+
+### attente support R
+
+# [[repos]]
+# repo = "https://github.com/lorenzwalthert/precommit"
+# rev = "v0.4.3"
+# hooks = [
+#   { id = "roxygenize" },
+#   { id = "no-browser-statement" },
+#   { id = "no-debug-statement" },
+#   { id = "deps-in-desc" },
+# ]
