@@ -30,9 +30,9 @@ test_that("edstr_import() loads existing RDS when edstr_overwrite is FALSE", {
   )
 
   expected <- data.frame(x = 1:3)
-  saveRDS(expected, file.path(tmp, "test_import.rds"))
+  nanoparquet::write_parquet(expected, file.path(tmp, "test_import.parquet"))
 
   result <- suppressMessages(edstr_import(query = "SELECT 1"))
 
-  expect_equal(result, expected)
+  expect_equal(as.data.frame(result), expected)
 })

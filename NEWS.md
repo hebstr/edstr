@@ -1,5 +1,13 @@
 # edstr 0.3.0 (2026-05-02)
 
+## Breaking changes
+
+* `edstr_import()` and `edstr_clean()` now save cache files as Parquet (`.parquet`) instead of RDS (`.rds`).
+  Existing `.rds` cache files from earlier versions will not be detected and must be deleted or regenerated.
+
+* `edstr_extract()` no longer saves a `.csv` file.
+  Results are now saved as `.xlsx`, `.json`, and `.rds`.
+
 ## Internal changes
 
 * Code style unified across all R files with `air` formatter.

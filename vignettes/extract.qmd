@@ -13,7 +13,7 @@ library(edstr)
 ```
 
 `edstr_extract()` is the core of the pipeline.
-It tokenises cleaned text, matches user-defined concepts via regex, filters false positives, and exports results as XLSX, CSV, and RDS files.
+It tokenises cleaned text, matches user-defined concepts via regex, filters false positives, and exports results as XLSX, JSON, and RDS files.
 
 ## Prerequisites
 
@@ -171,12 +171,12 @@ result <- edstr_extract(
 | File    | Contents |
 |---------|----------|
 | `.xlsx` | Excel workbook with one sheet per result type (extraction, token counts, exclusions, source matching, mismatch, parameters) |
-| `.csv`  | Flat extraction table for downstream analysis |
-| `.rds`  | Full list with all intermediate objects |
+| `.json` | Full list with all intermediate objects (JSON format) |
+| `.rds`  | Full list with all intermediate objects (R-native, used for caching) |
 
 The returned list contains:
 
-- `data`: data frames (`base`, `match`, `extract`, `csv`)
+- `data`: data frames (`base`, `match`, `extract`)
 - `regex`: parsed patterns, replacement rules, source-level matches
 - `match`: initial and final (post-exclusion) matches
 - `count`: token-level and distinct match counts

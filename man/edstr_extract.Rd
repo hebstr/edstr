@@ -113,8 +113,7 @@ A nested list (invisibly returned from cache when the RDS file
 already exists) with elements:
 \describe{
 \item{\code{data}}{List of data frames: \code{base} (input without text),
-\code{match} (initial matches), \code{extract} (final extraction), \code{csv}
-(CSV-ready output).}
+\code{match} (initial matches), \code{extract} (final extraction).}
 \item{\code{regex}}{List: \code{concepts} (parsed patterns), \code{replace}
 (replacement rules), \code{final} (combined regex), \code{match} (source-level
 matches).}
@@ -135,7 +134,7 @@ tables if \code{save_as_gt = TRUE}).}
 \description{
 Tokenize source text, match concept patterns (regex), apply exclusions,
 perform source-level re-matching with accent normalisation, and save
-results as XLSX, CSV, and RDS files.
+results as XLSX, JSON, and RDS files.
 }
 \details{
 Requires \code{\link[=edstr_config]{edstr_config()}} to be called first.

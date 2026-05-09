@@ -105,7 +105,7 @@ test_that("edstr_clean() applies regex replacements and saves RDS", {
   )
 
   expect_equal(result$note, c("FOO bar", "BAZ qux", "FOO BAZ"))
-  expect_true(file.exists(file.path(tmp, "test_clean.rds")))
+  expect_true(file.exists(file.path(tmp, "test_clean.parquet")))
 })
 
 test_that("edstr_clean() applies multiple replacement lists sequentially", {
@@ -132,7 +132,7 @@ test_that("edstr_clean() applies multiple replacement lists sequentially", {
   expect_equal(result$note, "AAA 999 def")
 })
 
-test_that("edstr_clean() overwrites existing RDS when edstr_overwrite is TRUE", {
+test_that("edstr_clean() overwrites existing parquet when edstr_overwrite is TRUE", {
   tmp <- withr::local_tempdir()
   withr::local_options(
     edstr_dirname = tmp,
@@ -141,9 +141,8 @@ test_that("edstr_clean() overwrites existing RDS when edstr_overwrite is TRUE", 
     edstr_overwrite = TRUE
   )
 
-  old_data <- data.frame(id = 1, note = "stale")
-  rds_path <- file.path(tmp, "test_clean.rds")
-  saveRDS(old_data, rds_path)
+  parquet_path <- file.path(tmp, "test_clean.parquet")
+  nanoparquet::write_parquet(data.frame(id = 1, note = "stale"), parquet_path)
 
   input <- data.frame(id = 1, note = "foo bar")
 
@@ -152,10 +151,10 @@ test_that("edstr_clean() overwrites existing RDS when edstr_overwrite is TRUE", 
   )
 
   expect_equal(result$note, "FOO bar")
-  expect_equal(readRDS(rds_path)$note, "FOO bar")
+  expect_equal(nanoparquet::read_parquet(parquet_path)$note, "FOO bar")
 })
 
-test_that("edstr_clean() loads existing RDS when edstr_overwrite is FALSE", {
+test_that("edstr_clean() loads existing parquet when edstr_overwrite is FALSE", {
   tmp <- withr::local_tempdir()
   withr::local_options(
     edstr_dirname = tmp,
@@ -165,7 +164,7 @@ test_that("edstr_clean() loads existing RDS when edstr_overwrite is FALSE", {
   )
 
   expected <- data.frame(id = 1, note = "already cleaned")
-  saveRDS(expected, file.path(tmp, "test_clean.rds"))
+  nanoparquet::write_parquet(expected, file.path(tmp, "test_clean.parquet"))
 
   result <- suppressMessages(
     edstr_clean(
@@ -174,7 +173,7 @@ test_that("edstr_clean() loads existing RDS when edstr_overwrite is FALSE", {
     )
   )
 
-  expect_equal(result, expected)
+  expect_equal(as.data.frame(result), expected)
 })
 
 test_that("edstr_clean() uses edstr_text option as default text column", {

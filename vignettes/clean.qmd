@@ -12,7 +12,7 @@ vignette: >
 library(edstr)
 ```
 
-`edstr_clean()` applies regex-based replacements to a text column and saves the cleaned data as an RDS file.
+`edstr_clean()` applies regex-based replacements to a text column and saves the cleaned data as a Parquet file.
 It requires `edstr_config()` to be called first.
 
 ## Prerequisites
@@ -91,5 +91,5 @@ df_clean <- edstr_clean(
 
 ## Caching
 
-Like other pipeline functions, `edstr_clean()` saves its output as `{filename}_clean.rds`.
+Like other pipeline functions, `edstr_clean()` saves its output as `{filename}_clean.parquet`.
 On subsequent calls, it loads from cache based on the `edstr_overwrite` setting.

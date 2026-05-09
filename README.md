@@ -19,7 +19,7 @@ free text stored in an EDS (Entrepot de Donnees de Sante, i.e. an
 institutional clinical data warehouse). It provides a pipeline that
 imports data from an Oracle database, cleans text with regex rules,
 tokenises and matches user-defined concepts, filters false positives,
-and exports results as Excel, CSV, and RDS files.
+and exports results as Excel, JSON, and RDS files.
 
 ## Installation
 
@@ -64,10 +64,10 @@ frames.
     edstr_extract()
           |
           v
-      .xlsx / .csv / .rds
+      .xlsx / .json / .rds
 
-Each step (except `edstr_view()`) caches its output as an RDS file. If
-the file already exists, the caching system either loads it, overwrites
+Each step (except `edstr_view()`) caches its output: `edstr_import()` and `edstr_clean()` save Parquet files; `edstr_extract()` saves an RDS file.
+If the file already exists, the caching system either loads it, overwrites
 it, or prompts the user, depending on the `edstr_overwrite` option.
 
 `edstr_view()` branches off from cleaned data for interactive pattern
@@ -78,9 +78,9 @@ exploration and does not save anything.
 | Function | Description |
 |----|----|
 | `edstr_config()` | Set global options: output directory, file prefix, text column, and caching behaviour. Must be called first. |
-| `edstr_import()` | Execute a SQL query against an Oracle database and cache the result as RDS. |
+| `edstr_import()` | Execute a SQL query against an Oracle database and cache the result as Parquet. |
 | `edstr_clean()` | Apply sequential regex replacements to a text column and cache the result. |
-| `edstr_extract()` | Tokenize text, match concepts, filter false positives, re-match against source text, and export results as XLSX, CSV, and RDS. |
+| `edstr_extract()` | Tokenize text, match concepts, filter false positives, re-match against source text, and export results as XLSX, JSON, and RDS. |
 | `edstr_view()` | Interactively search for a regex pattern in text and display match frequencies. Does not save. |
 
 ## Quick start
@@ -174,7 +174,7 @@ ASCII-transliterated n-grams, patterns are re-matched against the
 original text with accent normalisation. Discrepancies between the two
 are flagged as mismatches for review.
 
-**Built-in caching.** Every pipeline step writes an RDS file. The
+**Built-in caching.** `edstr_import()` and `edstr_clean()` write Parquet files; `edstr_extract()` writes an RDS file. The
 `edstr_overwrite` option (`TRUE` / `FALSE` / `NULL`) controls whether
 existing files are overwritten, loaded silently, or trigger an
 interactive prompt.
@@ -186,8 +186,8 @@ interactive prompt.
 | File | Contents |
 |----|----|
 | `.xlsx` | Excel workbook with one sheet per result type (extraction, counts, exclusions, mismatch, parameters) |
-| `.csv` | Flat extraction table for downstream analysis |
-| `.rds` | Full nested list with all intermediate objects, reloaded by the caching system |
+| `.json` | Full list with all intermediate objects (JSON format) |
+| `.rds` | Full nested list with all intermediate objects (R-native, used for caching) |
 
 ## Vignettes
 

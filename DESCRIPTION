@@ -24,6 +24,8 @@ Imports:
     fs,
     glue,
     here,
+    jsonlite,
+    nanoparquet,
     openxlsx2,
     purrr,
     readr,
@@ -47,6 +49,7 @@ Suggests:
     testthat (>= 3.0.0)
 VignetteBuilder:
     quarto
+RoxygenNote: 8.0.0
 Config/roxygen2/markdown: TRUE
 Config/roxygen2/version: 8.0.0
 Config/testthat/edition: 3

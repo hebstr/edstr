@@ -116,8 +116,8 @@
 
 #' Import data from the EDS
 #'
-#' Execute a SQL query against an Oracle database and save the result as an
-#' RDS file. If a cached file already exists, behaviour depends on the
+#' Execute a SQL query against an Oracle database and save the result as a
+#' Parquet file. If a cached file already exists, behaviour depends on the
 #' `edstr_overwrite` option (see [edstr_config()]).
 #'
 #' Requires [edstr_config()] to be called first.

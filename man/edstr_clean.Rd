@@ -22,8 +22,8 @@ is provided, each element is applied sequentially via
 A \link{data.frame} with the cleaned text column.
 }
 \description{
-Apply regex-based replacements to a text column and save the result as an
-RDS file. If a cached file already exists, behaviour depends on the
+Apply regex-based replacements to a text column and save the result as a
+Parquet file. If a cached file already exists, behaviour depends on the
 \code{edstr_overwrite} option (see \code{\link[=edstr_config]{edstr_config()}}).
 }
 \details{

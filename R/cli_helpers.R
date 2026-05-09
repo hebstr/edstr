@@ -1,7 +1,7 @@
 cli_save <- \(data, config_file, config_save) {
   cli_progress_step("Saving file {.strong {config_file}}")
 
-  saveRDS(data, file = config_save)
+  write_parquet(data, file = config_save)
 
   cli_progress_done()
 
@@ -26,7 +26,7 @@ cli_save <- \(data, config_file, config_save) {
 cli_load <- \(dir, file, save) {
   cli_progress_step("Loading file {.strong {file}}")
 
-  .load <- readRDS(save)
+  .load <- read_parquet(save)
 
   cli_progress_done()
 

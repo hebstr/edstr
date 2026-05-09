@@ -28,7 +28,7 @@ flowchart LR
   C -.-> E["edstr_view()"]
 ```
 
-Each step (except `edstr_view()`) saves an `.rds` file in the output directory.
+Each step (except `edstr_view()`) saves a cache file in the output directory: `edstr_import()` and `edstr_clean()` save Parquet files; `edstr_extract()` saves an RDS file (the result is a complex nested list).
 If the file already exists, behaviour depends on the `edstr_overwrite` option set in `edstr_config()`.
 
 ## Configuration
@@ -102,7 +102,7 @@ df_clean <- edstr_clean(
 ## Extraction
 
 `edstr_extract()` is the core of the pipeline.
-From cleaned text, it tokenises, matches concepts (regex), applies false-positive exclusions, and saves results as XLSX, CSV, and RDS files.
+From cleaned text, it tokenises, matches concepts (regex), applies false-positive exclusions, and saves results as XLSX, JSON, and RDS files.
 
 ### Concepts
 
@@ -180,7 +180,7 @@ df_view <- edstr_view(
 | File    | Contents |
 |---------|----------|
 | `.xlsx` | Excel workbook with one sheet per result type (extraction, counts, exclusions, mismatch, parameters) |
-| `.csv`  | Flat extraction table, ready for analysis |
-| `.rds`  | Full list with all intermediate objects |
+| `.json` | Full list with all intermediate objects (JSON format) |
+| `.rds`  | Full list with all intermediate objects (R-native, used for caching) |
 
 The `.rds` file is the one automatically reloaded by the caching system when it already exists.

@@ -30,7 +30,7 @@
   fs::dir_create(save_dir)
 
   cli_save_extract <- map(
-    set_names(c("xlsx", "rds", "csv")),
+    set_names(c("xlsx", "rds", "json")),
     ~ paste("Saving file", fs::path(save_files, ext = .))
   )
 
@@ -267,23 +267,17 @@
     file = save_extract$xlsx
   )
 
-  ### SAVE CSV -------------------------------------------------------------------
+  ### SAVE JSON ------------------------------------------------------------------
 
-  cli_progress_step("{.strong {cli_save_extract$csv}}")
+  cli_progress_step("{.strong {cli_save_extract$json}}")
   br()
 
-  data_csv <-
-    data_extract |>
-    mutate(
-      across(
-        all_of(c("extract", text_input)),
-        ~ set_class_css(., data_regex_list)
-      ),
-      extract = str_remove_all(.data$extract, ";")
-    ) |>
-    select(-matches(concepts_list$root))
-
-  write_excel_csv(data_csv, file = save_extract$csv)
+  jsonlite::write_json(
+    x = data_summary,
+    path = save_extract$json,
+    auto_unbox = TRUE,
+    pretty = TRUE
+  )
 
   ### SAVE RDS -------------------------------------------------------------------
 
@@ -294,8 +288,7 @@
     data = list(
       base = data |> select(-all_of(text_input)),
       match = data_match_init_df,
-      extract = data_extract,
-      csv = data_csv
+      extract = data_extract
     ),
     regex = list(
       concepts = concepts_list$regex_df,
@@ -380,18 +373,24 @@
   cli_h1("edstr_extract")
   br()
 
-  cli_load(
-    dir = save_dir,
-    file = save_files,
-    save = save_extract$rds
+  cli_progress_step("Loading file {.strong {save_files}}")
+  .load <- readRDS(save_extract$rds)
+  cli_progress_done()
+
+  cli_alert_success(
+    "File {.strong {save_files}} loaded from {.strong {.path {save_extract$rds}}}"
   )
+  br()
+  cli_rule()
+
+  .load
 }
 
 #' Extract structured variables from clinical text
 #'
 #' Tokenize source text, match concept patterns (regex), apply exclusions,
 #' perform source-level re-matching with accent normalisation, and save
-#' results as XLSX, CSV, and RDS files.
+#' results as XLSX, JSON, and RDS files.
 #'
 #' Requires [edstr_config()] to be called first.
 #'
@@ -454,8 +453,7 @@
 #'   already exists) with elements:
 #' \describe{
 #'   \item{`data`}{List of data frames: `base` (input without text),
-#'     `match` (initial matches), `extract` (final extraction), `csv`
-#'     (CSV-ready output).}
+#'     `match` (initial matches), `extract` (final extraction).}
 #'   \item{`regex`}{List: `concepts` (parsed patterns), `replace`
 #'     (replacement rules), `final` (combined regex), `match` (source-level
 #'     matches).}
@@ -532,7 +530,7 @@ edstr_extract <- \(
   }
 
   save_extract <- map(
-    set_names(c("xlsx", "rds", "csv")),
+    set_names(c("xlsx", "rds", "json")),
     ~ fs::path(save_dir, save_files, ext = .)
   )
 

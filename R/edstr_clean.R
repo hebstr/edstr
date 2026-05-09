@@ -48,8 +48,8 @@
 
 #' Clean text data
 #'
-#' Apply regex-based replacements to a text column and save the result as an
-#' RDS file. If a cached file already exists, behaviour depends on the
+#' Apply regex-based replacements to a text column and save the result as a
+#' Parquet file. If a cached file already exists, behaviour depends on the
 #' `edstr_overwrite` option (see [edstr_config()]).
 #'
 #' Requires [edstr_config()] to be called first.

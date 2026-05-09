@@ -623,7 +623,7 @@ test_that("edstr_extract: full pipeline runs and produces expected output", {
   save_dir <- file.path(tmp, "extract")
   expect_true(file.exists(file.path(save_dir, "test_extract_extract.xlsx")))
   expect_true(file.exists(file.path(save_dir, "test_extract_extract.rds")))
-  expect_true(file.exists(file.path(save_dir, "test_extract_extract.csv")))
+  expect_true(file.exists(file.path(save_dir, "test_extract_extract.json")))
 })
 
 test_that("edstr_extract: loads cached RDS when file exists", {

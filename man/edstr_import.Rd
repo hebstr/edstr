@@ -45,8 +45,8 @@ configuration (default \code{"vlp"}).}
 A \link{data.frame} with the imported data.
 }
 \description{
-Execute a SQL query against an Oracle database and save the result as an
-RDS file. If a cached file already exists, behaviour depends on the
+Execute a SQL query against an Oracle database and save the result as a
+Parquet file. If a cached file already exists, behaviour depends on the
 \code{edstr_overwrite} option (see \code{\link[=edstr_config]{edstr_config()}}).
 }
 \details{

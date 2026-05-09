@@ -28,7 +28,7 @@ edstr_config(
 ```
 
 The directory is created automatically if it does not exist.
-Output files are named `{edstr_filename}_{step}.rds` — e.g. `my_study_import.rds`, `my_study_clean.rds`.
+Output files are named `{edstr_filename}_{step}.parquet` for import and clean steps (e.g. `my_study_import.parquet`, `my_study_clean.parquet`), and `{edstr_filename}_{step}.rds` for the extract step.
 
 ## Glue syntax
 
