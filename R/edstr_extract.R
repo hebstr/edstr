@@ -284,11 +284,22 @@
   cli_progress_step("{.strong {cli_save_extract$rds}}")
   br()
 
+  data_note <- data_extract |>
+    mutate(
+      across(
+        all_of(c("extract", text_input)),
+        ~ set_class_css(., data_regex_list)
+      ),
+      extract = str_remove_all(.data$extract, ";")
+    ) |>
+    select(-matches(concepts_list$root))
+
   data_save <- list(
     data = list(
       base = data |> select(-all_of(text_input)),
       match = data_match_init_df,
-      extract = data_extract
+      extract = data_extract,
+      note = data_note
     ),
     regex = list(
       concepts = concepts_list$regex_df,
