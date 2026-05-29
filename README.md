@@ -66,9 +66,11 @@ frames.
           v
       .xlsx / .json / .rds
 
-Each step (except `edstr_view()`) caches its output: `edstr_import()` and `edstr_clean()` save Parquet files; `edstr_extract()` saves an RDS file.
-If the file already exists, the caching system either loads it, overwrites
-it, or prompts the user, depending on the `edstr_overwrite` option.
+Each step (except `edstr_view()`) caches its output: `edstr_import()`
+and `edstr_clean()` save Parquet files; `edstr_extract()` saves an RDS
+file. If the file already exists, the caching system either loads it,
+overwrites it, or prompts the user, depending on the `edstr_overwrite`
+option.
 
 `edstr_view()` branches off from cleaned data for interactive pattern
 exploration and does not save anything.
@@ -174,10 +176,16 @@ ASCII-transliterated n-grams, patterns are re-matched against the
 original text with accent normalisation. Discrepancies between the two
 are flagged as mismatches for review.
 
-**Built-in caching.** `edstr_import()` and `edstr_clean()` write Parquet files; `edstr_extract()` writes an RDS file. The
-`edstr_overwrite` option (`TRUE` / `FALSE` / `NULL`) controls whether
-existing files are overwritten, loaded silently, or trigger an
-interactive prompt.
+**Built-in caching.** `edstr_import()` and `edstr_clean()` write Parquet
+files; `edstr_extract()` writes an RDS file. The `edstr_overwrite`
+option (`TRUE` / `FALSE` / `NULL`) controls whether existing files are
+overwritten, loaded silently, or trigger an interactive prompt.
+
+## Known limitations
+
+- Auto-exclusion logic in `edstr_extract()` runs in O(n × m) (unique
+  texts × `nrow`). Watch for slowdowns on large corpora when
+  `exclus_auto_token_min` is set.
 
 ## Output
 
