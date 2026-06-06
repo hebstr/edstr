@@ -108,6 +108,29 @@ test_that("edstr_clean() applies regex replacements and saves RDS", {
   expect_true(file.exists(file.path(tmp, "test_clean.parquet")))
 })
 
+test_that("edstr_clean() writes the parquet cache in multiple row-groups", {
+  tmp <- withr::local_tempdir()
+  withr::local_options(
+    edstr_dirname = tmp,
+    edstr_filename = "test",
+    edstr_text = "note",
+    edstr_overwrite = TRUE
+  )
+
+  input <- data.frame(
+    id = seq_len(2500),
+    note = rep("foo bar", 2500)
+  )
+
+  suppressMessages(edstr_clean(data = input, replace = c("foo" = "FOO")))
+
+  meta <- nanoparquet::read_parquet_metadata(
+    file.path(tmp, "test_clean.parquet")
+  )
+
+  expect_gt(nrow(meta$row_groups), 1)
+})
+
 test_that("edstr_clean() applies multiple replacement lists sequentially", {
   tmp <- withr::local_tempdir()
   withr::local_options(

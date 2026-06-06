@@ -55,6 +55,7 @@
 #' @importFrom fs dir_create
 #' @importFrom glue glue
 #' @importFrom here here
+#' @importFrom nanoparquet parquet_options
 #' @importFrom nanoparquet read_parquet
 #' @importFrom nanoparquet write_parquet
 #' @importFrom openxlsx2 fmt_txt

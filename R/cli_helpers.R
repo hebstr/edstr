@@ -1,7 +1,13 @@
 cli_save <- \(data, config_file, config_save) {
   cli_progress_step("Saving file {.strong {config_file}}")
 
-  write_parquet(data, file = config_save)
+  # nanoparquet reading OOMs on a single large row-group of big text columns;
+  # chunking keeps the cache reloadable via read_parquet().
+  write_parquet(
+    data,
+    file = config_save,
+    options = parquet_options(num_rows_per_row_group = 1000)
+  )
 
   cli_progress_done()
 
