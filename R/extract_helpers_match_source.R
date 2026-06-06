@@ -58,7 +58,8 @@
       text_input = text_input,
       pattern = .x,
       id = id,
-      error_empty = FALSE
+      error_empty = FALSE,
+      match_only = TRUE
     ) |>
       pluck("match") |>
       mutate(concept = .y, .before = "match")

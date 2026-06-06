@@ -110,7 +110,8 @@ view_output <- \(
   pattern,
   id,
   ...,
-  error_empty = TRUE
+  error_empty = TRUE,
+  match_only = FALSE
 ) {
   data$match <- str_extract_all(data[[text_input]], pattern)
 
@@ -132,6 +133,10 @@ view_output <- \(
   }
 
   .data_count <- .data_match |> count(.data$match, sort = TRUE)
+
+  if (match_only) {
+    return(lst(match = .data_match, count = .data_count, text = NULL))
+  }
 
   .matched_ids <- .data_match[[id]]
 
