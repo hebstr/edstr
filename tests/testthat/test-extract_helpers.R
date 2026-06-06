@@ -626,6 +626,40 @@ test_that("edstr_extract: full pipeline runs and produces expected output", {
   expect_true(file.exists(file.path(save_dir, "test_extract_extract.json")))
 })
 
+test_that("edstr_extract: extract and note output are stable (refactor oracle)", {
+  tmp <- withr::local_tempdir()
+  withr::local_options(
+    edstr_dirname = tmp,
+    edstr_filename = "test_oracle",
+    edstr_text = "texte",
+    edstr_overwrite = TRUE
+  )
+
+  data <- data.frame(
+    doc_id = as.character(1:6),
+    texte = c(
+      '<p class="t">Patient diabetique, cancer du sein gauche</p>',
+      '<p class="t">Pas de diabete retrouve au bilan</p>',
+      '<p class="t">Cancer du sein droit, metastases</p>',
+      '<p class="t">Bilan normal, pas de pathologie</p>',
+      '<p class="t">Diabete de type 2 ancien et cancer</p>',
+      '<p class="t">Suivi cancer, diabete insulino-requerant</p>'
+    ),
+    stringsAsFactors = FALSE
+  )
+
+  result <- suppressMessages(
+    edstr_extract(
+      data = data,
+      concepts = c(diabete = "diabet", cancer = "cancer"),
+      token = 1
+    )
+  )
+
+  expect_snapshot_value(result$data$extract, style = "json2")
+  expect_snapshot_value(result$data$note, style = "json2")
+})
+
 test_that("edstr_extract: loads cached RDS when file exists", {
   tmp <- withr::local_tempdir()
   withr::local_options(
