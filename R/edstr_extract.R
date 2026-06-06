@@ -38,22 +38,29 @@
     local_seed(seed)
   }
 
+  tic.clearlog()
   tic("Full steps")
 
   cli_h1("edstr_extract")
 
   ### PARSE CONCEPTS -------------------------------------------------------------
 
-  concepts_list <- .extract_parse_concepts(
-    concepts,
-    collapse,
-    intersect,
-    starts_with_only
+  concepts_list <- .timed(
+    "Parse concepts",
+    .extract_parse_concepts(
+      concepts,
+      collapse,
+      intersect,
+      starts_with_only
+    )
   )
 
   ### CHECK IDS ------------------------------------------------------------------
 
-  ids_list <- .extract_check_ids(data, sample, text_input, id, group)
+  ids_list <- .timed(
+    "Check ids",
+    .extract_check_ids(data, sample, text_input, id, group)
+  )
 
   data <- ids_list$data
   id <- ids_list$id
@@ -66,13 +73,16 @@
   cli_progress_step("{.strong Formatting source text}")
   br()
 
-  data_token <- .extract_format_text(
-    data,
-    text_input,
-    id,
-    group,
-    ano_hash,
-    ano_hide
+  data_token <- .timed(
+    "Format text",
+    .extract_format_text(
+      data,
+      text_input,
+      id,
+      group,
+      ano_hash,
+      ano_hide
+    )
   )
 
   ### TOKENISATION ---------------------------------------------------------------
@@ -82,22 +92,28 @@
 
   token <- set_names(token, paste0("n", token))
 
-  data_token <- .extract_tokenize(data_token, text_input, token)
+  data_token <- .timed(
+    "Tokenise",
+    .extract_tokenize(data_token, text_input, token)
+  )
 
   ### MATCHING TOKEN -------------------------------------------------------------
 
   cli_progress_step("{.strong Matching tokenised text}")
   br()
 
-  match_tokens <- .extract_match_token(
-    data,
-    data_token,
-    token,
-    text_input,
-    concepts_list,
-    id,
-    group,
-    intersect
+  match_tokens <- .timed(
+    "Match token",
+    .extract_match_token(
+      data,
+      data_token,
+      token,
+      text_input,
+      concepts_list,
+      id,
+      group,
+      intersect
+    )
   )
 
   data_match <- match_tokens$data_match
@@ -112,14 +128,17 @@
   cli_progress_step("{.strong Exclusions}")
   br()
 
-  exclusions <- .extract_exclusions(
-    data_match,
-    text_input,
-    id,
-    group,
-    exclus_manual,
-    exclus_auto_escape,
-    exclus_auto_token_min
+  exclusions <- .timed(
+    "Exclusions",
+    .extract_exclusions(
+      data_match,
+      text_input,
+      id,
+      group,
+      exclus_manual,
+      exclus_auto_escape,
+      exclus_auto_token_min
+    )
   )
 
   data_match <- exclusions$data_match
@@ -134,12 +153,15 @@
   cli_progress_step("{.strong Matching source text}")
   br()
 
-  match_source <- .extract_match_source(
-    data_match_df,
-    data_count,
-    text_input,
-    id,
-    regex_replace
+  match_source <- .timed(
+    "Match source",
+    .extract_match_source(
+      data_match_df,
+      data_count,
+      text_input,
+      id,
+      regex_replace
+    )
   )
 
   regex_replace_arg <- match_source$regex_replace_arg
@@ -155,15 +177,18 @@
   cli_progress_step("{.strong Mismatch between source and tokenised text}")
   br()
 
-  data_mismatch <- .extract_mismatch(
-    data,
-    data_match,
-    data_match_init,
-    data_regex_match,
-    id,
-    group,
-    text_input,
-    mismatch_data
+  data_mismatch <- .timed(
+    "Mismatch",
+    .extract_mismatch(
+      data,
+      data_match,
+      data_match_init,
+      data_regex_match,
+      id,
+      group,
+      text_input,
+      mismatch_data
+    )
   )
 
   ### EXTRACTION -----------------------------------------------------------------
@@ -171,15 +196,18 @@
   cli_progress_step("{.strong Extraction}")
   br()
 
-  data_extract <- .extract_results(
-    data_match_df,
-    data_id,
-    data_regex_list,
-    data_regex_str,
-    concepts_list$root,
-    id,
-    group,
-    text_input
+  data_extract <- .timed(
+    "Extraction",
+    .extract_results(
+      data_match_df,
+      data_id,
+      data_regex_list,
+      data_regex_str,
+      concepts_list$root,
+      id,
+      group,
+      text_input
+    )
   )
 
   ### SUMMARY --------------------------------------------------------------------
@@ -208,63 +236,75 @@
     save_as_gt = save_as_gt
   )
 
-  data_summary <- .extract_summary(
-    data_match,
-    data_match_exclus,
-    data_id,
-    data_count,
-    id,
-    group,
-    params
+  data_summary <- .timed(
+    "Summary",
+    .extract_summary(
+      data_match,
+      data_match_exclus,
+      data_id,
+      data_count,
+      id,
+      group,
+      params
+    )
   )
 
   ### SAVE XLSX ------------------------------------------------------------------
 
-  data_sheets <- .extract_sheets(
-    data_extract,
-    data_id,
-    data_count,
-    data_count_exclus,
-    data_summary,
-    data_mismatch,
-    data_regex_df,
-    data_regex_match,
-    data_regex_count,
-    regex_replace_df,
-    concepts_list,
-    text_input
+  data_sheets <- .timed(
+    "Build sheets",
+    .extract_sheets(
+      data_extract,
+      data_id,
+      data_count,
+      data_count_exclus,
+      data_summary,
+      data_mismatch,
+      data_regex_df,
+      data_regex_match,
+      data_regex_count,
+      regex_replace_df,
+      concepts_list,
+      text_input
+    )
   )
 
   data_sheets_df <- map(data_sheets, ~ if (is.data.frame(.x)) .x else .x$data)
 
-  data_sheets_gt <- if (save_as_gt) {
-    check_installed("gt")
+  data_sheets_gt <- .timed(
+    "Build gt",
+    if (save_as_gt) {
+      check_installed("gt")
 
-    .extract_sheets_gt(
-      data_sheets,
-      concepts_list,
-      id,
-      text_input,
-      concept_color,
-      text_color
-    )
-  } else {
-    NULL
-  }
+      .extract_sheets_gt(
+        data_sheets,
+        concepts_list,
+        id,
+        text_input,
+        concept_color,
+        text_color
+      )
+    } else {
+      NULL
+    }
+  )
 
   cli_progress_step("{.strong {cli_save_extract$xlsx}}")
   br()
 
-  wb_save(
-    wb = .extract_sheets_xlsx(
-      data_sheets,
-      data_id,
-      concepts_list,
-      text_input,
-      concept_color,
-      text_color
-    ),
-    file = save_extract$xlsx
+  .timed(
+    "Save xlsx",
+    wb_save(
+      wb = .extract_sheets_xlsx(
+        data_sheets,
+        data_id,
+        concepts_list,
+        text_input,
+        concept_color,
+        text_color
+      ),
+      file = save_extract$xlsx
+    )
   )
 
   ### SAVE JSON ------------------------------------------------------------------
@@ -272,11 +312,14 @@
   cli_progress_step("{.strong {cli_save_extract$json}}")
   br()
 
-  jsonlite::write_json(
-    x = data_summary,
-    path = save_extract$json,
-    auto_unbox = TRUE,
-    pretty = TRUE
+  .timed(
+    "Save json",
+    jsonlite::write_json(
+      x = data_summary,
+      path = save_extract$json,
+      auto_unbox = TRUE,
+      pretty = TRUE
+    )
   )
 
   ### SAVE RDS -------------------------------------------------------------------
@@ -327,7 +370,7 @@
     )
   )
 
-  saveRDS(data_save, file = save_extract$rds)
+  .timed("Save rds", saveRDS(data_save, file = save_extract$rds))
 
   ### PRINT ----------------------------------------------------------------------
 
@@ -354,6 +397,10 @@
   print(.extract_print_data)
 
   cli_rule()
+  br()
+
+  cli_h2("Timing per step")
+  cli_verbatim(unlist(tic.log(format = TRUE)))
   br()
 
   toc()

@@ -1,5 +1,11 @@
 br <- \() cli_text("\n\n")
 
+.timed <- \(msg, expr) {
+  tic(msg)
+  on.exit(toc(log = TRUE, quiet = TRUE))
+  expr
+}
+
 label_pct <- \(x) paste0(round(x * 100, 1), "%")
 
 read_query <- \(query, call = rlang::caller_env()) {
