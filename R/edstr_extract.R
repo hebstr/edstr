@@ -292,20 +292,19 @@
   cli_progress_step("{.strong {cli_save_extract$xlsx}}")
   br()
 
-  .timed(
-    "Save xlsx",
-    wb_save(
-      wb = .extract_sheets_xlsx(
-        data_sheets,
-        data_id,
-        concepts_list,
-        text_input,
-        concept_color,
-        text_color
-      ),
-      file = save_extract$xlsx
+  wb <- .timed(
+    "Build xlsx",
+    .extract_sheets_xlsx(
+      data_sheets,
+      data_id,
+      concepts_list,
+      text_input,
+      concept_color,
+      text_color
     )
   )
+
+  .timed("Save xlsx", wb_save(wb = wb, file = save_extract$xlsx))
 
   ### SAVE JSON ------------------------------------------------------------------
 
