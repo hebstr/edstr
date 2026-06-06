@@ -201,7 +201,7 @@
     .extract_results(
       data_match_df,
       data_id,
-      data_regex_list,
+      data_regex_match,
       data_regex_str,
       concepts_list$root,
       id,

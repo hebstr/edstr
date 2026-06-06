@@ -227,7 +227,7 @@
 .extract_results <- \(
   data_match_df,
   data_id,
-  data_regex_list,
+  data_regex_match,
   data_regex_str,
   concepts_root,
   id,
@@ -242,17 +242,12 @@
   )
 
   extract_concept_name <-
-    data_regex_list |>
-    imap(
-      ~ data_match_df |>
-        mutate(
-          extract = str_extract(.data[[text_input]], .x),
-          concept = .y
-        ) |>
-        drop_na(extract) |>
-        select(all_of(c(id, group)), "concept")
+    data_regex_match |>
+    distinct(pick(all_of(c(id, "concept")))) |>
+    left_join(
+      distinct(data_match_df, pick(all_of(c(id, group)))),
+      by = id
     ) |>
-    list_rbind() |>
     nest(concept = "concept") |>
     mutate(concept = map_chr(.data$concept, ~ str_flatten(unlist(.), " ; ")))
 
