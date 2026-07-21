@@ -67,9 +67,7 @@
   query <- read_query(query)
 
   if (!is.null(head)) {
-    if (
-      !is.numeric(head) || length(head) != 1 || !is.finite(head) || head < 1
-    ) {
+    if (!is.numeric(head) || length(head) != 1 || !is.finite(head) || head < 1) {
       cli_abort(
         "{.arg head} must be a positive integer"
       )

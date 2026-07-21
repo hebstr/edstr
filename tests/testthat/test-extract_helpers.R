@@ -1007,7 +1007,6 @@ test_that("exclusions: exclus_auto_token_min = 0 activates auto-exclusion on uni
   )
 
   expect_true(
-    nrow(result_zero$data_match_exclus$auto) >=
-      nrow(result_default$data_match_exclus$auto)
+    nrow(result_zero$data_match_exclus$auto) >= nrow(result_default$data_match_exclus$auto)
   )
 })
