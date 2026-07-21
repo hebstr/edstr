@@ -28,6 +28,7 @@ Imports:
     nanoparquet,
     openxlsx2,
     purrr,
+    re2,
     readr,
     rJava,
     RJDBC,

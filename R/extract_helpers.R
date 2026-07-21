@@ -237,7 +237,7 @@
   extract_data <- mutate(
     .data = data_match_df,
     extract = .data[[text_input]] |>
-      str_extract_all(data_regex_str) |>
+      .re2_extract_all(data_regex_str) |>
       map_chr(paste, collapse = " ; ")
   )
 

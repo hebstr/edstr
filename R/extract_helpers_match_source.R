@@ -51,6 +51,8 @@
     as.list() |>
     set_names(data_regex_df$concept)
 
+  data_regex_prep <- .re2_prepare(data_match_df[[text_input]])
+
   data_regex_match <- imap(
     data_regex_list,
     ~ view_output(
@@ -59,7 +61,8 @@
       pattern = .x,
       id = id,
       error_empty = FALSE,
-      match_only = TRUE
+      match_only = TRUE,
+      prep = data_regex_prep
     ) |>
       pluck("match") |>
       mutate(concept = .y, .before = "match")

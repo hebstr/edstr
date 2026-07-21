@@ -111,9 +111,14 @@ view_output <- \(
   id,
   ...,
   error_empty = TRUE,
-  match_only = FALSE
+  match_only = FALSE,
+  prep = NULL
 ) {
-  data$match <- str_extract_all(data[[text_input]], pattern)
+  data$match <- if (is.null(prep)) {
+    str_extract_all(data[[text_input]], pattern)
+  } else {
+    .re2_extract_prepared(prep, pattern)
+  }
 
   .data_match <- data |> unnest(match) |> select(all_of(id), "match")
 

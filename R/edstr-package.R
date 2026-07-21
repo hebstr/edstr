@@ -90,6 +90,8 @@
 #' @importFrom purrr reduce
 #' @importFrom purrr reduce2
 #' @importFrom jsonlite write_json
+#' @importFrom re2 re2_locate_all
+#' @importFrom re2 re2_regexp
 #' @importFrom readr read_lines
 #' @importFrom RJDBC JDBC
 #' @importFrom rlang :=
@@ -104,7 +106,7 @@
 #' @importFrom rlang is_named
 #' @importFrom rlang list2
 #' @importFrom rlang set_names
-#' @importFrom stringi stri_detect_regex stri_trans_general
+#' @importFrom stringi stri_detect_regex stri_sub stri_trans_general
 #' @importFrom stringr regex
 #' @importFrom stringr str_c
 #' @importFrom stringr str_detect
