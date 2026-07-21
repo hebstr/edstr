@@ -83,6 +83,7 @@
     data_regex_list = data_regex_list,
     data_regex_match = data_regex_match,
     data_regex_count = data_regex_count,
-    data_regex_str = data_regex_str
+    data_regex_str = data_regex_str,
+    data_regex_prep = data_regex_prep
   )
 }

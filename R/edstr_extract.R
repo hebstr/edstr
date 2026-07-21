@@ -171,6 +171,7 @@
   data_regex_match <- match_source$data_regex_match
   data_regex_count <- match_source$data_regex_count
   data_regex_str <- match_source$data_regex_str
+  data_regex_prep <- match_source$data_regex_prep
 
   ### MISMATCH -------------------------------------------------------------------
 
@@ -203,9 +204,9 @@
       data_id,
       data_regex_match,
       data_regex_str,
+      data_regex_prep,
       id,
-      group,
-      text_input
+      group
     )
   )
 
@@ -463,9 +464,10 @@
 #'   from `data` before extraction.
 #' @param seed `<integer(1)>` Optional. Random seed for reproducibility when
 #'   `sample` is used.
-#' @param ano_hash `<character>` Column name(s) to pseudonymise by hashing.
-#' @param ano_hide `<character>` Column name(s) to pseudonymise by masking
-#'   (replaced with `"---"`).
+#' @param ano_hash `<character>` Regex pattern(s) matched against column names;
+#'   every matching column is pseudonymised by hashing.
+#' @param ano_hide `<character>` Regex pattern(s) matched against column names;
+#'   every matching column is pseudonymised by masking (replaced with `"---"`).
 #' @param token `<integer>` N-gram sizes to use for tokenisation. Default `1`
 #'   (unigrams). Use `c(1, 2)` for unigrams and bigrams.
 #' @param concepts `<character|list>` Named vector or nested named list of

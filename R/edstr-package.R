@@ -17,6 +17,7 @@
 #' @importFrom cli cli_text
 #' @importFrom cli cli_ul
 #' @importFrom cli cli_verbatim
+#' @importFrom cli cli_warn
 #' @importFrom cli col_blue
 #' @importFrom config get
 #' @importFrom DatabaseConnector connect

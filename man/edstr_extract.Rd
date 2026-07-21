@@ -50,10 +50,11 @@ from \code{data} before extraction.}
 \item{seed}{\verb{<integer(1)>} Optional. Random seed for reproducibility when
 \code{sample} is used.}
 
-\item{ano_hash}{\verb{<character>} Column name(s) to pseudonymise by hashing.}
+\item{ano_hash}{\verb{<character>} Regex pattern(s) matched against column names;
+every matching column is pseudonymised by hashing.}
 
-\item{ano_hide}{\verb{<character>} Column name(s) to pseudonymise by masking
-(replaced with \code{"---"}).}
+\item{ano_hide}{\verb{<character>} Regex pattern(s) matched against column names;
+every matching column is pseudonymised by masking (replaced with \code{"---"}).}
 
 \item{token}{\verb{<integer>} N-gram sizes to use for tokenisation. Default \code{1}
 (unigrams). Use \code{c(1, 2)} for unigrams and bigrams.}

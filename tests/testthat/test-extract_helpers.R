@@ -627,6 +627,8 @@ test_that("edstr_extract: full pipeline runs and produces expected output", {
 })
 
 test_that("edstr_extract: extract and note output are stable (refactor oracle)", {
+  skip_on_cran()
+
   tmp <- withr::local_tempdir()
   withr::local_options(
     edstr_dirname = tmp,

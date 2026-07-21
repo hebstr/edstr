@@ -51,6 +51,16 @@
   regex_end <- if (starts_with_only) "\\S*$" else ""
 
   keys <- names(concepts)
+
+  if (anyDuplicated(keys)) {
+    dupes <- unique(keys[duplicated(keys)])
+    cli_abort(c(
+      "Concept names collide after normalisation.",
+      "x" = "These normalised keys are duplicated: {.val {dupes}}.",
+      "i" = "Names are lowercased and stripped to {.code [a-z0-9]}; rename the concepts so they stay distinct."
+    ))
+  }
+
   root <- unique(str_remove(keys, "_.+"))
 
   lst(
@@ -134,7 +144,7 @@
   }
 
   easy_format <- \(text) {
-    format_text <- regex("\">(.+)</p>")
+    format_text <- regex("\">(.+?)</p>", dotall = TRUE)
     format_tags <- regex("</?[a-z]+/?>")
 
     text |>
@@ -149,10 +159,21 @@
       stri_trans_general("Latin-ASCII")
   }
 
-  mutate(
-    .data = data[c(id, group, text_input)],
-    !!text_input := easy_format(.data[[text_input]])
-  )
+  data <- data[c(id, group, text_input)]
+  formatted <- easy_format(data[[text_input]])
+
+  had_text <- !is.na(data[[text_input]]) & data[[text_input]] != ""
+  n_dropped <- sum(had_text & (is.na(formatted) | formatted == ""))
+
+  if (n_dropped > 0) {
+    cli_warn(
+      "{n_dropped} document{?s} produced empty text after formatting (no {.code <p>} content matched) and will not contribute matches."
+    )
+  }
+
+  data[[text_input]] <- formatted
+
+  data
 }
 
 .extract_tokenize <- \(data_token, text_input, token) {
@@ -230,14 +251,13 @@
   data_id,
   data_regex_match,
   data_regex_str,
+  data_regex_prep,
   id,
-  group,
-  text_input
+  group
 ) {
   extract_data <- mutate(
     .data = data_match_df,
-    extract = .data[[text_input]] |>
-      .re2_extract_all(data_regex_str) |>
+    extract = .re2_extract_prepared(data_regex_prep, data_regex_str) |>
       map_chr(paste, collapse = " ; ")
   )
 

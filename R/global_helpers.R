@@ -60,10 +60,8 @@ easy_ano <- \(
 
     x_hash |>
       mutate(
-        "{to_hash}" := .data[[to_hash]] |>
-          rlang::hash() |>
-          str_remove_all(glue(".{{{hash_trunc}}}$")),
-        .by = all_of(to_hash)
+        "{to_hash}" := map_chr(.data[[to_hash]], rlang::hash) |>
+          str_remove_all(glue(".{{{hash_trunc}}}$"))
       )
   }
 
