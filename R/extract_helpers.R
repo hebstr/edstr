@@ -65,7 +65,7 @@
     regex_df = tibble(
       concept_key = keys,
       concept_name = unlist(names),
-      regex = unlist(map(concepts, ~ glue("^({.}){regex_end}")))
+      regex = unlist(regex)
     )
   )
 }
@@ -134,11 +134,12 @@
   }
 
   easy_format <- \(text) {
-    format_text <- regex("(?<=\">).+(?=</p>)")
+    format_text <- regex("\">(.+)</p>")
     format_tags <- regex("</?[a-z]+/?>")
 
     text |>
-      str_extract_all(format_text) |>
+      str_match_all(format_text) |>
+      map(~ .[, 2]) |>
       map_chr(
         ~ . |>
           str_replace_all(format_tags, " ") |>
@@ -229,7 +230,6 @@
   data_id,
   data_regex_match,
   data_regex_str,
-  concepts_root,
   id,
   group,
   text_input
@@ -258,7 +258,7 @@
       names_from = "concept_key",
       values_from = "concept_key"
     ) |>
-    mutate(across(matches(concepts_root), ~ ifelse(is.na(.), 0, 1)))
+    mutate(across(!all_of(c(id, group)), ~ ifelse(is.na(.), 0, 1)))
 
   lst(
     data = extract_data,

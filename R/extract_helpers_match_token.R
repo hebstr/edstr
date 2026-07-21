@@ -9,15 +9,29 @@
   intersect
 ) {
   token_extract <- \(x, n) {
+    occ <- data_token[[n]]
+    vocab <- distinct(occ, pick(all_of(text_input)))
+
     imap(
       x,
-      ~ data_token[[n]] |>
-        mutate(
-          !!text_input := str_extract(.data[[text_input]], .x),
-          concept = .y,
-          .before = all_of(text_input)
-        ) |>
-        drop_na()
+      \(regex, concept_key) {
+        hits <-
+          vocab |>
+          mutate(match = str_extract(.data[[text_input]], regex)) |>
+          filter(!is.na(.data$match))
+
+        occ |>
+          inner_join(hits, by = text_input) |>
+          mutate(
+            !!id := .data[[id]],
+            !!group := .data[[group]],
+            concept = concept_key,
+            !!text_input := .data$match,
+            .before = all_of(text_input),
+            .keep = "none"
+          ) |>
+          drop_na()
+      }
     )
   }
 
@@ -51,7 +65,10 @@
         names_from = "concept",
         values_from = "concept"
       ) |>
-      filter(if_any(matches(.), ~ !is.na(.))) |>
+      filter(if_any(
+        matches(paste0("^", ., "(_|$)")) & !all_of(c(id, group)),
+        ~ !is.na(.)
+      )) |>
       select(all_of(c(id, group)))
   )
 
@@ -70,18 +87,18 @@
     ) |>
     filter(.data[[id]] %in% match_id[[id]])
 
+  if (nrow(data_match) == 0) {
+    abort_intersect <- if (intersect) " at intersection" else ""
+
+    cli_abort("{.strong No matches found{abort_intersect}}")
+  }
+
   data_match_init_df <-
     data |>
     select(-all_of(text_input)) |>
     filter(.data[[id]] %in% data_match_init[[id]])
 
   data_match_df <- data |> filter(.data[[id]] %in% data_match[[id]])
-
-  if (nrow(data_match) == 0) {
-    abort_intersect <- if (intersect) " at intersection" else ""
-
-    cli_abort("{.strong No matches found{abort_intersect}}")
-  }
 
   lst(
     data_match = data_match,

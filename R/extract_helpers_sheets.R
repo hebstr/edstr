@@ -150,7 +150,7 @@
       id = data_sheets$data |>
         select(
           -c(
-            matches(concepts_list$root),
+            any_of(concepts_list$keys),
             "concept",
             "extract"
           )
@@ -162,7 +162,7 @@
         select(
           "n",
           .env$id,
-          matches(concepts_list$root),
+          any_of(concepts_list$keys),
           "concept",
           "extract"
         ) |>
@@ -170,7 +170,7 @@
         gt_custom(font_size = 11) |>
         gt_text_align() |>
         gt_text_color(
-          column = matches(c(concepts_list$root, "concept")),
+          column = any_of(c(concepts_list$keys, "concept")),
           color = concept_color
         ) |>
         gt_text_color(

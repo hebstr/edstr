@@ -203,7 +203,6 @@
       data_id,
       data_regex_match,
       data_regex_str,
-      concepts_list$root,
       id,
       group,
       text_input
@@ -334,7 +333,7 @@
       ),
       extract = str_remove_all(.data$extract, ";")
     ) |>
-    select(-matches(concepts_list$root))
+    select(-any_of(concepts_list$keys))
 
   data_save <- list(
     data = list(

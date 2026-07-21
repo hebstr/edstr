@@ -114,6 +114,7 @@
 #' @importFrom stringr str_flatten
 #' @importFrom stringr str_flatten_comma
 #' @importFrom stringr str_glue
+#' @importFrom stringr str_match_all
 #' @importFrom stringr str_remove
 #' @importFrom stringr str_remove_all
 #' @importFrom stringr str_replace
