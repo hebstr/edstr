@@ -1,6 +1,6 @@
 [format]
 # Preferred line width (1-320, default: 80)
-line-width = 80
+line-width = 100
 
 # Spaces per indentation level (1-24, default: 2)
 indent-width = 2

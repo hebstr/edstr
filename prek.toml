@@ -1,4 +1,10 @@
 [[repos]]
+repo = "local"
+hooks = [
+  { id = "prose-lint", name = "prose lint (.md/.qmd)", entry = "prose-lint", language = "system", files = '\.(md|qmd)$', exclude = '^(LICENSE\.md|tests/testthat/_snaps/)' },
+]
+
+[[repos]]
 repo = "https://github.com/pre-commit/pre-commit-hooks"
 rev = "v6.0.0"
 hooks = [
@@ -16,26 +22,14 @@ hooks = [
 
 [[repos]]
 repo = "https://github.com/posit-dev/air-pre-commit"
-rev = "0.9.0"
+rev = "0.10.0"
 hooks = [
   { id = "air-format", files = '\.(R|r)$' }
 ]
 
 [[repos]]
 repo = "https://github.com/etiennebacher/jarl-pre-commit"
-rev = "0.4.0"
+rev = "0.5.0"
 hooks = [
   { id = "jarl-check", files = '\.(R|r)$' }
 ]
-
-### attente support R
-
-# [[repos]]
-# repo = "https://github.com/lorenzwalthert/precommit"
-# rev = "v0.4.3"
-# hooks = [
-#   { id = "roxygenize" },
-#   { id = "no-browser-statement" },
-#   { id = "no-debug-statement" },
-#   { id = "deps-in-desc" },
-# ]
