@@ -1,8 +1,3 @@
-date: last-modified
-
-filters:
-  - include-code-files
-
 format:
   html:
     toc: true
@@ -10,6 +5,7 @@ format:
 knitr:
   opts_chunk:
     eval: false
+    echo: true
     comment: "#>"
     collapse: true
     message: true

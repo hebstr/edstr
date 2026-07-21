@@ -44,7 +44,3 @@
     stri_sub(prep$text[i], cb, ce)
   })
 }
-
-.re2_extract_all <- \(text, pattern) {
-  .re2_extract_prepared(.re2_prepare(text), pattern)
-}

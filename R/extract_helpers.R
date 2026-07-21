@@ -160,20 +160,64 @@
   }
 
   data <- data[c(id, group, text_input)]
-  formatted <- easy_format(data[[text_input]])
+  raw <- data[[text_input]]
+  formatted <- easy_format(raw)
 
-  had_text <- !is.na(data[[text_input]]) & data[[text_input]] != ""
-  n_dropped <- sum(had_text & (is.na(formatted) | formatted == ""))
+  had_text <- !is.na(raw) & raw != ""
+  dropped <- had_text & (is.na(formatted) | formatted == "")
 
-  if (n_dropped > 0) {
-    cli_warn(
-      "{n_dropped} document{?s} produced empty text after formatting (no {.code <p>} content matched) and will not contribute matches."
+  drops <- NULL
+  if (any(dropped)) {
+    strip_all <- \(x) {
+      x |>
+        str_remove_all(regex("<(style|script)[^>]*>.*?</\\1>", dotall = TRUE)) |>
+        str_remove_all(regex("<head[^>]*>.*?</head>", dotall = TRUE)) |>
+        str_remove_all(regex("<!--.*?-->", dotall = TRUE)) |>
+        str_remove_all("<[^>]+>") |>
+        str_replace_all("&#?[a-z0-9]+;", " ") |>
+        str_squish()
+    }
+
+    dropped_idx <- which(dropped)
+    has_body <- nzchar(strip_all(raw[dropped_idx]))
+
+    drops <- list(
+      empty_text = data[[id]][dropped_idx[!has_body]],
+      outside_p = data[[id]][dropped_idx[has_body]]
     )
   }
 
   data[[text_input]] <- formatted
+  attr(data, "format_drops") <- drops
 
   data
+}
+
+.extract_print_drops <- \(format_drops) {
+  if (is.null(format_drops)) {
+    return(invisible())
+  }
+
+  n_empty <- length(format_drops$empty_text)
+  n_uncovered <- length(format_drops$outside_p)
+  n_dropped <- n_empty + n_uncovered
+
+  ul <- cli_ul()
+  cli_li("{n_dropped} document{?s} produced no matchable text")
+
+  ul_detail <- cli_ul()
+  if (n_empty > 0) {
+    cli_li(
+      "{n_empty} with no recoverable text (empty or non-text source)"
+    )
+  }
+  if (n_uncovered > 0) {
+    cli_li(
+      "{n_uncovered} with text outside blocks not captured"
+    )
+  }
+  cli_end(ul_detail)
+  cli_end(ul)
 }
 
 .extract_tokenize <- \(data_token, text_input, token) {
@@ -206,7 +250,7 @@
   map(token, tokenize_fun)
 }
 
-.extract_mismatch <- \(
+.extract_unmatched <- \(
   data,
   data_match,
   data_match_init,
@@ -214,15 +258,25 @@
   id,
   group,
   text_input,
-  mismatch_data
+  unmatched_data,
+  format_drops
 ) {
-  data_id_mismatch_base <- data[c(id, group)]
+  unmatched_all <-
+    data[c(id, group)] |>
+    filter(!.data[[id]] %in% data_match_init[[id]])
 
-  data_id_mismatch <- if (mismatch_data) {
-    data_id_mismatch_base |> filter(!.data[[id]] %in% data_match_init[[id]])
-  } else {
-    data_id_mismatch_base |> slice(0)
-  }
+  empty_ids <- format_drops$empty_text
+  outside_ids <- format_drops$outside_p
+
+  unmatched <- lst(
+    no_concept = if (unmatched_data) {
+      unmatched_all |> filter(!.data[[id]] %in% c(empty_ids, outside_ids))
+    } else {
+      unmatched_all |> slice(0)
+    },
+    empty_text = unmatched_all |> filter(.data[[id]] %in% empty_ids),
+    outside_p = unmatched_all |> filter(.data[[id]] %in% outside_ids)
+  )
 
   .conv_fun <- \(x) {
     x |>
@@ -231,7 +285,7 @@
       str_replace_all(c("-(<br/>)?|-?<br/>" = " ", "\\s+" = " "))
   }
 
-  data_regex_mismatch <-
+  mismatched <-
     data_match |>
     select(all_of(id), "concept", match = !!text_input) |>
     mutate(match = .conv_fun(.data$match)) |>
@@ -241,8 +295,8 @@
     )
 
   lst(
-    id = data_id_mismatch,
-    regex = data_regex_mismatch
+    unmatched = unmatched,
+    mismatched = mismatched
   )
 }
 

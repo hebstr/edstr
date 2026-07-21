@@ -4,7 +4,7 @@
   data_count,
   data_count_exclus,
   data_summary,
-  data_mismatch,
+  data_unmatched,
   data_regex_df,
   data_regex_match,
   data_regex_count,
@@ -12,7 +12,23 @@
   concepts_list,
   text_input
 ) {
-  .mismatch_data <- data_mismatch$regex
+  .mismatched_data <- data_unmatched$mismatched
+
+  .unmatched_data <- bind_rows(
+    mutate(data_unmatched$unmatched$no_concept, reason = "no_concept"),
+    mutate(data_unmatched$unmatched$empty_text, reason = "empty_text"),
+    mutate(data_unmatched$unmatched$outside_p, reason = "outside_p")
+  )
+
+  .sheet_unmatched <- lst(
+    data = .unmatched_data,
+    rows = if (nrow(.unmatched_data) > 0) {
+      .unmatched_data
+    } else {
+      add_row(.unmatched_data)
+    },
+    visible = if (nrow(.unmatched_data) > 0) "true" else "false"
+  )
 
   .sheet_exclusions <- lst(
     data = data_count_exclus,
@@ -24,14 +40,14 @@
     visible = if (nrow(data_count_exclus) > 0) "true" else "false"
   )
 
-  .sheet_mismatch <- lst(
-    data = .mismatch_data,
-    rows = if (nrow(.mismatch_data) > 0) {
-      .mismatch_data
+  .sheet_mismatched <- lst(
+    data = .mismatched_data,
+    rows = if (nrow(.mismatched_data) > 0) {
+      .mismatched_data
     } else {
-      add_row(.mismatch_data)
+      add_row(.mismatched_data)
     },
-    visible = if (nrow(.mismatch_data) > 0) "true" else "false"
+    visible = if (nrow(.mismatched_data) > 0) "true" else "false"
   )
 
   .sheet_params <-
@@ -54,7 +70,8 @@
     text_regex = data_regex_df,
     text_match = data_regex_match,
     text_count = data_regex_count,
-    mismatch = .sheet_mismatch,
+    unmatched = .sheet_unmatched,
+    mismatched = .sheet_mismatched,
     params = .sheet_params
   )
 }
@@ -100,9 +117,10 @@
     ),
     text_match = list(color = mk_color(.cv, "match")),
     text_count = list(color = mk_color(.cv, "match")),
-    mismatch = list(
+    unmatched = list(visible = data_sheets$unmatched$visible),
+    mismatched = list(
       color = mk_color(.cv, "match"),
-      visible = data_sheets$mismatch$visible
+      visible = data_sheets$mismatched$visible
     ),
     params = list(halign = "left")
   )
@@ -111,8 +129,11 @@
     if (name == "token_exclusion") {
       return(data_sheets$token_exclusion$rows)
     }
-    if (name == "mismatch") {
-      return(data_sheets$mismatch$rows)
+    if (name == "unmatched") {
+      return(data_sheets$unmatched$rows)
+    }
+    if (name == "mismatched") {
+      return(data_sheets$mismatched$rows)
     }
 
     data_sheets[[name]]
@@ -222,7 +243,11 @@
       gt_text_align() |>
       gt_text_color(column = "concept", color = concept_color) |>
       gt_text_color(column = "match", color = text_color),
-    mismatch = data_sheets$mismatch$data |>
+    unmatched = data_sheets$unmatched$data |>
+      gt_custom() |>
+      gt_text_align() |>
+      gt::sub_missing(),
+    mismatched = data_sheets$mismatched$data |>
       gt_custom() |>
       gt_text_align() |>
       gt_text_color(column = "concept", color = concept_color) |>

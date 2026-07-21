@@ -67,7 +67,7 @@ The `edstr_overwrite` option controls what happens when an output file already e
 | `FALSE` | Load the cached file without prompting |
 | `NULL`  | Prompt an interactive menu (load / overwrite / cancel) |
 
-`NULL` is the default — useful during interactive development.
+`NULL` is the default, useful during interactive development.
 Set `TRUE` when re-running a full pipeline, `FALSE` when resuming work on a cached dataset.
 
 ```{r}

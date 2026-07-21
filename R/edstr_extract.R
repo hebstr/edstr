@@ -16,7 +16,7 @@
   exclus_auto_escape,
   exclus_auto_token_min,
   regex_replace,
-  mismatch_data,
+  unmatched_data,
   concept_color,
   text_color,
   save_as_gt,
@@ -84,6 +84,8 @@
       ano_hide
     )
   )
+
+  format_drops <- attr(data_token, "format_drops")
 
   ### TOKENISATION ---------------------------------------------------------------
 
@@ -173,14 +175,14 @@
   data_regex_str <- match_source$data_regex_str
   data_regex_prep <- match_source$data_regex_prep
 
-  ### MISMATCH -------------------------------------------------------------------
+  ### UNMATCHED & MISMATCHED -----------------------------------------------------
 
-  cli_progress_step("{.strong Mismatch between source and tokenised text}")
+  cli_progress_step("{.strong Unmatched documents and source mismatches}")
   br()
 
-  data_mismatch <- .timed(
-    "Mismatch",
-    .extract_mismatch(
+  data_unmatched <- .timed(
+    "Unmatched",
+    .extract_unmatched(
       data,
       data_match,
       data_match_init,
@@ -188,7 +190,8 @@
       id,
       group,
       text_input,
-      mismatch_data
+      unmatched_data,
+      format_drops
     )
   )
 
@@ -230,7 +233,7 @@
     exclus_auto_escape = exclus_auto_escape,
     exclus_auto_token_min = exclus_auto_token_min,
     regex_replace = regex_replace_arg,
-    mismatch_data = mismatch_data,
+    unmatched_data = unmatched_data,
     concept_color = concept_color,
     text_color = text_color,
     save_as_gt = save_as_gt
@@ -259,7 +262,7 @@
       data_count,
       data_count_exclus,
       data_summary,
-      data_mismatch,
+      data_unmatched,
       data_regex_df,
       data_regex_match,
       data_regex_count,
@@ -361,7 +364,8 @@
       match = data_match_exclus,
       count = data_count_exclus
     ),
-    mismatch = data_mismatch,
+    unmatched = data_unmatched$unmatched,
+    mismatched = data_unmatched$mismatched,
     summary = data_summary,
     sheets = list(
       df = data_sheets_df,
@@ -389,7 +393,8 @@
       final = data_save$count$final
     ),
     regex = data_save$regex,
-    mismatch = data_save$mismatch,
+    unmatched = data_save$unmatched,
+    mismatched = data_save$mismatched,
     params = data_sheets_df$params
   )
 
@@ -418,9 +423,10 @@
     which_group,
     sample,
     intersect,
-    mismatch_data,
+    unmatched_data,
     save_dir,
-    save_files
+    save_files,
+    format_drops
   )
 
   data_save
@@ -493,8 +499,10 @@
 #' @param regex_replace `<character>` Optional named vector of additional
 #'   regex replacements for source matching (appended to the built-in accent
 #'   normalisation rules).
-#' @param mismatch_data `<logical(1)>` If `TRUE`, include unmatched documents
-#'   in the mismatch output. Default `FALSE`.
+#' @param unmatched_data `<logical(1)>` If `TRUE`, materialise the
+#'   `unmatched$no_concept` set (documents with usable text but no concept
+#'   match), which can be large. The `empty_text` and `outside_p` sets are
+#'   always populated regardless. Default `FALSE`.
 #' @param concept_color `<character(1)>` Hex colour for concept highlighting
 #'   in XLSX and gt output. Default `"#0099FF"`.
 #' @param text_color `<character(1)>` Hex colour for text/extract
@@ -511,7 +519,8 @@
 #'   already exists) with elements:
 #' \describe{
 #'   \item{`data`}{List of data frames: `base` (input without text),
-#'     `match` (initial matches), `extract` (final extraction).}
+#'     `match` (initial matches), `extract` (final extraction), `note`
+#'     (extraction with highlight markup applied).}
 #'   \item{`regex`}{List: `concepts` (parsed patterns), `replace`
 #'     (replacement rules), `final` (combined regex), `match` (source-level
 #'     matches).}
@@ -521,8 +530,12 @@
 #'     match counts).}
 #'   \item{`exclus`}{List: `match` (excluded matches), `count` (exclusion
 #'     counts).}
-#'   \item{`mismatch`}{List: `id` (unmatched IDs), `regex` (token vs source
-#'     discrepancies).}
+#'   \item{`unmatched`}{List of `id`/`group` tibbles for documents with no
+#'     token match: `no_concept` (usable text but no concept, gated by
+#'     `unmatched_data`), `empty_text` (empty or non-text source), `outside_p`
+#'     (text outside `<p>` blocks).}
+#'   \item{`mismatched`}{Tibble of token vs source discrepancies (token
+#'     matches not confirmed against the accent-normalised source).}
 #'   \item{`summary`}{List: `token` (summary by token), `concept` (summary
 #'     by concept), `params` (call parameters).}
 #'   \item{`sheets`}{List: `df` (data frames per Excel sheet), `gt` (gt
@@ -562,7 +575,7 @@ edstr_extract <- \(
   exclus_auto_escape = NULL,
   exclus_auto_token_min = 10,
   regex_replace = NULL,
-  mismatch_data = FALSE,
+  unmatched_data = FALSE,
   concept_color = "#0099FF",
   text_color = "#FF0000",
   save_as_gt = FALSE,
@@ -611,7 +624,7 @@ edstr_extract <- \(
       exclus_auto_escape,
       exclus_auto_token_min,
       regex_replace,
-      mismatch_data,
+      unmatched_data,
       concept_color,
       text_color,
       save_as_gt,

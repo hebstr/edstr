@@ -11,15 +11,17 @@
   which_group,
   sample,
   intersect,
-  mismatch_data,
+  unmatched_data,
   save_dir,
-  save_files
+  save_files,
+  format_drops
 ) {
   data_extract <- data_save$data$extract
   data_count <- data_save$count$final
   data_count_exclus <- data_save$exclus$count
   data_match_exclus <- data_save$exclus$match
-  data_mismatch <- data_save$mismatch
+  data_unmatched <- data_save$unmatched
+  data_mismatched <- data_save$mismatched
 
   n_concepts <- length(concepts_list$root)
 
@@ -43,6 +45,7 @@
   if (!is.null(sample)) {
     cli_ul("Sample: {nrow(data)} {id} ({cli_p_id})")
   }
+  .extract_print_drops(format_drops)
 
   br()
   cli_alert_info("{.strong Total matches}")
@@ -60,12 +63,12 @@
     cli_ul("Manual: {nrow(data_match_exclus$manual)}")
   }
 
-  if (mismatch_data) {
-    cli_n_mismatch <- nrow(data_mismatch$id)
-    cli_p_mismatch <- label_pct(cli_n_mismatch / nrow(data))
+  if (unmatched_data) {
+    cli_n_unmatched <- nrow(data_unmatched$no_concept)
+    cli_p_unmatched <- label_pct(cli_n_unmatched / nrow(data))
 
     br()
-    cli_alert_info("{.strong Mismatch :} {cli_n_mismatch} {id}")
+    cli_alert_info("{.strong Unmatched (no concept):} {cli_n_unmatched} {id}")
   }
 
   br()
@@ -84,17 +87,24 @@
     cli_ul("{cli_n_group} {group} ({cli_p_group} {group})")
   }
 
-  if (mismatch_data && cli_n_mismatch > 0) {
+  if (unmatched_data && cli_n_unmatched > 0) {
     br()
-    cli_alert_success("{.strong {cli_n_mismatch} mismatch{?s}}")
-    cli_ul("{cli_n_mismatch} {id} ({cli_p_mismatch} {id})")
+    cli_alert_success("{.strong {cli_n_unmatched} unmatched (no concept)}")
+    cli_ul("{cli_n_unmatched} {id} ({cli_p_unmatched} {id})")
     if (!is.null(which_group)) {
-      cli_n_group_mismatch <- n_distinct(data_mismatch$id[[group]])
-      cli_p_group_mismatch <- label_pct(
-        cli_n_group_mismatch / n_distinct(data[[group]])
+      cli_n_group_unmatched <- n_distinct(data_unmatched$no_concept[[group]])
+      cli_p_group_unmatched <- label_pct(
+        cli_n_group_unmatched / n_distinct(data[[group]])
       )
-      cli_ul("{cli_n_group_mismatch} {group} ({cli_p_group_mismatch} {group})")
+      cli_ul("{cli_n_group_unmatched} {group} ({cli_p_group_unmatched} {group})")
     }
+  }
+
+  if (nrow(data_mismatched) > 0) {
+    br()
+    cli_alert_warning(
+      "{.strong {nrow(data_mismatched)} source mismatch{?es}} (token matched, not confirmed in source)"
+    )
   }
 
   br()
@@ -106,9 +116,9 @@
 
   cli_alert_info("{.strong Root directory: {.path {here::here()}}}\n\n")
 
-  cli_path <- fs::path(save_dir, save_files, ext = "<xlsx/csv/rds>")
+  cli_path <- fs::path(save_dir)
 
-  cli_alert_success("{.strong Files saved: {cli::col_blue(cli_path)}}")
+  cli_alert_success("{.strong Files saved in {cli::col_blue(cli_path)}}")
 
   br()
   cli_rule()

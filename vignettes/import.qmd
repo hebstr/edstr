@@ -9,6 +9,7 @@ vignette: >
 
 ```{r}
 #| label: setup
+
 library(edstr)
 ```
 
@@ -31,8 +32,19 @@ edstr_config(
 The `query` argument accepts either a SQL string or a path to a `.sql` file.
 Connection parameters (`user`, `password`, `tns`) configure access to the Oracle database.
 
+::: {.callout-important}
+## Connection file
+
+`edstr_import()` reads the driver, address, and TNS entries from a YAML connection file loaded by the `config` package.
+Set its path once with `options(edstr_connect_dir = "path/to/connect.yml")`, or pass `connect_dir` directly.
+The function aborts if neither is set or the file is missing.
+:::
+
+If `password` is omitted, `edstr_import()` prompts for it interactively: the RStudio password dialog when available, otherwise `readline()`.
+
 ```{r}
 #| error: true
+
 df_import <- edstr_import(
   query = "SELECT * FROM clinical_notes WHERE rownum <= 1000",
   user = "my_user"
@@ -43,6 +55,7 @@ Using a `.sql` file keeps queries out of R scripts and makes them easier to vers
 
 ```{r}
 #| error: true
+
 df_import <- edstr_import(
   query = "sql/clinical_notes.sql",
   user = "my_user"
@@ -56,6 +69,7 @@ This is useful for development and testing without modifying the SQL itself.
 
 ```{r}
 #| error: true
+
 df_import <- edstr_import(
   query = "sql/clinical_notes.sql",
   head = 500,
@@ -70,6 +84,7 @@ The behaviour depends on the `edstr_overwrite` option set in `edstr_config()`.
 
 ```{r}
 #| error: true
+
 df_import <- edstr_import()
 ```
 

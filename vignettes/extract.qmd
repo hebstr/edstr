@@ -9,6 +9,7 @@ vignette: >
 
 ```{r}
 #| label: setup
+
 library(edstr)
 ```
 
@@ -19,6 +20,7 @@ It tokenises cleaned text, matches user-defined concepts via regex, filters fals
 
 ```{r}
 #| error: true
+
 edstr_config(
   edstr_dirname = "output/my_study",
   edstr_filename = "my_study",
@@ -38,6 +40,7 @@ A named character vector creates flat, independent concepts:
 ```{r}
 #| label: extract-flat
 #| error: true
+
 result <- edstr_extract(
   data = df_clean,
   concepts = c(fracture = "fracture", femur = "f(e|é)mur|fesf"),
@@ -50,12 +53,13 @@ A nested named list creates sub-concepts grouped under a root:
 ```{r}
 #| label: extract-nested
 #| error: true
+
 result <- edstr_extract(
   data = df_clean,
   concepts = list(
     fracture = c(
       fesf = "fesf|extremite superieure",
-      col  = "col (du )?femur"
+      col = "col (du )?femur"
     )
   ),
   group = "id_pat"
@@ -70,6 +74,7 @@ Unigrams (`token = 1`) are the default; adding bigrams captures multi-word expre
 ```{r}
 #| label: extract-bigrams
 #| error: true
+
 result <- edstr_extract(
   data = df_clean,
   concepts = c(fracture = "fracture"),
@@ -95,6 +100,7 @@ Both require at least two concepts.
 ```{r}
 #| label: extract-intersect
 #| error: true
+
 result <- edstr_extract(
   data = df_clean,
   concepts = c(fracture = "fracture", femur = "f(e|é)mur|fesf"),
@@ -114,6 +120,7 @@ A regex pattern passed to `exclus_manual` removes any matched token containing t
 ```{r}
 #| label: extract-exclus-manual
 #| error: true
+
 result <- edstr_extract(
   data = df_clean,
   concepts = c(fracture = "fracture"),
@@ -136,6 +143,7 @@ Use `seed` for reproducibility.
 ```{r}
 #| label: extract-sample
 #| error: true
+
 result <- edstr_extract(
   data = df_clean,
   concepts = c(fracture = "fracture"),
@@ -155,6 +163,7 @@ Two arguments handle de-identification before extraction:
 ```{r}
 #| label: extract-ano
 #| error: true
+
 result <- edstr_extract(
   data = df_clean,
   concepts = c(fracture = "fracture"),
@@ -164,23 +173,48 @@ result <- edstr_extract(
 )
 ```
 
+## Unmatched documents
+
+Documents that produce no token match are reported separately, split by reason:
+
+- `no_concept`: the document has usable text but matches no concept.
+- `empty_text`: the source is empty or holds no extractable text.
+- `outside_p`: the document has text, but it falls outside the `<p>` blocks the formatter reads.
+
+The extraction summary always reports how many documents produced no matchable text, splitting the `empty_text` and `outside_p` counts.
+Those two sets are always populated in the output.
+The `no_concept` set can be large, so it is materialised only when `unmatched_data = TRUE`.
+
+```{r}
+#| label: extract-unmatched
+#| error: true
+
+result <- edstr_extract(
+  data = df_clean,
+  concepts = c(fracture = "fracture"),
+  unmatched_data = TRUE,
+  group = "id_pat"
+)
+```
+
 ## Output structure
 
 `edstr_extract()` returns a nested list and saves three files:
 
-| File    | Contents |
-|---------|----------|
-| `.xlsx` | Excel workbook with one sheet per result type (extraction, token counts, exclusions, source matching, mismatch, parameters) |
-| `.json` | Full list with all intermediate objects (JSON format) |
-| `.rds`  | Full list with all intermediate objects (R-native, used for caching) |
+  | File    | Contents                                                                                                                                 |
+  | ------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+  | `.xlsx` | Excel workbook with one sheet per result type (extraction, token counts, exclusions, source matching, unmatched, mismatched, parameters) |
+  | `.json` | Summary tables (by token, by concept) and the call parameters (JSON format)                                                              |
+  | `.rds`  | Full list with all intermediate objects (R-native, used for caching)                                                                     |
 
 The returned list contains:
 
-- `data`: data frames (`base`, `match`, `extract`)
+- `data`: data frames (`base`, `match`, `extract`, `note`)
 - `regex`: parsed patterns, replacement rules, source-level matches
 - `match`: initial and final (post-exclusion) matches
 - `count`: token-level and distinct match counts
 - `exclus`: excluded matches and counts
-- `mismatch`: discrepancies between token and source matching
+- `unmatched`: documents with no token match, split by reason (`no_concept`, `empty_text`, `outside_p`)
+- `mismatched`: discrepancies between token and source matching
 - `summary`: summaries by token and concept, plus call parameters
 - `sheets`: data frames and optional `gt` tables for each Excel sheet

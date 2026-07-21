@@ -22,7 +22,7 @@ edstr_extract(
   exclus_auto_escape = NULL,
   exclus_auto_token_min = 10,
   regex_replace = NULL,
-  mismatch_data = FALSE,
+  unmatched_data = FALSE,
   concept_color = "#0099FF",
   text_color = "#FF0000",
   save_as_gt = FALSE,
@@ -90,8 +90,10 @@ apply to tokens with \code{n > exclus_auto_token_min}.}
 regex replacements for source matching (appended to the built-in accent
 normalisation rules).}
 
-\item{mismatch_data}{\verb{<logical(1)>} If \code{TRUE}, include unmatched documents
-in the mismatch output. Default \code{FALSE}.}
+\item{unmatched_data}{\verb{<logical(1)>} If \code{TRUE}, materialise the
+\code{unmatched$no_concept} set (documents with usable text but no concept
+match), which can be large. The \code{empty_text} and \code{outside_p} sets are
+always populated regardless. Default \code{FALSE}.}
 
 \item{concept_color}{\verb{<character(1)>} Hex colour for concept highlighting
 in XLSX and gt output. Default \code{"#0099FF"}.}
@@ -114,7 +116,8 @@ A nested list (invisibly returned from cache when the RDS file
 already exists) with elements:
 \describe{
 \item{\code{data}}{List of data frames: \code{base} (input without text),
-\code{match} (initial matches), \code{extract} (final extraction).}
+\code{match} (initial matches), \code{extract} (final extraction), \code{note}
+(extraction with highlight markup applied).}
 \item{\code{regex}}{List: \code{concepts} (parsed patterns), \code{replace}
 (replacement rules), \code{final} (combined regex), \code{match} (source-level
 matches).}
@@ -124,8 +127,12 @@ exclusions).}
 match counts).}
 \item{\code{exclus}}{List: \code{match} (excluded matches), \code{count} (exclusion
 counts).}
-\item{\code{mismatch}}{List: \code{id} (unmatched IDs), \code{regex} (token vs source
-discrepancies).}
+\item{\code{unmatched}}{List of \code{id}/\code{group} tibbles for documents with no
+token match: \code{no_concept} (usable text but no concept, gated by
+\code{unmatched_data}), \code{empty_text} (empty or non-text source), \code{outside_p}
+(text outside \verb{<p>} blocks).}
+\item{\code{mismatched}}{Tibble of token vs source discrepancies (token
+matches not confirmed against the accent-normalised source).}
 \item{\code{summary}}{List: \code{token} (summary by token), \code{concept} (summary
 by concept), \code{params} (call parameters).}
 \item{\code{sheets}}{List: \code{df} (data frames per Excel sheet), \code{gt} (gt

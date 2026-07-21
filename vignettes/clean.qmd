@@ -73,7 +73,7 @@ df_clean <- edstr_clean(
 )
 ```
 
-The sourced file should return a named character vector or list — see `demo/config/clean.R` for an example.
+The sourced file should return a named character vector or list. See `demo/config/clean.R` for an example.
 
 ## Specifying the text column
 

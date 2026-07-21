@@ -13,7 +13,7 @@ library(edstr)
 ```
 
 `edstr_view()` searches for regex patterns in a text column and displays matching tokens, counts, and highlighted text.
-Unlike other pipeline functions, it does not save any files — it is designed for fast, iterative pattern development before running `edstr_extract()`.
+Unlike other pipeline functions, it does not save any files; it is designed for fast, iterative pattern development before running `edstr_extract()`.
 
 ## Prerequisites
 
@@ -61,7 +61,7 @@ result <- edstr_view(
 )
 ```
 
-With `ngrams = 3`, a match on `"fractur"` captures up to two additional tokens — e.g. `"fracture col femoral"` or `"fracture extremite superieure"`.
+With `ngrams = 3`, a match on `"fractur"` captures up to two additional tokens, e.g. `"fracture col femoral"` or `"fracture extremite superieure"`.
 
 ## Applying cleaning rules inline
 

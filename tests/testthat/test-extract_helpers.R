@@ -215,6 +215,227 @@ test_that("format_text: keeps only id, group and text columns", {
   expect_equal(names(result), c("doc_id", "id_group", "texte"))
 })
 
+test_that("format_text: drop attribute carries empty-text and outside-<p> ids", {
+  df <- data.frame(
+    doc_id = c("1", "2", "3"),
+    id_group = 1:3,
+    texte = c(
+      '<p class="a">contenu normal</p>',
+      "<html><head><style>.x{color:red}</style></head><body><div></div></body></html>",
+      "<html><body><span>hemiplegie gauche</span><div>suite du texte</div></body></html>"
+    )
+  )
+
+  result <- expect_no_warning(
+    edstr:::.extract_format_text(
+      data = df,
+      text_input = "texte",
+      id = "doc_id",
+      group = "id_group",
+      ano_hash = NULL,
+      ano_hide = NULL
+    )
+  )
+
+  drops <- attr(result, "format_drops")
+  expect_equal(drops$empty_text, "2")
+  expect_equal(drops$outside_p, "3")
+
+  expect_equal(nrow(result), 3)
+  expect_match(result$texte[1], "contenu normal")
+  expect_equal(result$texte[2], "")
+  expect_equal(result$texte[3], "")
+})
+
+test_that("format_text: empty-source only yields no outside-<p> ids", {
+  df <- data.frame(
+    doc_id = c("1", "2"),
+    id_group = 1:2,
+    texte = c(
+      '<p class="a">contenu</p>',
+      "<html><head><style>.x{color:red}</style></head><body><div></div></body></html>"
+    )
+  )
+
+  drops <- attr(
+    edstr:::.extract_format_text(
+      data = df,
+      text_input = "texte",
+      id = "doc_id",
+      group = "id_group",
+      ano_hash = NULL,
+      ano_hide = NULL
+    ),
+    "format_drops"
+  )
+
+  expect_equal(drops$empty_text, "2")
+  expect_length(drops$outside_p, 0)
+})
+
+test_that("format_text: fully covered lot attaches no drop partition", {
+  df <- data.frame(
+    doc_id = c("1", "2"),
+    id_group = 1:2,
+    texte = c('<p class="a">un</p>', '<p class="b">deux</p>')
+  )
+
+  result <- expect_no_warning(
+    edstr:::.extract_format_text(
+      data = df,
+      text_input = "texte",
+      id = "doc_id",
+      group = "id_group",
+      ano_hash = NULL,
+      ano_hide = NULL
+    )
+  )
+
+  expect_null(attr(result, "format_drops"))
+})
+
+test_that("print_drops: nests detail lines under a bulleted total", {
+  lines <- cli::cli_fmt(edstr:::.extract_print_drops(
+    list(empty_text = "a", outside_p = "b")
+  ))
+
+  total <- grep("produced no matchable text", lines, value = TRUE)
+  detail <- grep("no recoverable text", lines, value = TRUE)
+
+  expect_match(total, "2 documents produced no matchable text")
+  expect_false(grepl("^\\s", total))
+  expect_match(detail, "^\\s+")
+  expect_match(paste(lines, collapse = "\n"), "outside")
+})
+
+test_that("print_drops: omits empty category when it has no ids", {
+  out <- paste(
+    cli::cli_fmt(edstr:::.extract_print_drops(
+      list(empty_text = character(), outside_p = "b")
+    )),
+    collapse = "\n"
+  )
+
+  expect_no_match(out, "no recoverable text")
+  expect_match(out, "outside")
+})
+
+test_that("print_drops: emits nothing when partition is NULL", {
+  out <- cli::cli_fmt(edstr:::.extract_print_drops(NULL))
+  expect_equal(length(out), 0)
+})
+
+test_that("unmatched: partitions unmatched docs into concept/empty/outside sets", {
+  data <- data.frame(
+    doc_id = c("1", "2", "3", "4", "5"),
+    id_group = 1:5,
+    texte = "x"
+  )
+  data_match_init <- data.frame(doc_id = "1")
+  data_match <- data.frame(
+    doc_id = character(),
+    concept = character(),
+    texte = character()
+  )
+  data_regex_match <- data.frame(
+    doc_id = character(),
+    concept = character(),
+    match = character()
+  )
+  format_drops <- list(empty_text = "2", outside_p = "3")
+
+  res <- edstr:::.extract_unmatched(
+    data = data,
+    data_match = data_match,
+    data_match_init = data_match_init,
+    data_regex_match = data_regex_match,
+    id = "doc_id",
+    group = "id_group",
+    text_input = "texte",
+    unmatched_data = TRUE,
+    format_drops = format_drops
+  )
+
+  expect_equal(res$unmatched$empty_text$doc_id, "2")
+  expect_equal(res$unmatched$outside_p$doc_id, "3")
+  expect_setequal(res$unmatched$no_concept$doc_id, c("4", "5"))
+
+  all_unmatched <- c(
+    res$unmatched$no_concept$doc_id,
+    res$unmatched$empty_text$doc_id,
+    res$unmatched$outside_p$doc_id
+  )
+  expect_setequal(all_unmatched, c("2", "3", "4", "5"))
+  expect_equal(anyDuplicated(all_unmatched), 0L)
+  expect_named(res$unmatched$no_concept, c("doc_id", "id_group"))
+})
+
+test_that("unmatched: unmatched_data = FALSE gates only the no_concept set", {
+  data <- data.frame(
+    doc_id = c("1", "2", "3", "4", "5"),
+    id_group = 1:5,
+    texte = "x"
+  )
+  data_match_init <- data.frame(doc_id = "1")
+  data_match <- data.frame(
+    doc_id = character(),
+    concept = character(),
+    texte = character()
+  )
+  data_regex_match <- data.frame(
+    doc_id = character(),
+    concept = character(),
+    match = character()
+  )
+  format_drops <- list(empty_text = "2", outside_p = "3")
+
+  res <- edstr:::.extract_unmatched(
+    data = data,
+    data_match = data_match,
+    data_match_init = data_match_init,
+    data_regex_match = data_regex_match,
+    id = "doc_id",
+    group = "id_group",
+    text_input = "texte",
+    unmatched_data = FALSE,
+    format_drops = format_drops
+  )
+
+  expect_equal(nrow(res$unmatched$no_concept), 0)
+  expect_equal(res$unmatched$empty_text$doc_id, "2")
+  expect_equal(res$unmatched$outside_p$doc_id, "3")
+})
+
+test_that("unmatched: mismatched captures token matches absent from source", {
+  data <- data.frame(doc_id = "1", id_group = 1, texte = "x")
+  data_match_init <- data.frame(doc_id = "1")
+  data_match <- data.frame(
+    doc_id = "1",
+    concept = "c1",
+    texte = "AVC"
+  )
+  data_regex_match <- data.frame(
+    doc_id = character(),
+    concept = character(),
+    match = character()
+  )
+
+  res <- edstr:::.extract_unmatched(
+    data = data,
+    data_match = data_match,
+    data_match_init = data_match_init,
+    data_regex_match = data_regex_match,
+    id = "doc_id",
+    group = "id_group",
+    text_input = "texte",
+    unmatched_data = TRUE,
+    format_drops = NULL
+  )
+
+  expect_equal(nrow(res$mismatched), 1)
+  expect_equal(res$mismatched$match, "avc")
+})
+
 
 test_that("tokenize: produces named list of n-gram data frames", {
   df <- data.frame(
@@ -482,94 +703,6 @@ test_that("match_token: data_match_df contains original data for matched ids", {
 })
 
 
-# .extract_mismatch ------------------------------------------------------------
-
-test_that("mismatch: detects token/source discrepancies", {
-  data <- data.frame(
-    doc_id = c("1", "2"),
-    id_group = 1:2,
-    texte = c("diabetique stable", "cancer pulmonaire"),
-    stringsAsFactors = FALSE
-  )
-
-  data_match <- data.frame(
-    doc_id = c("1", "2"),
-    id_group = 1:2,
-    concept_key = c("diabete", "cancer"),
-    concept = c("diabete", "cancer"),
-    texte = c("diabetique", "cancer"),
-    token = c("n1", "n1"),
-    stringsAsFactors = FALSE
-  )
-
-  data_match_init <- data_match
-
-  data_regex_match <- data.frame(
-    doc_id = "1",
-    concept = "diabete",
-    match = "diabetique",
-    stringsAsFactors = FALSE
-  )
-
-  result <- edstr:::.extract_mismatch(
-    data = data,
-    data_match = data_match,
-    data_match_init = data_match_init,
-    data_regex_match = data_regex_match,
-    id = "doc_id",
-    group = "id_group",
-    text_input = "texte",
-    mismatch_data = FALSE
-  )
-
-  expect_type(result, "list")
-  expect_named(result, c("id", "regex"))
-  expect_s3_class(result$id, "data.frame")
-  expect_s3_class(result$regex, "data.frame")
-})
-
-test_that("mismatch: mismatch_data = TRUE includes unmatched docs", {
-  data <- data.frame(
-    doc_id = c("1", "2", "3"),
-    id_group = 1:3,
-    texte = c("diabetique", "cancer", "normal"),
-    stringsAsFactors = FALSE
-  )
-
-  data_match_init <- data.frame(
-    doc_id = c("1", "2"),
-    id_group = 1:2,
-    texte = c("diabetique", "cancer"),
-    stringsAsFactors = FALSE
-  )
-
-  data_match <- data_match_init
-  data_match$concept_key <- c("diabete", "cancer")
-  data_match$concept <- c("diabete", "cancer")
-  data_match$token <- "n1"
-
-  data_regex_match <- data.frame(
-    doc_id = character(0),
-    concept = character(0),
-    match = character(0),
-    stringsAsFactors = FALSE
-  )
-
-  result <- edstr:::.extract_mismatch(
-    data = data,
-    data_match = data_match,
-    data_match_init = data_match_init,
-    data_regex_match = data_regex_match,
-    id = "doc_id",
-    group = "id_group",
-    text_input = "texte",
-    mismatch_data = TRUE
-  )
-
-  expect_true("3" %in% result$id$doc_id)
-})
-
-
 # edstr_extract integration ----------------------------------------------------
 
 test_that("edstr_extract: full pipeline runs and produces expected output", {
@@ -610,7 +743,8 @@ test_that("edstr_extract: full pipeline runs and produces expected output", {
       "match",
       "count",
       "exclus",
-      "mismatch",
+      "unmatched",
+      "mismatched",
       "summary",
       "sheets"
     )

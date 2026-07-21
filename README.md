@@ -129,7 +129,7 @@ edstr_view(
 
 ### Extract structured variables
 
-**Flat concepts** — a named character vector where each element is an
+**Flat concepts**: a named character vector where each element is an
 independent concept:
 
 ``` r
@@ -141,7 +141,7 @@ result <- edstr_extract(
 )
 ```
 
-**Nested concepts** — a named list grouping sub-concepts under a root:
+**Nested concepts**: a named list grouping sub-concepts under a root:
 
 ``` r
 result <- edstr_extract(
@@ -193,20 +193,24 @@ overwritten, loaded silently, or trigger an interactive prompt.
 
 | File | Contents |
 |----|----|
-| `.xlsx` | Excel workbook with one sheet per result type (extraction, counts, exclusions, mismatch, parameters) |
-| `.json` | Full list with all intermediate objects (JSON format) |
+| `.xlsx` | Excel workbook with one sheet per result type (extraction, counts, exclusions, unmatched, mismatched, parameters) |
+| `.json` | Summary tables (by token, by concept) and the call parameters (JSON format) |
 | `.rds` | Full nested list with all intermediate objects (R-native, used for caching) |
 
-## Vignettes
+## Articles
 
-Detailed documentation is available in six vignettes:
+Detailed documentation is available as articles on the [package
+website](https://hebstr.github.io/edstr/):
 
-- Get started (`vignette("edstr")`)
-- Pipeline configuration (`vignette("config")`)
-- Data import (`vignette("import")`)
-- Text cleaning (`vignette("clean")`)
-- Text extraction (`vignette("extract")`)
-- Interactive exploration (`vignette("explore")`)
+- [Get started](https://hebstr.github.io/edstr/articles/edstr.html)
+- [Pipeline
+  configuration](https://hebstr.github.io/edstr/articles/config.html)
+- [Data import](https://hebstr.github.io/edstr/articles/import.html)
+- [Text cleaning](https://hebstr.github.io/edstr/articles/clean.html)
+- [Text
+  extraction](https://hebstr.github.io/edstr/articles/extract.html)
+- [Interactive
+  exploration](https://hebstr.github.io/edstr/articles/explore.html)
 
 ## Contributing
 
