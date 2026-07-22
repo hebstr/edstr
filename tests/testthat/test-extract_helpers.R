@@ -954,6 +954,40 @@ test_that("edstr_extract: accented text in source is matched correctly", {
   expect_true(nrow(result$regex$match) > 0)
 })
 
+test_that("edstr_extract: ligatures are matched and returned unchanged", {
+  tmp <- withr::local_tempdir()
+  withr::local_options(
+    edstr_dirname = tmp,
+    edstr_filename = "test_ligatures",
+    edstr_text = "texte",
+    edstr_overwrite = TRUE
+  )
+
+  data <- data.frame(
+    doc_id = as.character(1:3),
+    texte = c(
+      '<p class="t">Œdème aigu du poumon</p>',
+      '<p class="t">Arrêt cardiaque, cœur non réanimé</p>',
+      '<p class="t">Fracture du col fémoral</p>'
+    ),
+    stringsAsFactors = FALSE
+  )
+
+  result <- suppressMessages(
+    edstr_extract(
+      data = data,
+      concepts = c(diag = "oedeme|coeur"),
+      token = 1
+    )
+  )
+
+  expect_setequal(result$data$match$doc_id, c("1", "2"))
+
+  expect_equal(nrow(result$mismatched), 0)
+  expect_setequal(result$data$extract$doc_id, c("1", "2"))
+  expect_setequal(result$regex$match$match, c("Œdème", "cœur"))
+})
+
 test_that("edstr_extract: bigram token matching works", {
   tmp <- withr::local_tempdir()
   withr::local_options(

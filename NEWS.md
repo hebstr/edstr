@@ -1,11 +1,36 @@
 # edstr (development version)
 
+## Bug fixes
+
+- `edstr_extract()` now matches terms written with a ligature.
+  `cœur`, `œdème`, `œsophage` and the like matched at the token level but could
+  never be confirmed against the source, so they were reported as `mismatched`
+  and dropped from the extraction.
+  Both the ligature and the two-letter spelling are now found, and each is
+  returned as written in the source.
+
+## Performance
+
+- `edstr_extract()` now matches the source text with the `re2` engine instead of
+  ICU, which runs the concept alternation in a single linear pass.
+  Matches are located on a `Latin-ASCII` copy of the source, the same
+  transliteration used for tokenisation, then sliced from the original so
+  extracted text keeps its accents, ligatures and case unchanged.
+  `re2` is a new hard dependency.
+
+## Documentation
+
+- New `vignette("matching")` explains the two matching stages, why concept
+  patterns are written without accents, and how the accented source form is
+  recovered.
+
 ## Breaking changes
 
 - `edstr_extract()`: the `mismatch_data` argument is renamed to
   `unmatched_data`.
   It now gates only the `unmatched$no_concept` set
-  (documents with usable text but no concept match), which can be large;
+  (documents with no concept match, including those whose source is empty or
+  `NA`), which can be large;
   the `empty_text` and `outside_p` sets are always populated.
 
 - `edstr_extract()`: the `mismatch` output element (a list of `id` and
@@ -24,8 +49,8 @@
 ## New features
 
 - `edstr_extract()` now reports documents that produced no matchable text
-  in the summary, split into empty or non-text source versus text the
-  formatter could not extract.
+  in the summary, split into sources holding no text once markup is stripped
+  versus text the formatter could not extract.
   This replaces the previous `cli_warn()` warning for empty-after-formatting
   documents, which is no longer emitted.
 
