@@ -91,10 +91,9 @@ regex replacements for source matching (appended to the built-in accent
 normalisation rules).}
 
 \item{unmatched_data}{\verb{<logical(1)>} If \code{TRUE}, materialise the
-\code{unmatched$no_concept} set (documents with no concept match, including
-those whose source is empty or \code{NA}), which can be large. The
-\code{empty_text} and \code{outside_p} sets are
-always populated regardless. Default \code{FALSE}.}
+\code{unmatched$no_concept} set (documents whose text was searched and matched
+no concept), which can be large. The \code{no_source}, \code{empty_text} and
+\code{outside_p} sets are always populated regardless. Default \code{FALSE}.}
 
 \item{concept_color}{\verb{<character(1)>} Hex colour for concept highlighting
 in XLSX and gt output. Default \code{"#0099FF"}.}
@@ -129,10 +128,10 @@ match counts).}
 \item{\code{exclus}}{List: \code{match} (excluded matches), \code{count} (exclusion
 counts).}
 \item{\code{unmatched}}{List of \code{id}/\code{group} tibbles for documents with no
-token match: \code{no_concept} (no concept match, including an empty or
-\code{NA} source, gated by \code{unmatched_data}), \code{empty_text} (source holding
-no text once markup is stripped), \code{outside_p} (text outside \verb{<p>}
-blocks).}
+token match: \code{no_concept} (text searched, no concept matched, gated by
+\code{unmatched_data}), \code{no_source} (source empty or \code{NA}, so never
+searched), \code{empty_text} (source holding no text once markup is
+stripped), \code{outside_p} (text outside \verb{<p>} blocks).}
 \item{\code{mismatched}}{Tibble of token vs source discrepancies (token
 matches not confirmed in the source text).}
 \item{\code{summary}}{List: \code{token} (summary by token), \code{concept} (summary

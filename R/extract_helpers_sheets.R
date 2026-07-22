@@ -16,6 +16,7 @@
 
   .unmatched_data <- bind_rows(
     mutate(data_unmatched$unmatched$no_concept, reason = "no_concept"),
+    mutate(data_unmatched$unmatched$no_source, reason = "no_source"),
     mutate(data_unmatched$unmatched$empty_text, reason = "empty_text"),
     mutate(data_unmatched$unmatched$outside_p, reason = "outside_p")
   )

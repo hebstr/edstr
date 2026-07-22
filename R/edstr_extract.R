@@ -500,10 +500,9 @@
 #'   regex replacements for source matching (appended to the built-in accent
 #'   normalisation rules).
 #' @param unmatched_data `<logical(1)>` If `TRUE`, materialise the
-#'   `unmatched$no_concept` set (documents with no concept match, including
-#'   those whose source is empty or `NA`), which can be large. The
-#'   `empty_text` and `outside_p` sets are
-#'   always populated regardless. Default `FALSE`.
+#'   `unmatched$no_concept` set (documents whose text was searched and matched
+#'   no concept), which can be large. The `no_source`, `empty_text` and
+#'   `outside_p` sets are always populated regardless. Default `FALSE`.
 #' @param concept_color `<character(1)>` Hex colour for concept highlighting
 #'   in XLSX and gt output. Default `"#0099FF"`.
 #' @param text_color `<character(1)>` Hex colour for text/extract
@@ -532,10 +531,10 @@
 #'   \item{`exclus`}{List: `match` (excluded matches), `count` (exclusion
 #'     counts).}
 #'   \item{`unmatched`}{List of `id`/`group` tibbles for documents with no
-#'     token match: `no_concept` (no concept match, including an empty or
-#'     `NA` source, gated by `unmatched_data`), `empty_text` (source holding
-#'     no text once markup is stripped), `outside_p` (text outside `<p>`
-#'     blocks).}
+#'     token match: `no_concept` (text searched, no concept matched, gated by
+#'     `unmatched_data`), `no_source` (source empty or `NA`, so never
+#'     searched), `empty_text` (source holding no text once markup is
+#'     stripped), `outside_p` (text outside `<p>` blocks).}
 #'   \item{`mismatched`}{Tibble of token vs source discrepancies (token
 #'     matches not confirmed in the source text).}
 #'   \item{`summary`}{List: `token` (summary by token), `concept` (summary

@@ -167,7 +167,7 @@
   dropped <- had_text & (is.na(formatted) | formatted == "")
 
   drops <- NULL
-  if (any(dropped)) {
+  if (any(dropped) || !all(had_text)) {
     strip_all <- \(x) {
       x |>
         str_remove_all(regex("<(style|script)[^>]*>.*?</\\1>", dotall = TRUE)) |>
@@ -182,6 +182,7 @@
     has_body <- nzchar(strip_all(raw[dropped_idx]))
 
     drops <- list(
+      no_source = data[[id]][!had_text],
       empty_text = data[[id]][dropped_idx[!has_body]],
       outside_p = data[[id]][dropped_idx[has_body]]
     )
@@ -198,14 +199,20 @@
     return(invisible())
   }
 
+  n_no_source <- length(format_drops$no_source)
   n_empty <- length(format_drops$empty_text)
   n_uncovered <- length(format_drops$outside_p)
-  n_dropped <- n_empty + n_uncovered
+  n_dropped <- n_no_source + n_empty + n_uncovered
 
   ul <- cli_ul()
   cli_li("{n_dropped} document{?s} produced no matchable text")
 
   ul_detail <- cli_ul()
+  if (n_no_source > 0) {
+    cli_li(
+      "{n_no_source} with an empty or missing source"
+    )
+  }
   if (n_empty > 0) {
     cli_li(
       "{n_empty} with no recoverable text (no text once markup is stripped)"
@@ -265,15 +272,18 @@
     data[c(id, group)] |>
     filter(!.data[[id]] %in% data_match_init[[id]])
 
+  no_source_ids <- format_drops$no_source
   empty_ids <- format_drops$empty_text
   outside_ids <- format_drops$outside_p
 
   unmatched <- lst(
     no_concept = if (unmatched_data) {
-      unmatched_all |> filter(!.data[[id]] %in% c(empty_ids, outside_ids))
+      unmatched_all |>
+        filter(!.data[[id]] %in% c(no_source_ids, empty_ids, outside_ids))
     } else {
       unmatched_all |> slice(0)
     },
+    no_source = unmatched_all |> filter(.data[[id]] %in% no_source_ids),
     empty_text = unmatched_all |> filter(.data[[id]] %in% empty_ids),
     outside_p = unmatched_all |> filter(.data[[id]] %in% outside_ids)
   )

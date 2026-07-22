@@ -29,16 +29,16 @@
 - `edstr_extract()`: the `mismatch_data` argument is renamed to
   `unmatched_data`.
   It now gates only the `unmatched$no_concept` set
-  (documents with no concept match, including those whose source is empty or
-  `NA`), which can be large;
-  the `empty_text` and `outside_p` sets are always populated.
+  (documents whose text was searched and matched no concept), which can be
+  large;
+  the `no_source`, `empty_text` and `outside_p` sets are always populated.
 
 - `edstr_extract()`: the `mismatch` output element (a list of `id` and
   `regex`) is replaced by two top-level elements.
   `unmatched` holds
-  `id`/`group` tibbles split by reason (`no_concept`, `empty_text`,
-  `outside_p`); `mismatched` holds the token vs source discrepancies
-  (formerly `mismatch$regex`).
+  `id`/`group` tibbles split by reason (`no_concept`, `no_source`,
+  `empty_text`, `outside_p`); `mismatched` holds the token vs source
+  discrepancies (formerly `mismatch$regex`).
 
 - The XLSX `mismatch` sheet is renamed to `mismatched`, and a new
   `unmatched` sheet with a `reason` column is added.
@@ -49,10 +49,16 @@
 ## New features
 
 - `edstr_extract()` now reports documents that produced no matchable text
-  in the summary, split into sources holding no text once markup is stripped
-  versus text the formatter could not extract.
+  in the summary, split into empty or missing sources, sources holding no text
+  once markup is stripped, and text the formatter could not extract.
   This replaces the previous `cli_warn()` warning for empty-after-formatting
   documents, which is no longer emitted.
+
+- `edstr_extract()` separates documents that could not be evaluated from true
+  negatives.
+  A document whose source is empty or `NA` is reported as `unmatched$no_source`
+  instead of being counted with the documents that were searched and matched no
+  concept, so `unmatched$no_concept` is usable as a denominator.
 
 # edstr 0.3.0 (2026-05-02)
 

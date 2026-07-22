@@ -273,6 +273,59 @@ test_that("format_text: empty-source only yields no outside-<p> ids", {
   expect_length(drops$outside_p, 0)
 })
 
+test_that("format_text: NA or empty source lands in no_source", {
+  df <- data.frame(
+    doc_id = c("1", "2", "3", "4"),
+    id_group = 1:4,
+    texte = c(
+      '<p class="a">contenu normal</p>',
+      NA_character_,
+      "",
+      "<html><head><style>.x{color:red}</style></head><body><div></div></body></html>"
+    )
+  )
+
+  drops <- attr(
+    edstr:::.extract_format_text(
+      data = df,
+      text_input = "texte",
+      id = "doc_id",
+      group = "id_group",
+      ano_hash = NULL,
+      ano_hide = NULL
+    ),
+    "format_drops"
+  )
+
+  expect_setequal(drops$no_source, c("2", "3"))
+  expect_equal(drops$empty_text, "4")
+  expect_length(drops$outside_p, 0)
+})
+
+test_that("format_text: an empty source alone still attaches a drop partition", {
+  df <- data.frame(
+    doc_id = c("1", "2"),
+    id_group = 1:2,
+    texte = c('<p class="a">un</p>', NA_character_)
+  )
+
+  drops <- attr(
+    edstr:::.extract_format_text(
+      data = df,
+      text_input = "texte",
+      id = "doc_id",
+      group = "id_group",
+      ano_hash = NULL,
+      ano_hide = NULL
+    ),
+    "format_drops"
+  )
+
+  expect_equal(drops$no_source, "2")
+  expect_length(drops$empty_text, 0)
+  expect_length(drops$outside_p, 0)
+})
+
 test_that("format_text: fully covered lot attaches no drop partition", {
   df <- data.frame(
     doc_id = c("1", "2"),
@@ -318,6 +371,18 @@ test_that("print_drops: omits empty category when it has no ids", {
 
   expect_no_match(out, "no recoverable text")
   expect_match(out, "outside")
+})
+
+test_that("print_drops: counts no_source in the total and on its own line", {
+  out <- paste(
+    cli::cli_fmt(edstr:::.extract_print_drops(
+      list(no_source = "a", empty_text = "b", outside_p = "c")
+    )),
+    collapse = "\n"
+  )
+
+  expect_match(out, "3 documents produced no matchable text")
+  expect_match(out, "empty or missing source")
 })
 
 test_that("print_drops: emits nothing when partition is NULL", {
@@ -368,6 +433,116 @@ test_that("unmatched: partitions unmatched docs into concept/empty/outside sets"
   expect_setequal(all_unmatched, c("2", "3", "4", "5"))
   expect_equal(anyDuplicated(all_unmatched), 0L)
   expect_named(res$unmatched$no_concept, c("doc_id", "id_group"))
+})
+
+test_that("unmatched: no_source is kept out of the no_concept set", {
+  data <- data.frame(
+    doc_id = c("1", "2", "3", "4", "5"),
+    id_group = 1:5,
+    texte = "x"
+  )
+  data_match_init <- data.frame(doc_id = "1")
+  data_match <- data.frame(
+    doc_id = character(),
+    concept = character(),
+    texte = character()
+  )
+  data_regex_match <- data.frame(
+    doc_id = character(),
+    concept = character(),
+    match = character()
+  )
+  format_drops <- list(no_source = "2", empty_text = "3", outside_p = "4")
+
+  res <- edstr:::.extract_unmatched(
+    data = data,
+    data_match = data_match,
+    data_match_init = data_match_init,
+    data_regex_match = data_regex_match,
+    id = "doc_id",
+    group = "id_group",
+    text_input = "texte",
+    unmatched_data = TRUE,
+    format_drops = format_drops
+  )
+
+  expect_equal(res$unmatched$no_source$doc_id, "2")
+  expect_equal(res$unmatched$empty_text$doc_id, "3")
+  expect_equal(res$unmatched$outside_p$doc_id, "4")
+  expect_equal(res$unmatched$no_concept$doc_id, "5")
+
+  all_unmatched <- c(
+    res$unmatched$no_concept$doc_id,
+    res$unmatched$no_source$doc_id,
+    res$unmatched$empty_text$doc_id,
+    res$unmatched$outside_p$doc_id
+  )
+  expect_setequal(all_unmatched, c("2", "3", "4", "5"))
+  expect_equal(anyDuplicated(all_unmatched), 0L)
+})
+
+test_that("unmatched: no_source is populated regardless of unmatched_data", {
+  data <- data.frame(
+    doc_id = c("1", "2", "3"),
+    id_group = 1:3,
+    texte = "x"
+  )
+
+  res <- edstr:::.extract_unmatched(
+    data = data,
+    data_match = data.frame(
+      doc_id = character(),
+      concept = character(),
+      texte = character()
+    ),
+    data_match_init = data.frame(doc_id = "1"),
+    data_regex_match = data.frame(
+      doc_id = character(),
+      concept = character(),
+      match = character()
+    ),
+    id = "doc_id",
+    group = "id_group",
+    text_input = "texte",
+    unmatched_data = FALSE,
+    format_drops = list(no_source = "2")
+  )
+
+  expect_equal(res$unmatched$no_source$doc_id, "2")
+  expect_equal(nrow(res$unmatched$no_concept), 0)
+})
+
+test_that("edstr_extract: a true negative is separated from an empty source", {
+  tmp <- withr::local_tempdir()
+  withr::local_options(
+    edstr_dirname = tmp,
+    edstr_filename = "test_no_source",
+    edstr_text = "texte",
+    edstr_overwrite = TRUE
+  )
+
+  data <- data.frame(
+    doc_id = c("match", "vrai_negatif", "na", "vide"),
+    texte = c(
+      '<p class="t">oedeme aigu</p>',
+      '<p class="t">examen sans particularite</p>',
+      NA_character_,
+      ""
+    ),
+    stringsAsFactors = FALSE
+  )
+
+  result <- suppressMessages(
+    edstr_extract(
+      data = data,
+      concepts = c(diag = "oedeme"),
+      token = 1,
+      unmatched_data = TRUE
+    )
+  )
+
+  expect_setequal(result$unmatched$no_source$doc_id, c("na", "vide"))
+  expect_equal(result$unmatched$no_concept$doc_id, "vrai_negatif")
 })
 
 test_that("unmatched: unmatched_data = FALSE gates only the no_concept set", {
