@@ -38,8 +38,8 @@ pak::pak("hebstr/edstr")
 
 ### System dependencies
 
-- **Java JDK** (\>= 8): required by rJava, RJDBC, and DatabaseConnector
-  for Oracle JDBC connectivity. On Debian/Ubuntu:
+- **Java JDK** (\>= 8): required by rJava and DatabaseConnector for
+  Oracle JDBC connectivity. On Debian/Ubuntu:
   `sudo apt install default-jdk` then `sudo R CMD javareconf`.
 - **Oracle Instant Client**: required for `edstr_import()` to connect to
   an Oracle database.

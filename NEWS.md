@@ -74,6 +74,13 @@
   instead of being counted with the documents that were searched and matched no
   concept, so `unmatched$no_concept` is usable as a denominator.
 
+## Internal changes
+
+- `RJDBC` is dropped from `Imports`.
+  Oracle connections go through `DatabaseConnector`, which loads the JDBC driver
+  itself, so the declaration had no call site.
+  Java (>= 8) is still required, by `rJava` and `DatabaseConnector`.
+
 # edstr 0.3.0 (2026-05-02)
 
 ## Breaking changes

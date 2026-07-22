@@ -31,7 +31,6 @@ Imports:
     re2,
     readr,
     rJava,
-    RJDBC,
     rlang,
     stringi,
     stringr,
