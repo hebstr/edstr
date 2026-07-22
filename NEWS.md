@@ -45,6 +45,11 @@
   its result.
   Lower it below the smallest n-gram size of interest to enable the heuristic.
 
+- `ngrams` in `edstr_view()` is described consistently in the vignettes and the
+  reference as the total window size, the matched token included.
+  `ngrams = 3` captures the match plus up to two further tokens; the vignettes
+  previously read as if all three were captured after the match.
+
 ## Breaking changes
 
 - `edstr_extract()`: the `mismatch_data` argument is renamed to

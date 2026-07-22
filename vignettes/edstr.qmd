@@ -183,7 +183,7 @@ df_view <- edstr_view(
 )
 ```
 
-`ngrams` controls the number of tokens captured after the initial match: `ngrams = 3` with `pattern = "fractur"` matches e.g. `"fracture col femoral"`.
+`ngrams` sets the total window size including the matched token: `ngrams = 3` with `pattern = "fractur"` captures up to two further tokens, matching e.g. `"fracture col femoral"`.
 
 ## Output summary
 

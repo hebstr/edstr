@@ -49,7 +49,7 @@ The function prints a frequency table of distinct matches and a summary of match
 
 ## Capturing multi-word expressions
 
-The `ngrams` argument controls how many tokens are captured after the initial match.
+The `ngrams` argument sets the total window size captured, the matched token included.
 This is useful for discovering common multi-word patterns.
 
 ```{r}
