@@ -1,6 +1,6 @@
 Package: edstr
 Title: Extract Structured Data from Clinical Free Text
-Version: 0.3.0
+Version: 0.3.0.9000
 Authors@R:
     person("Henry", "BOSTORRHUS", , "ju.diez@protonmail.com", role = c("aut", "cre", "cph"),
            comment = c(ORCID = "0009-0001-3983-5713"))
@@ -49,7 +49,6 @@ Suggests:
     testthat (>= 3.0.0)
 VignetteBuilder:
     quarto
-RoxygenNote: 8.0.0
 Config/roxygen2/markdown: TRUE
 Config/roxygen2/version: 8.0.0
 Config/testthat/edition: 3
