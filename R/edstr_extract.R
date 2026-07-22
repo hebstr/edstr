@@ -452,8 +452,8 @@
 #' Extract structured variables from clinical text
 #'
 #' Tokenize source text, match concept patterns (regex), apply exclusions,
-#' perform source-level re-matching with accent normalisation, and save
-#' results as XLSX, JSON, and RDS files.
+#' locate the matched tokens back in the source text, and save results as
+#' XLSX, JSON, and RDS files.
 #'
 #' Requires [edstr_config()] to be called first.
 #'
@@ -500,8 +500,9 @@
 #'   regex replacements for source matching (appended to the built-in accent
 #'   normalisation rules).
 #' @param unmatched_data `<logical(1)>` If `TRUE`, materialise the
-#'   `unmatched$no_concept` set (documents with usable text but no concept
-#'   match), which can be large. The `empty_text` and `outside_p` sets are
+#'   `unmatched$no_concept` set (documents with no concept match, including
+#'   those whose source is empty or `NA`), which can be large. The
+#'   `empty_text` and `outside_p` sets are
 #'   always populated regardless. Default `FALSE`.
 #' @param concept_color `<character(1)>` Hex colour for concept highlighting
 #'   in XLSX and gt output. Default `"#0099FF"`.
@@ -531,11 +532,12 @@
 #'   \item{`exclus`}{List: `match` (excluded matches), `count` (exclusion
 #'     counts).}
 #'   \item{`unmatched`}{List of `id`/`group` tibbles for documents with no
-#'     token match: `no_concept` (usable text but no concept, gated by
-#'     `unmatched_data`), `empty_text` (empty or non-text source), `outside_p`
-#'     (text outside `<p>` blocks).}
+#'     token match: `no_concept` (no concept match, including an empty or
+#'     `NA` source, gated by `unmatched_data`), `empty_text` (source holding
+#'     no text once markup is stripped), `outside_p` (text outside `<p>`
+#'     blocks).}
 #'   \item{`mismatched`}{Tibble of token vs source discrepancies (token
-#'     matches not confirmed against the accent-normalised source).}
+#'     matches not confirmed in the source text).}
 #'   \item{`summary`}{List: `token` (summary by token), `concept` (summary
 #'     by concept), `params` (call parameters).}
 #'   \item{`sheets`}{List: `df` (data frames per Excel sheet), `gt` (gt

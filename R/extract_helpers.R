@@ -208,7 +208,7 @@
   ul_detail <- cli_ul()
   if (n_empty > 0) {
     cli_li(
-      "{n_empty} with no recoverable text (empty or non-text source)"
+      "{n_empty} with no recoverable text (no text once markup is stripped)"
     )
   }
   if (n_uncovered > 0) {
