@@ -28,7 +28,8 @@ edstr_config(
 ```
 
 The directory is created automatically if it does not exist.
-Output files are named `{edstr_filename}_{step}.parquet` for import and clean steps (e.g. `my_study_import.parquet`, `my_study_clean.parquet`), and `{edstr_filename}_{step}.rds` for the extract step.
+Output files are named `{edstr_filename}_{step}.parquet` for import and clean steps (e.g. `my_study_import.parquet`, `my_study_clean.parquet`).
+The extract step writes into an `extract/` subdirectory instead, as `{edstr_filename}_extract.xlsx`, `.json` and `.rds` (e.g. `output/my_study/extract/my_study_extract.rds`).
 
 ## Glue syntax
 
