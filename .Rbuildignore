@@ -6,7 +6,7 @@
 ^Meta$
 ^pkgdown$
 ^_pkgdown\.yml$
-^vignettes/*_files$
+^vignettes/.*_files$
 ^vignettes/\.quarto$
 ^vignettes/\.gitignore$
 ^\.claude$
