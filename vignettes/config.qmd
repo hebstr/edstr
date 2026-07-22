@@ -9,6 +9,7 @@ vignette: >
 
 ```{r}
 #| label: setup
+
 library(edstr)
 ```
 
@@ -21,6 +22,7 @@ Two arguments are mandatory: the output directory and the file name prefix.
 
 ```{r}
 #| eval: false
+
 edstr_config(
   edstr_dirname = "output/my_study",
   edstr_filename = "my_study"
@@ -37,6 +39,7 @@ Both `edstr_dirname` and `edstr_filename` support [glue](https://glue.tidyverse.
 
 ```{r}
 #| eval: false
+
 edstr_config(
   edstr_dirname = "output/{Sys.Date()}",
   edstr_filename = "study_{format(Sys.Date(), '%Y%m%d')}"
@@ -49,6 +52,7 @@ Setting `edstr_text` avoids repeating the column name in `edstr_clean()`, `edstr
 
 ```{r}
 #| eval: false
+
 edstr_config(
   edstr_dirname = "output/my_study",
   edstr_filename = "my_study",
@@ -62,17 +66,18 @@ If omitted, the text column must be passed explicitly to each function.
 
 The `edstr_overwrite` option controls what happens when an output file already exists.
 
-| Value   | Behaviour |
-|---------|-----------|
-| `TRUE`  | Overwrite without prompting |
-| `FALSE` | Load the cached file without prompting |
-| `NULL`  | Prompt an interactive menu (load / overwrite / cancel) |
+  | Value   | Behaviour                                              |
+  | ------- | ------------------------------------------------------ |
+  | `TRUE`  | Overwrite without prompting                            |
+  | `FALSE` | Load the cached file without prompting                 |
+  | `NULL`  | Prompt an interactive menu (load / overwrite / cancel) |
 
 `NULL` is the default, useful during interactive development.
 Set `TRUE` when re-running a full pipeline, `FALSE` when resuming work on a cached dataset.
 
 ```{r}
 #| eval: false
+
 edstr_config(
   edstr_dirname = "output/my_study",
   edstr_filename = "my_study",
@@ -86,6 +91,7 @@ Extra named arguments are passed directly to `options()`, which can be useful fo
 
 ```{r}
 #| eval: false
+
 edstr_config(
   edstr_dirname = "output/my_study",
   edstr_filename = "my_study",

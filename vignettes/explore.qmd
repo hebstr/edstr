@@ -9,6 +9,7 @@ vignette: >
 
 ```{r}
 #| label: setup
+
 library(edstr)
 ```
 
@@ -19,6 +20,7 @@ Unlike other pipeline functions, it does not save any files; it is designed for 
 
 ```{r}
 #| error: true
+
 edstr_config(
   edstr_dirname = "output/my_study",
   edstr_filename = "my_study",
@@ -35,6 +37,7 @@ Pass a regex pattern to search for in the text column.
 
 ```{r}
 #| error: true
+
 result <- edstr_view(
   data = df_clean,
   pattern = "fractur"
@@ -54,6 +57,7 @@ This is useful for discovering common multi-word patterns.
 
 ```{r}
 #| error: true
+
 result <- edstr_view(
   data = df_clean,
   pattern = "fractur",
@@ -70,6 +74,7 @@ This lets you test cleaning rules without modifying the data.
 
 ```{r}
 #| error: true
+
 result <- edstr_view(
   data = df_clean,
   pattern = "diabete",
