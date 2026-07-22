@@ -9,7 +9,7 @@ inst/doc
 /demo/
 /.quarto/
 /.claude/
-TODO.md
+/dev/
 
 # CRAN
 cran-comments.md

@@ -19,5 +19,5 @@
 ^air\.toml$
 ^jarl\.toml$
 ^prek\.toml$
-^TODO\.md$
+^dev$
 ^cran-comments\.md$
