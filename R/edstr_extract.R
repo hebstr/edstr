@@ -329,15 +329,28 @@
   cli_progress_step("{.strong {cli_save_extract$rds}}")
   br()
 
-  data_note <- data_extract |>
-    mutate(
-      across(
-        all_of(c("extract", text_input)),
-        ~ set_class_css(., data_regex_list)
-      ),
-      extract = str_remove_all(.data$extract, ";")
-    ) |>
-    select(-any_of(concepts_list$keys))
+  # a concept leaves every document it did not match untouched, so each pass runs
+  # only over its own documents; membership is what `data_regex_match` records
+  note_rows <- map(
+    set_names(names(data_regex_list)),
+    ~ data_extract[[id]] %in%
+      data_regex_match[[id]][data_regex_match$concept == .x]
+  )
+
+  data_note <- .timed(
+    "Note markup",
+    data_extract |>
+      mutate(
+        extract = set_class_css(.data$extract, data_regex_list),
+        !!text_input := set_class_css(
+          .data[[text_input]],
+          data_regex_list,
+          rows = note_rows
+        ),
+        extract = str_remove_all(.data$extract, ";")
+      ) |>
+      select(-any_of(concepts_list$keys))
+  )
 
   data_save <- list(
     data = list(

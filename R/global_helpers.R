@@ -221,7 +221,34 @@ gt_text_align <- \(
   )
 }
 
-set_class_css <- \(data, pattern) {
+# n private-use code points absent from `x`, used to hold injected markup inert
+# while the remaining patterns run. Wingdings leaves BMP private-use characters
+# in real source text, so the plane is chosen by inspection, not assumed free.
+.css_guard <- \(x, n, call = rlang::caller_env()) {
+  planes <- c(0xF0000L, 0x100000L, 0xE000L)
+
+  for (base in planes) {
+    range <- paste0("[", intToUtf8(base), "-", intToUtf8(base + n - 1L), "]")
+
+    if (!any(stri_detect_regex(x, range))) {
+      return(intToUtf8(base + seq_len(n) - 1L, multiple = TRUE))
+    }
+  }
+
+  cli_abort(
+    message = c(
+      "No free private-use range to mark up {.arg data}",
+      "i" = "Source text occupies every candidate plane; markup cannot be applied safely"
+    ),
+    call = call
+  )
+}
+
+set_class_css <- \(data, pattern, rows = NULL) {
+  if (length(pattern) == 0) {
+    return(data)
+  }
+
   class_flatten <- \(str) {
     str_split_1(str, "_") |>
       accumulate(paste, sep = "-") |>
@@ -232,19 +259,34 @@ set_class_css <- \(data, pattern) {
 
   pattern <- set_names(pattern, pattern_id) |> map_chr(regex)
 
-  fun <- \(string, regex, class) {
-    str_replace_all(
-      string = string,
-      pattern = regex,
-      replacement = str_glue("<span class='extract {class}'>\\1</span>")
+  guard <- .css_guard(data, length(pattern) + 1L)
+  open <- guard[seq_along(pattern)]
+  close <- guard[[length(guard)]]
+
+  fun <- \(string, i) {
+    idx <- if (is.null(rows)) TRUE else rows[[i]]
+
+    if (!any(idx)) {
+      return(string)
+    }
+
+    string[idx] <- str_replace_all(
+      string = string[idx],
+      pattern = pattern[[i]],
+      replacement = paste0(open[[i]], "\\1", close)
     )
+
+    string
   }
 
-  reduce2(
-    .x = pattern,
-    .y = names(pattern),
-    .f = fun,
-    .init = data
+  stri_replace_all_fixed(
+    str = reduce(seq_along(pattern), fun, .init = data),
+    pattern = c(open, close),
+    replacement = c(
+      str_glue("<span class='extract {names(pattern)}'>"),
+      "</span>"
+    ),
+    vectorize_all = FALSE
   )
 }
 

@@ -877,6 +877,68 @@ test_that("match_token: data_match_df contains original data for matched ids", {
   expect_true(all(result$data_match_df$doc_id %in% c("1", "2")))
 })
 
+local_ngram_inputs <- \(token, concept) {
+  data <- data.frame(
+    doc_id = c("1", "2"),
+    id_group = 1:2,
+    texte = c("cancer du sein", "bilan normal"),
+    stringsAsFactors = FALSE
+  )
+
+  list(
+    data = data,
+    concepts_list = edstr:::.extract_parse_concepts(
+      concepts = concept,
+      collapse = FALSE,
+      intersect = FALSE,
+      starts_with_only = TRUE
+    ),
+    data_token = edstr:::.extract_tokenize(
+      data_token = data,
+      text_input = "texte",
+      token = token
+    )
+  )
+}
+
+test_that("match_token: n-gram tables are paired by size, not by position", {
+  token <- c(n2 = 2, n1 = 1)
+  inputs <- local_ngram_inputs(token, c(bi = "cancer du"))
+
+  result <- edstr:::.extract_match_token(
+    data = inputs$data,
+    data_token = inputs$data_token,
+    token = token,
+    text_input = "texte",
+    concepts_list = inputs$concepts_list,
+    id = "doc_id",
+    group = "id_group",
+    intersect = FALSE
+  )
+
+  expect_equal(result$data_match_init$texte, "cancer du")
+  expect_equal(result$data_match_init$token, "n2")
+})
+
+test_that("match_token: a non-contiguous token vector is indexed by size", {
+  token <- c(n1 = 1, n3 = 3)
+  inputs <- local_ngram_inputs(token, c(tri = "cancer du sein"))
+
+  result <- edstr:::.extract_match_token(
+    data = inputs$data,
+    data_token = inputs$data_token,
+    token = token,
+    text_input = "texte",
+    concepts_list = inputs$concepts_list,
+    id = "doc_id",
+    group = "id_group",
+    intersect = FALSE
+  )
+
+  expect_equal(result$data_match_init$texte, "cancer du sein")
+  expect_equal(result$data_match_init$token, "n3")
+})
+
 
 # edstr_extract integration ----------------------------------------------------
 

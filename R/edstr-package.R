@@ -107,7 +107,8 @@
 #' @importFrom rlang is_named
 #' @importFrom rlang list2
 #' @importFrom rlang set_names
-#' @importFrom stringi stri_detect_regex stri_sub stri_trans_general
+#' @importFrom stringi stri_detect_regex stri_replace_all_fixed stri_sub
+#' @importFrom stringi stri_trans_general
 #' @importFrom stringr regex
 #' @importFrom stringr str_c
 #' @importFrom stringr str_detect

@@ -8,8 +8,8 @@
   group,
   intersect
 ) {
-  token_extract <- \(x, n) {
-    occ <- data_token[[n]]
+  token_extract <- \(x, key) {
+    occ <- data_token[[key]]
     vocab <- distinct(occ, pick(all_of(text_input)))
 
     imap(
@@ -35,9 +35,10 @@
     )
   }
 
-  data_token_list <- map(
+  data_token_list <- imap(
     token,
-    ~ token_extract(concepts_list$regex, .) |> list_rbind()
+    # keyed on the n-gram table's own name, since `token` holds sizes, not positions
+    ~ token_extract(concepts_list$regex, .y) |> list_rbind()
   )
 
   data_token_match <- map(
