@@ -151,7 +151,8 @@ df_extract <- edstr_extract(
 False positives can be filtered in two ways:
 
 - **Manual**: a regex pattern via `exclus_manual`.
-- **Automatic**: heuristics on long tokens (controlled by `exclus_auto_token_min`).
+- **Automatic**: heuristics on long tokens, applied to n-grams larger than `exclus_auto_token_min`.
+  Its default of `10` sits above any realistic `token` value, so the heuristic is disabled unless the threshold is lowered.
 
 ```{r}
 #| label: extract-exclusions
@@ -160,8 +161,9 @@ False positives can be filtered in two ways:
 df_extract <- edstr_extract(
   data = df_clean,
   concepts = c(fracture = "fracture"),
+  token = c(1, 2, 3),
   exclus_manual = "fracture ouverte",
-  exclus_auto_token_min = 10,
+  exclus_auto_token_min = 0,
   group = "id_pat"
 )
 ```

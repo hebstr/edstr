@@ -38,6 +38,13 @@
   patterns are written without accents, and how the accented source form is
   recovered.
 
+- `exclus_auto_token_min` is now documented as what it is: a threshold measured in
+  n-gram sizes, whose default of `10` sits above every realistic `token` value and so
+  disables automatic exclusion entirely.
+  The scan runs whatever the threshold is, so the default pays its cost without keeping
+  its result.
+  Lower it below the smallest n-gram size of interest to enable the heuristic.
+
 ## Breaking changes
 
 - `edstr_extract()`: the `mismatch_data` argument is renamed to

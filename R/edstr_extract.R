@@ -508,7 +508,12 @@
 #'   auto-exclusion runs.
 #' @param exclus_auto_token_min `<numeric(1)>` Minimum n-gram size for
 #'   automatic exclusion heuristics (default `10`). Auto-exclusions only
-#'   apply to tokens with `n > exclus_auto_token_min`.
+#'   apply to tokens with `n > exclus_auto_token_min`, measured in the same
+#'   unit as `token`. The default therefore disables the heuristic for every
+#'   realistic `token` value: with `token = c(1, 2, 3)` no token exceeds
+#'   `10`. Set it below the smallest n-gram size of interest to enable it.
+#'   The scan runs either way, so leaving the default in place pays its cost
+#'   without keeping its result.
 #' @param regex_replace `<character>` Optional named vector of additional
 #'   regex replacements for source matching (appended to the built-in accent
 #'   normalisation rules).

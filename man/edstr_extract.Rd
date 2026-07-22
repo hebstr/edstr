@@ -84,7 +84,12 @@ auto-exclusion runs.}
 
 \item{exclus_auto_token_min}{\verb{<numeric(1)>} Minimum n-gram size for
 automatic exclusion heuristics (default \code{10}). Auto-exclusions only
-apply to tokens with \code{n > exclus_auto_token_min}.}
+apply to tokens with \code{n > exclus_auto_token_min}, measured in the same
+unit as \code{token}. The default therefore disables the heuristic for every
+realistic \code{token} value: with \code{token = c(1, 2, 3)} no token exceeds
+\code{10}. Set it below the smallest n-gram size of interest to enable it.
+The scan runs either way, so leaving the default in place pays its cost
+without keeping its result.}
 
 \item{regex_replace}{\verb{<character>} Optional named vector of additional
 regex replacements for source matching (appended to the built-in accent
