@@ -7,7 +7,7 @@ Authors@R:
 Description: Extract structured variables from clinical text. Import
     tables from an 'Oracle' database, clean text with regex rules,
     tokenise and match user-defined concepts, and filter false
-    positives. Results are exported as 'Excel', CSV, and RDS
+    positives. Results are exported as 'Excel', 'JSON', and RDS
     files for downstream analysis.
 License: GPL (>= 3)
 URL: https://hebstr.github.io/edstr/, https://github.com/hebstr/edstr
