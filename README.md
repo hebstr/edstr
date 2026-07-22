@@ -201,7 +201,7 @@ overwritten, loaded silently, or trigger an interactive prompt.
 
 | File | Contents |
 |----|----|
-| `.xlsx` | Excel workbook with one sheet per result type (extraction, counts, exclusions, unmatched, mismatched, parameters) |
+| `.xlsx` | Excel workbook with one sheet per result type: the extraction, the token stage (patterns, matches, counts, exclusions), concept counts, the source-matching stage (replacements, patterns, matches, counts), unmatched, mismatched, and the call parameters |
 | `.json` | Summary tables (by token, by concept) and the call parameters (JSON format) |
 | `.rds` | Full nested list with all intermediate objects (R-native, used for caching) |
 
