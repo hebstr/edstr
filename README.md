@@ -23,13 +23,7 @@ and exports results as Excel, JSON, and RDS files.
 
 ## Installation
 
-Install from CRAN:
-
-``` r
-install.packages("edstr")
-```
-
-Or install the development version from GitHub:
+edstr is not on CRAN. Install from GitHub:
 
 ``` r
 #install.packages("pak")

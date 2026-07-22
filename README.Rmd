@@ -27,13 +27,7 @@ It provides a pipeline that imports data from an Oracle database, cleans text wi
 
 ## Installation
 
-Install from CRAN:
-
-```r
-install.packages("edstr")
-```
-
-Or install the development version from GitHub:
+edstr is not on CRAN. Install from GitHub:
 
 ```r
 #install.packages("pak")
