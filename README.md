@@ -135,7 +135,7 @@ independent concept:
 ``` r
 result <- edstr_extract(
   data = df_clean,
-  concepts = c(fracture = "fractur", femur = "f(e|e)mur|fesf"),
+  concepts = c(fracture = "fractur", femur = "femur|fesf"),
   token = c(1, 2),
   group = "id_pat"
 )
@@ -172,9 +172,10 @@ regex (`exclus_manual`) and automatic heuristics on long tokens
 (`exclus_auto_token_min`).
 
 **Source re-matching.** After token-level matching on
-ASCII-transliterated n-grams, patterns are re-matched against the
-original text with accent normalisation. Discrepancies between the two
-are flagged as mismatches for review.
+ASCII-transliterated n-grams, matches are located on a transliterated
+copy of the source and sliced from the original, so extracted text keeps
+its accents, ligatures and case. Tokens that cannot be confirmed in the
+source are flagged as mismatches for review.
 
 **Built-in caching.** `edstr_import()` and `edstr_clean()` write Parquet
 files; `edstr_extract()` writes an RDS file. The `edstr_overwrite`
@@ -211,6 +212,8 @@ website](https://hebstr.github.io/edstr/):
   extraction](https://hebstr.github.io/edstr/articles/extract.html)
 - [Interactive
   exploration](https://hebstr.github.io/edstr/articles/explore.html)
+- [Matching: tokens, accents, and the source
+  text](https://hebstr.github.io/edstr/articles/matching.html)
 
 ## Contributing
 

@@ -121,7 +121,7 @@ A simple vector creates independent concepts; a named list creates sub-concepts.
 
 df_extract <- edstr_extract(
   data = df_clean,
-  concepts = c(fracture = "fracture", femur = "f(e|é)mur|fesf"),
+  concepts = c(fracture = "fracture", femur = "femur|fesf"),
   token = c(1, 2),
   group = "id_pat"
 )
@@ -140,7 +140,7 @@ Two modes alter extraction behaviour when multiple concepts are defined:
 
 df_extract <- edstr_extract(
   data = df_clean,
-  concepts = c(fracture = "fracture", femur = "f(e|é)mur|fesf"),
+  concepts = c(fracture = "fracture", femur = "femur|fesf"),
   intersect = TRUE,
   group = "id_pat"
 )

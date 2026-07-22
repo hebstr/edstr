@@ -1,0 +1,142 @@
+---
+title: "Matching: tokens, accents, and the source text"
+
+vignette: >
+  %\VignetteIndexEntry{Matching: tokens, accents, and the source text}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r}
+#| label: setup
+
+library(edstr)
+```
+
+`edstr_extract()` matches twice, against two different representations of the same document.
+Knowing which is which explains why concept patterns are written without accents, and how the original spelling is restored in the results.
+
+## Two representations, two matching stages
+
+  | Stage        | What is matched         | Against what                                               |
+  | ------------ | ----------------------- | ---------------------------------------------------------- |
+  | Match token  | your concept patterns   | the tokenised text: HTML stripped, transliterated to ASCII |
+  | Match source | the tokens that matched | the raw source text, accents and tags intact               |
+
+`edstr_extract()` first formats the text: it keeps the content of `<p>` blocks, drops the remaining tags, and transliterates the result with `Latin-ASCII`.
+That formatted text is what gets tokenised, so **every token in the corpus is ASCII**.
+
+```{r}
+#| eval: true
+
+stringi::stri_trans_general("œdème méningé", "Latin-ASCII")
+```
+
+This is why concepts are written without accents.
+A pattern containing `"diabète"` cannot match a token vocabulary in which the word is stored as `diabete`.
+
+```{r}
+result <- edstr_extract(
+  data = df_clean,
+  concepts = c(diag = "diabete|oedeme", sympt = "cephalee")
+)
+```
+
+## Finding the token again in the source
+
+The second stage has to locate each matched token in the raw text, so that the extracted result shows what the clinician actually wrote rather than an ASCII approximation.
+
+It does this by applying the **same** `Latin-ASCII` transliteration to the source before searching.
+Token and folded source are then the same string by construction, so nothing has to bridge a spelling gap between them.
+
+```{r}
+#| eval: true
+
+source_text <- "patiente avec œdème méningé et cœur normal"
+folded <- stringi::stri_trans_general(source_text, "Latin-ASCII")
+folded
+```
+
+The match is found on the folded text, but the value returned is sliced from the original.
+Accents are never lost, because they are never removed from what the function gives back.
+
+## Carrying positions back to the original
+
+`Latin-ASCII` does not preserve string length: the oe-ligature is one character that transliterates to two.
+Positions found on the folded text therefore need mapping back, which `edstr_extract()` does in two steps: from the byte offsets the matching engine reports to character indices in the folded text, then from those to character indices in the original.
+
+```{r}
+#| eval: true
+
+map_back <- \(pos, width) findInterval(pos - 1L, cumsum(width)) + 1L
+
+chars <- stringi::stri_sub(source_text, seq_len(nchar(source_text)), length = 1)
+width <- nchar(stringi::stri_trans_general(chars, "Latin-ASCII"), "chars")
+
+found <- stringr::str_locate_all(folded, "oedeme|coeur")[[1]]
+
+stringi::stri_sub(
+  source_text,
+  map_back(found[, "start"], width),
+  map_back(found[, "end"], width)
+)
+```
+
+Both terms come back in their original spelling, ligature included, even though the pattern that found them was plain ASCII.
+
+The mapping assumes the transliteration is context free, meaning that transliterating a string character by character gives the same result as transliterating it whole.
+`edstr_extract()` checks this per document and falls back to a slower accent-aware search when it does not hold.
+
+## Why not simply strip the accents
+
+A tempting alternative is a fold that only removes diacritics, by decomposing each character, dropping the combining marks, and recomposing.
+It has the appeal of preserving string length exactly, which makes position mapping trivial.
+
+It also silently loses the ligatures, because Unicode gives them no decomposition at all.
+
+```{r}
+#| eval: true
+
+strip_marks <- \(x) {
+  stringi::stri_trans_general(x, "NFD; [:Nonspacing Mark:] Remove; NFC")
+}
+
+c(accent = strip_marks("méningé"), ligature = strip_marks("cœur"))
+```
+
+Unlike the typographic `ﬁ` ligature, `œ` and `æ` are letters in their own right in the Unicode character database, carrying neither a canonical nor a compatibility decomposition.
+No normalization form separates them.
+
+```{r}
+#| eval: true
+
+c(fi = stringi::stri_trans_nfkd("ﬁ"), oe = stringi::stri_trans_nfkd("œ"))
+```
+
+Clinical French uses those letters in common terms, `cœur`, `œdème`, `œsophage`, `cœlioscopie`, so a length-preserving fold would leave them unmatchable.
+Paying for an offset map buys their coverage.
+
+## The `regex_replace` argument
+
+Independently of the fold, the source-matching pattern expands each vowel into a character class covering its accented variants.
+This is what the accent-aware fallback search relies on, and it is the extension point you can add to.
+
+  | Written | Matches                                              |
+  | ------- | ---------------------------------------------------- |
+  | `a`     | `[aàâæ]`                                             |
+  | `e`     | `[eéèêëœ]`                                           |
+  | `i`     | `[iîï]`                                              |
+  | `o`     | `[oô]`                                               |
+  | `u`     | `[uùûü]`                                             |
+  | space   | whitespace, hyphens, apostrophes, and `<br/>` breaks |
+
+Pass `regex_replace` to `edstr_extract()` to add rules, for instance to let a term match a spelling variant specific to your corpus.
+
+## What this means in practice
+
+- Write concepts against ASCII: `"oedeme"`, not `"œdème"`.
+  Both spellings in the source are found, and each is returned as written.
+- Extracted text keeps its original spelling, accents, ligatures and case included.
+- Extend `regex_replace` when a term varies in ways the default classes do not cover.
+- The `mismatched` output lists tokens that matched the tokenised text but could not be confirmed in the source.
+  A recurring entry there usually points at a formatting rule, not at a concept pattern.

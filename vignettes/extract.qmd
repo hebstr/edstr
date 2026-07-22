@@ -43,7 +43,7 @@ A named character vector creates flat, independent concepts:
 
 result <- edstr_extract(
   data = df_clean,
-  concepts = c(fracture = "fracture", femur = "f(e|é)mur|fesf"),
+  concepts = c(fracture = "fracture", femur = "femur|fesf"),
   group = "id_pat"
 )
 ```
@@ -103,7 +103,7 @@ Both require at least two concepts.
 
 result <- edstr_extract(
   data = df_clean,
-  concepts = c(fracture = "fracture", femur = "f(e|é)mur|fesf"),
+  concepts = c(fracture = "fracture", femur = "femur|fesf"),
   intersect = TRUE,
   group = "id_pat"
 )
@@ -177,8 +177,9 @@ result <- edstr_extract(
 
 Documents that produce no token match are reported separately, split by reason:
 
-- `no_concept`: the document has usable text but matches no concept.
-- `empty_text`: the source is empty or holds no extractable text.
+- `no_concept`: the document matches no concept.
+  An empty or missing source also lands here.
+- `empty_text`: the source holds no text once its markup is stripped.
 - `outside_p`: the document has text, but it falls outside the `<p>` blocks the formatter reads.
 
 The extraction summary always reports how many documents produced no matchable text, splitting the `empty_text` and `outside_p` counts.
