@@ -2,6 +2,15 @@
 
 ## Bug fixes
 
+- `edstr_extract()` now pairs each n-gram size with its own tokenised text.
+  A `token` vector that was not consecutive from `1` either matched against the
+  wrong n-gram size without warning, as with `token = c(2, 1)`, or failed with
+  `subscript out of bounds`, as with `token = c(1, 3)`.
+
+- `edstr_extract()` no longer highlights its own markup in the `note` output.
+  A concept matching a word the markup itself uses, such as `extract`, `span`,
+  `class`, or another concept's name, produced nested and malformed spans.
+
 - `edstr_extract()` now matches terms written with a ligature.
   `cœur`, `œdème`, `œsophage` and the like matched at the token level but could
   never be confirmed against the source, so they were reported as `mismatched`
@@ -10,6 +19,11 @@
   returned as written in the source.
 
 ## Performance
+
+- `edstr_extract()` is about a third faster, with identical output.
+  The highlight markup built for the `note` output now runs only over the
+  documents a concept actually matched, and the `Latin-ASCII` transliteration
+  applied to the source is reproduced on a faster Unicode fold.
 
 - `edstr_extract()` now matches the source text with the `re2` engine instead of
   ICU, which runs the concept alternation in a single linear pass.

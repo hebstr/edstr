@@ -14,24 +14,78 @@
 # the per-character widths must sum to the whole-string folded length; a
 # mismatch falls back to ICU.
 
-.re2_fold <- \(x) stri_trans_general(x, "Latin-ASCII")
+# ICU's Latin-ASCII is ~3x slower than an NFD-based fold over the same text, and
+# the fold runs over the whole corpus twice per extraction. `NFD; Mn Remove; NFC`
+# reproduces it everywhere except on a set of code points derived offline in
+# `data-raw/re2_tables.R`: those Latin-ASCII rewrites and NFD does not are
+# expanded first, those Latin-ASCII leaves alone and NFD would rewrite are held
+# inert through the fold. Output is identical to Latin-ASCII, per code point over
+# all of Unicode.
+#
+# Only the code points actually present in `x` are repaired, which is what keeps
+# the repair free: a clinical corpus carries a couple of dozen of the ~4300.
+# a character class of escaped code points. The set holds combining marks and
+# zero-width characters, which attach to their neighbour when written literally
+# and silently mangle the class.
+.re2_char_class <- \(char) {
+  code_point <- vapply(char, utf8ToInt, integer(1), USE.NAMES = FALSE)
+
+  escaped <- ifelse(
+    code_point <= 0xFFFF,
+    sprintf("\\u%04X", code_point),
+    sprintf("\\U%08X", code_point)
+  )
+
+  paste0("[", paste(escaped, collapse = ""), "]")
+}
+
+.re2_fold <- \(x) {
+  residue <- stri_replace_all_regex(x, "[\\u0000-\\u007F]+", "")
+  present <- intToUtf8(
+    unique(utf8ToInt(paste(residue, collapse = ""))),
+    multiple = TRUE
+  )
+
+  if (length(present) == 0) {
+    return(x)
+  }
+
+  protect <- .re2_protect[.re2_protect %in% present]
+
+  # a string carrying one of these cannot take the fast fold, so it goes to ICU;
+  # they are rare enough that this stays a handful of documents, and in the worst
+  # case the whole vector simply falls back to Latin-ASCII
+  icu <- rep(FALSE, length(x))
+
+  if (length(protect) > 0) {
+    hit <- stri_detect_regex(x, .re2_char_class(protect))
+    icu <- hit & !is.na(hit)
+  }
+
+  expand <- .re2_expand_from %in% present
+  out <- x
+
+  if (any(expand)) {
+    out[!icu] <- stri_replace_all_regex(
+      str = out[!icu],
+      pattern = .re2_expand_pattern[expand],
+      replacement = .re2_expand_replacement[expand],
+      vectorize_all = FALSE
+    )
+  }
+
+  out[!icu] <- stri_trans_general(out[!icu], "NFD; [:Mn:] Remove; NFC")
+
+  if (any(icu)) {
+    out[icu] <- stri_trans_general(x[icu], "Latin-ASCII")
+  }
+
+  out
+}
 
 # position in the output -> index of the input unit that produced it,
 # given the cumulative output width of the input units
 .re2_map <- \(pos, cumwidth) findInterval(pos - 1L, cumwidth) + 1L
-
-.re2_width_table <- \() {
-  cp <- seq_len(0xFFFF)
-  surrogate <- cp >= 0xD800 & cp <= 0xDFFF
-
-  width <- rep(1L, length(cp))
-  width[!surrogate] <- nchar(
-    .re2_fold(intToUtf8(cp[!surrogate], multiple = TRUE)),
-    "chars"
-  )
-
-  width
-}
 
 .re2_widths <- \(text, expand) {
   width <- vector("list", length(text))
@@ -40,7 +94,7 @@
     return(width)
   }
 
-  table <- .re2_width_table()
+  table <- .re2_width
 
   width[expand] <- lapply(text[expand], \(x) {
     cp <- utf8ToInt(x)

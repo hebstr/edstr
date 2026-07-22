@@ -156,7 +156,9 @@
           paste(collapse = " ")
       ) |>
       str_squish() |>
-      stri_trans_general("Latin-ASCII")
+      # the same fold source matching uses, so a token and the folded source are
+      # the same string by construction
+      .re2_fold()
   }
 
   data <- data[c(id, group, text_input)]

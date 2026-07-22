@@ -1,6 +1,7 @@
 ^LICENSE\.md$
 ^README\.Rmd$
 ^demo$
+^data-raw$
 ^docs$
 ^doc$
 ^Meta$

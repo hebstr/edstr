@@ -221,10 +221,10 @@ gt_text_align <- \(
   )
 }
 
-# n private-use code points absent from `x`, used to hold injected markup inert
-# while the remaining patterns run. Wingdings leaves BMP private-use characters
+# n private-use code points absent from `x`, used to hold a substring inert while
+# the surrounding text is rewritten. Wingdings leaves BMP private-use characters
 # in real source text, so the plane is chosen by inspection, not assumed free.
-.css_guard <- \(x, n, call = rlang::caller_env()) {
+.pua_guard <- \(x, n, call = rlang::caller_env()) {
   planes <- c(0xF0000L, 0x100000L, 0xE000L)
 
   for (base in planes) {
@@ -237,8 +237,8 @@ gt_text_align <- \(
 
   cli_abort(
     message = c(
-      "No free private-use range to mark up {.arg data}",
-      "i" = "Source text occupies every candidate plane; markup cannot be applied safely"
+      "No free private-use range to rewrite {.arg x} safely",
+      "i" = "Source text occupies every candidate plane"
     ),
     call = call
   )
@@ -259,7 +259,7 @@ set_class_css <- \(data, pattern, rows = NULL) {
 
   pattern <- set_names(pattern, pattern_id) |> map_chr(regex)
 
-  guard <- .css_guard(data, length(pattern) + 1L)
+  guard <- .pua_guard(data, length(pattern) + 1L)
   open <- guard[seq_along(pattern)]
   close <- guard[[length(guard)]]
 
