@@ -27,10 +27,15 @@
 
 ## Performance
 
-- `edstr_extract()` is about a third faster, with identical output.
+- `edstr_extract()` is about 40% faster, with identical output.
   The highlight markup built for the `note` output now runs only over the
   documents a concept actually matched, and the `Latin-ASCII` transliteration
   applied to the source is reproduced on a faster Unicode fold.
+
+- The token-matching stage joins the occurrence table once instead of once per
+  concept, about 4 times faster at every `token` value.
+  The gain grows with the number of n-gram sizes searched: `token = c(1, 2, 3)`
+  goes from about 21 seconds to 5 on the reference corpus.
 
 - `edstr_extract()` now matches the source text with the `re2` engine instead of
   ICU, which runs the concept alternation in a single linear pass.
@@ -94,6 +99,10 @@
   concept, so `unmatched$no_concept` is usable as a denominator.
 
 ## Internal changes
+
+- `dplyr (>= 1.1.1)` is now declared, the version that introduced the join
+  `relationship` argument.
+  The package already required at least 1.1.0 for `pick()` without saying so.
 
 - `RJDBC` is dropped from `Imports`.
   Oracle connections go through `DatabaseConnector`, which loads the JDBC driver

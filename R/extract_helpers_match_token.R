@@ -12,33 +12,38 @@
     occ <- data_token[[key]]
     vocab <- distinct(occ, pick(all_of(text_input)))
 
-    imap(
-      x,
-      \(regex, concept_key) {
-        hits <-
+    hits <-
+      imap(
+        x,
+        \(regex, concept_key) {
           vocab |>
-          mutate(match = str_extract(.data[[text_input]], regex)) |>
-          filter(!is.na(.data$match))
+            mutate(match = str_extract(.data[[text_input]], regex)) |>
+            filter(!is.na(.data$match)) |>
+            mutate(concept_hit = concept_key)
+        }
+      ) |>
+      list_rbind()
 
-        occ |>
-          inner_join(hits, by = text_input) |>
-          mutate(
-            !!id := .data[[id]],
-            !!group := .data[[group]],
-            concept = concept_key,
-            !!text_input := .data$match,
-            .before = all_of(text_input),
-            .keep = "none"
-          ) |>
-          drop_na()
-      }
-    )
+    occ |>
+      inner_join(hits, by = text_input, relationship = "many-to-many") |>
+      mutate(
+        !!id := .data[[id]],
+        !!group := .data[[group]],
+        concept = .data$concept_hit,
+        !!text_input := .data$match,
+        .before = all_of(text_input),
+        .keep = "none"
+      ) |>
+      drop_na() |>
+      # arrange() is stable, so sorting on the concept factor alone restores
+      # concept-major order and leaves each concept's rows in occurrence order
+      arrange(factor(.data$concept, levels = names(x)))
   }
 
   data_token_list <- imap(
     token,
     # keyed on the n-gram table's own name, since `token` holds sizes, not positions
-    ~ token_extract(concepts_list$regex, .y) |> list_rbind()
+    ~ token_extract(concepts_list$regex, .y)
   )
 
   data_token_match <- map(

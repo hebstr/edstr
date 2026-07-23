@@ -20,7 +20,7 @@ Imports:
     cli,
     config,
     DatabaseConnector,
-    dplyr,
+    dplyr (>= 1.1.1),
     fs,
     glue,
     here,

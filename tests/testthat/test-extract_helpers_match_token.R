@@ -123,6 +123,48 @@ test_that("match_token: data_match_df contains original data for matched ids", {
   expect_true(all(result$data_match_df$doc_id %in% c("1", "2")))
 })
 
+test_that("match_token: rows are concept-major in declaration order", {
+  data <- data.frame(
+    doc_id = c("1", "2"),
+    id_group = 1:2,
+    texte = c(
+      "tumeur confirmee par biopsie",
+      "tumeur au poumon biopsie prevue"
+    ),
+    stringsAsFactors = FALSE
+  )
+
+  concepts_list <- edstr:::.extract_parse_concepts(
+    concepts = c(tumeur = "tumeur", biopsie = "biopsie"),
+    collapse = FALSE,
+    intersect = FALSE,
+    starts_with_only = TRUE
+  )
+
+  data_token <- edstr:::.extract_tokenize(
+    data_token = data,
+    text_input = "texte",
+    token = c(n1 = 1)
+  )
+
+  result <- edstr:::.extract_match_token(
+    data = data,
+    data_token = data_token,
+    token = c(n1 = 1),
+    text_input = "texte",
+    concepts_list = concepts_list,
+    id = "doc_id",
+    group = "id_group",
+    intersect = FALSE
+  )
+
+  expect_equal(
+    result$data_match_init$concept,
+    c("tumeur", "tumeur", "biopsie", "biopsie")
+  )
+  expect_equal(result$data_match_init$doc_id, c("1", "2", "1", "2"))
+})
+
 new_ngram_inputs <- \(token, concept) {
   data <- data.frame(
     doc_id = c("1", "2"),
