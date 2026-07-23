@@ -18,6 +18,13 @@
   Both the ligature and the two-letter spelling are now found, and each is
   returned as written in the source.
 
+- `edstr_extract(collapse = TRUE)` now collapses a nested list of named
+  character vectors instead of deparsing it.
+  A `concepts` list such as `list(cancer = c(sein = "sein", poumon = "poumon"))`
+  used the R source of each vector as its pattern, so the concept matched
+  nothing.
+  Only a list of lists collapsed correctly.
+
 ## Performance
 
 - `edstr_extract()` is about a third faster, with identical output.

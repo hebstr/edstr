@@ -35,8 +35,11 @@
       cli_abort("Cannot collapse with a single concept")
     }
 
-    concepts <- if (pluck_depth(concepts) > 2) {
-      map(concepts, ~ paste(easy_flatten(.), collapse = "|"))
+    # a root holding several patterns collapses within itself; a flat set of
+    # single-pattern roots collapses into one. Depth cannot tell them apart:
+    # both are depth 2 once `concepts` is a list.
+    concepts <- if (any(lengths(concepts) > 1)) {
+      map(concepts, ~ paste(unlist(.), collapse = "|"))
     } else {
       set_names(paste(concepts, collapse = "|"), "<concept>")
     }
