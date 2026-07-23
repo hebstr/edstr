@@ -21,7 +21,7 @@ test_that("edstr_import() errors when query is NULL", {
   )
 })
 
-test_that("edstr_import() loads existing RDS when edstr_overwrite is FALSE", {
+test_that("edstr_import() loads the parquet cache when edstr_overwrite is FALSE", {
   tmp <- withr::local_tempdir()
   withr::local_options(
     edstr_dirname = tmp,

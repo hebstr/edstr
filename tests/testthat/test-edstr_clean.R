@@ -83,7 +83,21 @@ test_that("edstr_clean() errors when replace is not a named character vector", {
   )
 })
 
-test_that("edstr_clean() applies regex replacements and saves RDS", {
+test_that("edstr_clean() errors when text is not set anywhere", {
+  tmp <- withr::local_tempdir()
+  withr::local_options(
+    edstr_dirname = tmp,
+    edstr_filename = "test",
+    edstr_text = NULL
+  )
+
+  expect_error(
+    edstr_clean(data = data.frame(id = 1, note = "abc"), replace = c("a" = "b")),
+    "is not set"
+  )
+})
+
+test_that("edstr_clean() applies regex replacements and saves a parquet cache", {
   tmp <- withr::local_tempdir()
   withr::local_options(
     edstr_dirname = tmp,

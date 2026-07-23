@@ -59,6 +59,24 @@ test_that("parse_concepts: collapse OR-combines patterns", {
   expect_match(result$regex_df$regex, "diabet|cancer")
 })
 
+test_that("parse_concepts: collapse OR-combines a nested character list", {
+  result <- edstr:::.extract_parse_concepts(
+    concepts = list(
+      cancer = c(sein = "sein", poumon = "poumon"),
+      diab = c(t1 = "diabet", t2 = "insulin")
+    ),
+    collapse = TRUE,
+    intersect = FALSE,
+    starts_with_only = TRUE
+  )
+
+  expect_setequal(result$keys, c("cancer", "diab"))
+  expect_setequal(
+    result$regex_df$regex,
+    c("^(sein|poumon)\\S*$", "^(diabet|insulin)\\S*$")
+  )
+})
+
 test_that("parse_concepts: collapse with single concept errors", {
   expect_error(
     edstr:::.extract_parse_concepts(
@@ -117,6 +135,19 @@ test_that("parse_concepts: concept names are cleaned to lowercase alphanumeric",
   )
 
   expect_equal(result$keys, "diab2")
+})
+
+
+test_that("parse_concepts: names colliding after normalisation error", {
+  expect_error(
+    edstr:::.extract_parse_concepts(
+      concepts = c("Diab-2" = "diabet", "diab_2" = "insulin"),
+      collapse = FALSE,
+      intersect = FALSE,
+      starts_with_only = TRUE
+    ),
+    "collide after normalisation"
+  )
 })
 
 
@@ -805,7 +836,7 @@ test_that("match_token: finds matching concepts", {
   expect_false("3" %in% matched_ids)
 })
 
-test_that("match_token: intersect keeps only docs matching all concepts", {
+test_that("match_token: intersect errors when no doc matches every concept", {
   inputs <- local_match_token_inputs()
 
   expect_error(
@@ -1060,6 +1091,14 @@ test_that("edstr_extract: loads cached RDS when file exists", {
     )
   )
 
+  expect_s3_class(result1$data$extract, "data.frame")
+
+  # a sentinel on disk separates loading the cache from recomputing it: the
+  # pipeline is deterministic, so an identical result proves neither
+  cached <- file.path(tmp, "extract", "test_cache_extract.rds")
+  expect_true(file.exists(cached))
+  saveRDS(list(data = list(extract = "sentinel")), cached)
+
   withr::local_options(edstr_overwrite = NULL)
   local_mocked_bindings(is_interactive = \() TRUE, .package = "rlang")
   local_mocked_bindings(menu = \(...) 1, .package = "edstr")
@@ -1072,7 +1111,114 @@ test_that("edstr_extract: loads cached RDS when file exists", {
     )
   )
 
-  expect_equal(result2$data$extract, result1$data$extract)
+  expect_equal(result2$data$extract, "sentinel")
+})
+
+test_that("edstr_extract: the summary renders every optional block", {
+  tmp <- withr::local_tempdir()
+  withr::local_options(
+    edstr_dirname = tmp,
+    edstr_filename = "test_summary",
+    edstr_text = "texte",
+    edstr_overwrite = TRUE
+  )
+
+  data <- data.frame(
+    doc_id = as.character(1:6),
+    patient_id = c("P1", "P1", "P2", "P2", "P3", "P3"),
+    texte = c(
+      '<p class="t">Patient diabetique</p>',
+      '<p class="t">Diabete type 2</p>',
+      '<p class="t">Diabete gestationnel</p>',
+      '<p class="t">Diabete insipide</p>',
+      '<p class="t">Bilan normal</p>',
+      '<p class="t">Examen sans particularite</p>'
+    ),
+    stringsAsFactors = FALSE
+  )
+
+  result <- suppressMessages(
+    edstr_extract(
+      data = data,
+      concepts = c(diabete = "diabet"),
+      token = 1,
+      group = "patient_id",
+      sample = 5,
+      seed = 42,
+      unmatched_data = TRUE
+    )
+  )
+
+  expect_equal(nrow(result$data$base), 5)
+  expect_equal(result$summary$params$sample, 5)
+  expect_equal(result$summary$params$seed, 42)
+  expect_equal(result$summary$params$group, "patient_id")
+
+  expect_true("patient_id" %in% names(result$data$extract))
+
+  # one row of six is dropped, so the counts hold whatever the draw
+  expect_gte(nrow(result$data$extract), 3)
+  expect_gte(nrow(result$unmatched$no_concept), 1)
+})
+
+test_that("edstr_extract: save_as_gt builds one gt table per sheet", {
+  skip_if_not_installed("gt")
+
+  tmp <- withr::local_tempdir()
+  withr::local_options(
+    edstr_dirname = tmp,
+    edstr_filename = "test_gt",
+    edstr_text = "texte",
+    edstr_overwrite = TRUE
+  )
+
+  data <- data.frame(
+    doc_id = as.character(1:4),
+    texte = c(
+      '<p class="t">Patient diabetique</p>',
+      '<p class="t">Diabete type 2</p>',
+      '<p class="t">Suivi diabetologique</p>',
+      '<p class="t">Bilan normal</p>'
+    ),
+    stringsAsFactors = FALSE
+  )
+
+  result <- suppressMessages(
+    edstr_extract(
+      data = data,
+      concepts = c(diabete = "diabet"),
+      token = 1,
+      exclus_manual = "logique$",
+      save_as_gt = TRUE
+    )
+  )
+
+  expect_named(
+    result$sheets$gt,
+    c(
+      "data",
+      "token_regex",
+      "token_match",
+      "token_count",
+      "token_exclusion",
+      "concept_count",
+      "text_replace",
+      "text_regex",
+      "text_match",
+      "text_count",
+      "unmatched",
+      "mismatched",
+      "params"
+    )
+  )
+
+  expect_s3_class(result$sheets$gt$data$id, "gt_tbl")
+  expect_s3_class(result$sheets$gt$data$text, "gt_tbl")
+  expect_s3_class(result$sheets$gt$token_regex, "gt_tbl")
+  expect_s3_class(result$sheets$gt$params, "gt_tbl")
+
+  expect_equal(result$exclus$match$manual$texte, "diabetologique")
+  expect_gt(nrow(result$exclus$count), 0)
 })
 
 test_that("edstr_extract: multiple concepts with intersect", {
@@ -1141,23 +1287,38 @@ test_that("edstr_extract: dirname_suffix and filename_suffix affect paths", {
   tmp <- withr::local_tempdir()
   withr::local_options(
     edstr_dirname = tmp,
-    edstr_filename = "test_suffix"
+    edstr_filename = "test_suffix",
+    edstr_text = "texte",
+    edstr_overwrite = TRUE
   )
 
-  config_dir <- getOption("edstr_dirname")
-  filename <- getOption("edstr_filename")
-  dirname <- "extract"
-  dirname_suffix <- "custom"
-  filename_suffix <- "custom"
+  data <- data.frame(
+    doc_id = as.character(1:2),
+    texte = c(
+      '<p class="t">Patient diabetique</p>',
+      '<p class="t">Bilan normal</p>'
+    ),
+    stringsAsFactors = FALSE
+  )
 
-  save_dir <- fs::path(config_dir, dirname)
-  save_dir <- glue::glue("{save_dir}_{dirname_suffix}")
+  suppressMessages(
+    edstr_extract(
+      data = data,
+      concepts = c(diabete = "diabet"),
+      token = 1,
+      dirname_suffix = "custom",
+      filename_suffix = "custom"
+    )
+  )
 
-  save_files <- glue::glue("{filename}_{dirname}")
-  save_files <- glue::glue("{save_files}_{filename_suffix}")
+  save_dir <- file.path(tmp, "extract_custom")
 
-  expect_match(as.character(save_dir), "extract_custom$")
-  expect_equal(as.character(save_files), "test_suffix_extract_custom")
+  expect_true(dir.exists(save_dir))
+  expect_true(file.exists(file.path(save_dir, "test_suffix_extract_custom.rds")))
+  expect_true(
+    file.exists(file.path(save_dir, "test_suffix_extract_custom.xlsx"))
+  )
+  expect_false(dir.exists(file.path(tmp, "extract")))
 })
 
 test_that("edstr_extract: accented text in source is matched correctly", {
@@ -1382,38 +1543,37 @@ test_that("match_token: multiple top-level concepts match correct docs", {
   expect_equal(length(unique(result$data_match$concept_key)), 2)
 })
 
-test_that("exclusions: exclus_auto_token_min = 0 activates auto-exclusion on unigrams", {
+test_that("exclusions: exclus_auto_token_min gates auto-exclusion by n-gram size", {
   data_match <- data.frame(
     doc_id = c("1", "2"),
     id_group = 1:2,
     concept_key = "diabete",
     concept = "diabete",
-    texte = c("diabetique", "diabete"),
-    token = c("n1", "n1"),
+    texte = c("diabete", "diabete type 2"),
+    token = c("n1", "n3"),
     stringsAsFactors = FALSE
   )
 
-  result_default <- edstr:::.extract_exclusions(
-    data_match = data_match,
-    text_input = "texte",
-    id = "doc_id",
-    group = "id_group",
-    exclus_manual = NULL,
-    exclus_auto_escape = NULL,
-    exclus_auto_token_min = 10
-  )
+  exclusions <- \(min) {
+    edstr:::.extract_exclusions(
+      data_match = data_match,
+      text_input = "texte",
+      id = "doc_id",
+      group = "id_group",
+      exclus_manual = NULL,
+      exclus_auto_escape = NULL,
+      exclus_auto_token_min = min
+    )
+  }
 
-  result_zero <- edstr:::.extract_exclusions(
-    data_match = data_match,
-    text_input = "texte",
-    id = "doc_id",
-    group = "id_group",
-    exclus_manual = NULL,
-    exclus_auto_escape = NULL,
-    exclus_auto_token_min = 0
-  )
+  above <- exclusions(10)
+  below <- exclusions(0)
 
-  expect_true(
-    nrow(result_zero$data_match_exclus$auto) >= nrow(result_default$data_match_exclus$auto)
-  )
+  expect_equal(nrow(above$data_match_exclus$auto), 0)
+  expect_setequal(above$data_match_final$keep$texte, c("diabete", "diabete type 2"))
+
+  expect_equal(below$data_match_exclus$auto$texte, "diabete type 2")
+  expect_equal(below$data_match_exclus$auto$start, "diabete")
+  expect_equal(below$data_match_final$keep$texte, "diabete")
+  expect_equal(below$data_match_final$drop$texte, "diabete type 2")
 })

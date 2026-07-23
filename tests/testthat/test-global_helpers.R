@@ -1,3 +1,80 @@
+test_that("read_query: a bare SQL string passes through untouched", {
+  expect_equal(
+    suppressMessages(edstr:::read_query("SELECT 1 FROM dual")),
+    "SELECT 1 FROM dual"
+  )
+})
+
+test_that("read_query: a missing .sql path errors", {
+  expect_error(
+    suppressMessages(edstr:::read_query("absent.sql")),
+    "not found"
+  )
+})
+
+test_that("read_query: comments are stripped and the query flattened", {
+  path <- withr::local_tempfile(
+    fileext = ".sql",
+    lines = c(
+      "SELECT id, -- inline comment",
+      "  note",
+      "/* block",
+      "   comment */",
+      "FROM patients"
+    )
+  )
+
+  out <- suppressMessages(edstr:::read_query(path))
+
+  expect_no_match(out, "comment")
+  expect_false(grepl("\n", out, fixed = TRUE))
+  expect_match(out, "^SELECT id,")
+  expect_match(out, "FROM patients$")
+})
+
+test_that("read_query: a comment-only file errors", {
+  path <- withr::local_tempfile(
+    fileext = ".sql",
+    lines = c("-- only a comment", "/* and a block */")
+  )
+
+  expect_error(
+    suppressMessages(edstr:::read_query(path)),
+    "empty or contains only comments"
+  )
+})
+
+
+test_that("view_output: error_empty = FALSE returns an empty result set", {
+  out <- edstr:::view_output(
+    data = data.frame(id = 1, note = "rien ici"),
+    text_input = "note",
+    pattern = "introuvable",
+    id = "id",
+    error_empty = FALSE
+  )
+
+  expect_named(out, c("match", "count", "text"))
+  expect_equal(nrow(out$match), 0)
+  expect_equal(nrow(out$count), 0)
+  expect_equal(out$text, character())
+})
+
+test_that("pua_guard: errors when every candidate plane is occupied", {
+  occupied <- paste0(
+    intToUtf8(0xF0000),
+    intToUtf8(0x100000),
+    intToUtf8(0xE000)
+  )
+
+  expect_error(
+    edstr:::.pua_guard(occupied, 2L),
+    "No free private-use range"
+  )
+  expect_length(edstr:::.pua_guard("texte normal", 2L), 2L)
+})
+
+
 test_that("set_class_css: wraps a match in a concept-classed span", {
   out <- edstr:::set_class_css(
     "cancer du sein",
@@ -71,6 +148,23 @@ test_that("set_class_css: rows restricts a pass without changing its result", {
     edstr:::set_class_css(text, pattern, rows = rows),
     edstr:::set_class_css(text, pattern)
   )
+})
+
+test_that("set_class_css: rows gates each pass independently", {
+  text <- c("cancer du sein", "diabete de type 2")
+  pattern <- list(
+    tumeur = "(?i)\\b(cancer)\\b",
+    endoc = "(?i)\\b(diabete)\\b"
+  )
+
+  out <- edstr:::set_class_css(
+    text,
+    pattern,
+    rows = list(tumeur = c(FALSE, FALSE), endoc = c(FALSE, TRUE))
+  )
+
+  expect_equal(out[[1]], "cancer du sein")
+  expect_equal(out[[2]], "<span class='extract endoc'>diabete</span> de type 2")
 })
 
 test_that("set_class_css: private-use characters in source survive markup", {

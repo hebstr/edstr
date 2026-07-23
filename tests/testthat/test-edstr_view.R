@@ -49,7 +49,39 @@ test_that("edstr_view() extracts matching tokens and returns results", {
   expect_s3_class(result$count, "data.frame")
   expect_contains(names(result$match), c("doc_id", "match"))
   expect_equal(nrow(result$match), 3)
-  expect_in(result$match$doc_id, c(1, 2, 3))
+  expect_setequal(result$match$doc_id, c(1, 2, 3))
+})
+
+test_that("edstr_view() errors when the id column is ambiguous", {
+  withr::local_options(edstr_text = "note")
+
+  data <- data.frame(
+    doc_id = 1:2,
+    patient_id = 3:4,
+    note = c("diabete", "bilan normal")
+  )
+
+  expect_error(
+    suppressMessages(edstr_view(data = data, pattern = "diabete")),
+    "multiple candidate primary keys"
+  )
+})
+
+test_that("edstr_view() rejects an id that is not a candidate key", {
+  withr::local_options(edstr_text = "note")
+
+  data <- data.frame(
+    doc_id = 1:2,
+    patient_id = 3:4,
+    note = c("diabete", "bilan normal")
+  )
+
+  expect_error(
+    suppressMessages(
+      edstr_view(data = data, id = "note", pattern = "diabete")
+    ),
+    "must be one of"
+  )
 })
 
 test_that("edstr_view() errors when no match is found", {

@@ -69,3 +69,65 @@ test_that("re2_extract_prepared: slices the original, ligature intact", {
     list("cœur", character(0))
   )
 })
+
+test_that("re2_width: an astral code point falls outside the table", {
+  expect_length(edstr:::.re2_width, 65535L)
+  expect_true(is.na(edstr:::.re2_width[utf8ToInt(intToUtf8(0x1F600))]))
+})
+
+test_that("re2_prepare: an astral code point keeps the width map aligned", {
+  emoji <- intToUtf8(0x1F600)
+  prep <- edstr:::.re2_prepare(paste0("cœur ", emoji, " battant fort"))
+
+  expect_true(prep$expand)
+
+  width <- prep$width[[1]]
+  expect_equal(width[length(width)], prep$folded_len)
+
+  expect_equal(
+    edstr:::.re2_extract_prepared(prep, "(?i)\\b(coeur)\\b"),
+    list("cœur")
+  )
+  expect_equal(
+    edstr:::.re2_extract_prepared(prep, "(?i)\\b(fort)\\b"),
+    list("fort")
+  )
+})
+
+test_that("re2_extract_prepared: both offset maps run on a non-ASCII fold", {
+  pua <- intToUtf8(0xF0A7)
+  prep <- edstr:::.re2_prepare(paste0("le cœur ", pua, " bat fort"))
+
+  expect_false(prep$ascii)
+  expect_true(prep$expand)
+
+  expect_equal(
+    edstr:::.re2_extract_prepared(prep, "(?i)\\b(coeur)\\b"),
+    list("cœur")
+  )
+  expect_equal(
+    edstr:::.re2_extract_prepared(prep, "(?i)\\b(bat)\\b"),
+    list("bat")
+  )
+})
+
+test_that("re2_extract_prepared: a broken width map falls back to ICU", {
+  prep <- edstr:::.re2_prepare("cœur battant")
+
+  expect_equal(
+    edstr:::.re2_extract_prepared(prep, "(?i)\\b(coeur)\\b"),
+    list("cœur")
+  )
+
+  # the guard only fires when the per-character widths stop summing to the
+  # folded length, which no known code point produces: corrupt the map instead
+  broken <- prep
+  width <- broken$width[[1]]
+  width[length(width)] <- width[length(width)] - 1L
+  broken$width[[1]] <- width
+
+  expect_equal(
+    edstr:::.re2_extract_prepared(broken, "(?i)\\b(coeur)\\b"),
+    list(character(0))
+  )
+})
