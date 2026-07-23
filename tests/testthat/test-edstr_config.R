@@ -81,42 +81,69 @@ test_that("edstr_config() produces CLI output", {
 })
 
 test_that("edstr_config() rejects invalid edstr_dirname", {
-  expect_error(edstr_config(edstr_dirname = 123, edstr_filename = "x"))
-  expect_error(edstr_config(edstr_dirname = c("a", "b"), edstr_filename = "x"))
+  expect_error(
+    edstr_config(edstr_dirname = 123, edstr_filename = "x"),
+    "edstr_dirname.*single character string"
+  )
+  expect_error(
+    edstr_config(edstr_dirname = c("a", "b"), edstr_filename = "x"),
+    "edstr_dirname.*single character string"
+  )
 })
 
 test_that("edstr_config() rejects invalid edstr_filename", {
   tmp <- withr::local_tempdir()
-  expect_error(edstr_config(edstr_dirname = tmp, edstr_filename = 123))
-  expect_error(edstr_config(edstr_dirname = tmp, edstr_filename = c("a", "b")))
+
+  expect_error(
+    edstr_config(edstr_dirname = tmp, edstr_filename = 123),
+    "edstr_filename.*single character string"
+  )
+  expect_error(
+    edstr_config(edstr_dirname = tmp, edstr_filename = c("a", "b")),
+    "edstr_filename.*single character string"
+  )
 })
 
 test_that("edstr_config() rejects invalid edstr_text", {
   tmp <- withr::local_tempdir()
-  expect_error(edstr_config(
-    edstr_dirname = tmp,
-    edstr_filename = "x",
-    edstr_text = 42
-  ))
-  expect_error(edstr_config(
-    edstr_dirname = tmp,
-    edstr_filename = "x",
-    edstr_text = c("a", "b")
-  ))
+
+  expect_error(
+    edstr_config(
+      edstr_dirname = tmp,
+      edstr_filename = "x",
+      edstr_text = 42
+    ),
+    "edstr_text.*single character string"
+  )
+  expect_error(
+    edstr_config(
+      edstr_dirname = tmp,
+      edstr_filename = "x",
+      edstr_text = c("a", "b")
+    ),
+    "edstr_text.*single character string"
+  )
 })
 
 test_that("edstr_config() rejects invalid edstr_overwrite", {
   tmp <- withr::local_tempdir()
-  expect_error(edstr_config(
-    edstr_dirname = tmp,
-    edstr_filename = "x",
-    edstr_overwrite = "yes"
-  ))
-  expect_error(edstr_config(
-    edstr_dirname = tmp,
-    edstr_filename = "x",
-    edstr_overwrite = 42
-  ))
+
+  expect_error(
+    edstr_config(
+      edstr_dirname = tmp,
+      edstr_filename = "x",
+      edstr_overwrite = "yes"
+    ),
+    "edstr_overwrite.*`TRUE`"
+  )
+  expect_error(
+    edstr_config(
+      edstr_dirname = tmp,
+      edstr_filename = "x",
+      edstr_overwrite = 42
+    ),
+    "edstr_overwrite.*`TRUE`"
+  )
 })
 
 test_that("edstr_config() defaults text and overwrite to NULL", {
