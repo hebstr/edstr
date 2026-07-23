@@ -493,8 +493,9 @@
 #'   regex patterns defining the concepts to search for. Each name becomes a
 #'   concept key; nested names create sub-concepts (e.g.
 #'   `list(cancer = c(sein = "sein|mammaire", poumon = "poumon"))`.
-#' @param collapse `<logical(1)>` If `TRUE`, OR-collapse all concept patterns
-#'   into a single regex per root concept. Requires at least 2 concepts.
+#' @param collapse `<logical(1)>` If `TRUE`, OR-combine concept patterns into
+#'   a single regex: one for the whole set when `concepts` is flat, one per
+#'   root concept when it is nested. Requires at least 2 concepts.
 #' @param intersect `<logical(1)>` If `TRUE`, keep only documents matching
 #'   ALL root-level concepts. Requires at least 2 concepts.
 #' @param starts_with_only `<logical(1)>` If `TRUE` (default), token matching

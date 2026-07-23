@@ -131,7 +131,7 @@ df_extract <- edstr_extract(
 
 Two modes alter extraction behaviour when multiple concepts are defined:
 
-- `collapse = TRUE`: combines all patterns into a single regex (logical OR).
+- `collapse = TRUE`: OR-combines patterns into a single regex, one for the whole set when concepts are flat, one per root concept when they are nested.
 - `intersect = TRUE`: keeps only documents matching **all** root concepts.
 
 ```{r}

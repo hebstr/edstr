@@ -157,9 +157,10 @@ result <- edstr_extract(
 clinical entities. A named character vector creates independent
 concepts; a nested named list groups sub-concepts under a root.
 
-**Collapse and intersect modes.** `collapse = TRUE` OR-combines all
-patterns into a single regex. `intersect = TRUE` keeps only documents
-matching all root-level concepts.
+**Collapse and intersect modes.** `collapse = TRUE` OR-combines patterns
+into a single regex: one for the whole set when concepts are flat, one
+per root concept when they are nested. `intersect = TRUE` keeps only
+documents matching all root-level concepts.
 
 **False-positive filtering.** Manual exclusions via a user-supplied
 regex (`exclus_manual`) and automatic heuristics on long tokens

@@ -64,8 +64,9 @@ regex patterns defining the concepts to search for. Each name becomes a
 concept key; nested names create sub-concepts (e.g.
 \code{list(cancer = c(sein = "sein|mammaire", poumon = "poumon"))}.}
 
-\item{collapse}{\verb{<logical(1)>} If \code{TRUE}, OR-collapse all concept patterns
-into a single regex per root concept. Requires at least 2 concepts.}
+\item{collapse}{\verb{<logical(1)>} If \code{TRUE}, OR-combine concept patterns into
+a single regex: one for the whole set when \code{concepts} is flat, one per
+root concept when it is nested. Requires at least 2 concepts.}
 
 \item{intersect}{\verb{<logical(1)>} If \code{TRUE}, keep only documents matching
 ALL root-level concepts. Requires at least 2 concepts.}

@@ -90,7 +90,7 @@ Set `starts_with_only = FALSE` for exact matching.
 
 When multiple concepts are defined, two modes alter the matching logic:
 
-- **`collapse = TRUE`**: OR-collapses all concept patterns into a single regex per root concept.
+- **`collapse = TRUE`**: OR-combines patterns into a single regex, one for the whole set when concepts are flat, one per root concept when they are nested.
   Useful when sub-concepts are synonyms that should be treated as one.
 - **`intersect = TRUE`**: keeps only documents that match **all** root-level concepts.
   Useful for narrowing results to co-occurrences.
