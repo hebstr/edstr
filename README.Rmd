@@ -170,8 +170,8 @@ The `edstr_overwrite` option (`TRUE` / `FALSE` / `NULL`) controls whether existi
 
 ## Known limitations
 
-- Auto-exclusion in `edstr_extract()` scans every distinct matched text against every matched row, three times over (start, end, and start-end anchors). The scan runs on every call, whatever `exclus_manual` and `exclus_auto_token_min` are set to, so the cost is not opt-in; `exclus_auto_escape` only shrinks the rows it scans. Watch for slowdowns on large corpora.
-- At the default `exclus_auto_token_min = 10`, that scan's output is then discarded in full: auto-exclusions only apply to n-grams larger than the threshold, and no realistic `token` value reaches 11. Lower the threshold to make the heuristic fire.
+- Auto-exclusion in `edstr_extract()` scans every distinct matched text against every matched row, three times over (start, end, and start-end anchors). The scan runs whatever `exclus_manual` is set to, so its cost is not opt-in once any n-gram clears `exclus_auto_token_min`; `exclus_auto_escape` only shrinks the rows it scans. Watch for slowdowns on large corpora.
+- At the default `exclus_auto_token_min = 10`, auto-exclusions only apply to n-grams larger than the threshold and no realistic `token` value reaches 11, so nothing is scanned and the heuristic never fires. Lower the threshold to enable it.
 
 ## Output
 

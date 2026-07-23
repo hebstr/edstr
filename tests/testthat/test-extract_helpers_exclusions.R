@@ -129,3 +129,36 @@ test_that("exclusions: exclus_auto_token_min gates auto-exclusion by n-gram size
   expect_equal(below$data_match_final$keep$texte, "diabete")
   expect_equal(below$data_match_final$drop$texte, "diabete type 2")
 })
+
+test_that("exclusions: an empty auto result keeps its schema on either path", {
+  data_match <- data.frame(
+    doc_id = c("1", "2"),
+    id_group = 1:2,
+    concept_key = "diabete",
+    concept = "diabete",
+    texte = c("alpha", "beta"),
+    token = c("n1", "n1"),
+    stringsAsFactors = FALSE
+  )
+
+  exclusions <- \(min) {
+    edstr:::.extract_exclusions(
+      data_match = data_match,
+      text_input = "texte",
+      id = "doc_id",
+      group = "id_group",
+      exclus_manual = NULL,
+      exclus_auto_escape = NULL,
+      exclus_auto_token_min = min
+    )$data_match_exclus$auto
+  }
+
+  # no n-gram clears the threshold, so the scan is skipped altogether
+  skipped <- exclusions(10)
+  # every n-gram clears it, but neither token anchors the other, so it finds nothing
+  scanned <- exclusions(0)
+
+  expect_equal(nrow(skipped), 0)
+  expect_equal(nrow(scanned), 0)
+  expect_identical(skipped, scanned)
+})

@@ -16,15 +16,26 @@
     )
   }
 
+  # only n-grams above the threshold survive the scan, so they are the only ones
+  # worth scanning; candidates keep coming from every match, since a short token
+  # can anchor the exclusion of a longer one
+  data_match_scan <- filter(data_match, .data$token > exclus_auto_token_min)
+
   set_exclus_auto <- \(regex, name) {
     .escape_regex <- \(x) {
       str_replace_all(x, "([.\\\\|()\\[\\]{}^$*+?])", "\\\\\\1")
     }
 
+    # with nothing to scan the per-candidate loop still pays its dispatch cost,
+    # so return the empty frame it would have produced, schema included
+    if (nrow(data_match_scan) == 0) {
+      return(mutate(data_match_scan, !!name := character()))
+    }
+
     unique(data_match[[text_input]]) |>
       map(
         \(.) {
-          data_match |>
+          data_match_scan |>
             filter(str_detect(
               .data[[text_input]],
               glue(regex, . = .escape_regex(.))
@@ -46,8 +57,7 @@
   data_match_exclus <- list(
     auto = list(start = "^{.}\\s", end = "\\s{.}$", start_end = "{.}.+{.}$") |>
       imap(set_exclus_auto) |>
-      reduce(full_join, by = names(data_match)) |>
-      filter(.data$token > exclus_auto_token_min),
+      reduce(full_join, by = names(data_match)),
     manual = filter(
       data_match,
       str_detect_safe(.data[[text_input]], exclus_manual)

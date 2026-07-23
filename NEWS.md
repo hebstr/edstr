@@ -37,6 +37,10 @@
   The gain grows with the number of n-gram sizes searched: `token = c(1, 2, 3)`
   goes from about 21 seconds to 5 on the reference corpus.
 
+- The automatic exclusion scan is skipped when no n-gram reaches
+  `exclus_auto_token_min`, which is what its default of `10` means in practice.
+  The scan used to run in full and have its entire output discarded.
+
 - `edstr_extract()` now matches the source text with the `re2` engine instead of
   ICU, which runs the concept alternation in a single linear pass.
   Matches are located on a `Latin-ASCII` copy of the source, the same
