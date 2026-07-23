@@ -475,8 +475,8 @@
 #' @param text_input `<character(1)>` Name of the text column to analyse.
 #'   Defaults to `getOption("edstr_text")` set by [edstr_config()].
 #' @param id `<character(1)>` Name of the unique identifier column. If not
-#'   supplied, automatically detected (first column with no duplicates and
-#'   no `NA`).
+#'   supplied, detected automatically: the one column with no duplicates and
+#'   no `NA`, aborting if none or several qualify.
 #' @param group `<character(1)>` Optional grouping column (e.g. patient ID
 #'   when rows are documents). If `NULL`, a sequential `id_group` is created.
 #' @param sample `<integer(1)>` Optional. Number of rows to randomly sample
@@ -492,7 +492,7 @@
 #' @param concepts `<character|list>` Named vector or nested named list of
 #'   regex patterns defining the concepts to search for. Each name becomes a
 #'   concept key; nested names create sub-concepts (e.g.
-#'   `list(cancer = c(sein = "sein|mammaire", poumon = "poumon"))`.
+#'   `list(cancer = c(sein = "sein|mammaire", poumon = "poumon"))`).
 #' @param collapse `<logical(1)>` If `TRUE`, OR-combine concept patterns into
 #'   a single regex: one for the whole set when `concepts` is flat, one per
 #'   root concept when it is nested. Requires at least 2 concepts.
@@ -529,8 +529,8 @@
 #' @param save_as_gt `<logical(1)>` If `TRUE`, generate [gt::gt()] tables
 #'   alongside XLSX output. Requires the `gt` package.
 #' @param dirname_suffix `<character(1)>` Optional suffix appended to the
-#'   output directory name. Defaults to `"sample_{sample}"` when `sample` is
-#'   set.
+#'   `extract/` subdirectory, not to `edstr_dirname` (e.g. `extract_sample_500`).
+#'   Defaults to `"sample_{sample}"` when `sample` is set.
 #' @param filename_suffix `<character(1)>` Optional suffix appended to output
 #'   file names. Defaults to `dirname_suffix`.
 #'

@@ -20,8 +20,9 @@ edstr_view(
 \item{text_input}{\verb{<character(1)>} Name of the text column. Defaults to
 the \code{edstr_text} option set by \code{\link[=edstr_config]{edstr_config()}}.}
 
-\item{id}{\verb{<character(1)>} Name of the unique identifier column. Auto-
-detected automatically if not provided.}
+\item{id}{\verb{<character(1)>} Name of the unique identifier column. If not
+supplied, detected automatically: the one column with no duplicates and
+no \code{NA}, aborting if none or several qualify.}
 
 \item{replace}{A named character vector or list of named character vectors.
 Optional regex replacements applied to the text \emph{before} matching

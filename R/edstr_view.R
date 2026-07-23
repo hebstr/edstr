@@ -8,8 +8,9 @@
 #' @param data `<data.frame>` The data to search.
 #' @param text_input `<character(1)>` Name of the text column. Defaults to
 #'   the `edstr_text` option set by [edstr_config()].
-#' @param id `<character(1)>` Name of the unique identifier column. Auto-
-#'   detected automatically if not provided.
+#' @param id `<character(1)>` Name of the unique identifier column. If not
+#'   supplied, detected automatically: the one column with no duplicates and
+#'   no `NA`, aborting if none or several qualify.
 #' @param replace A named character vector or list of named character vectors.
 #'   Optional regex replacements applied to the text *before* matching
 #'   (see [edstr_clean()] for details).

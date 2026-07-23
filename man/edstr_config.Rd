@@ -17,11 +17,14 @@ edstr_config(
 Created via \code{\link[fs:dir_create]{fs::dir_create()}} if it does not exist.}
 
 \item{edstr_filename}{\verb{<character(1)>} Prefix used to name output files
-(e.g. \code{"my_study"} produces \code{my_study_import.rds}, \code{my_study_clean.rds},
-etc.). Supports \link[stringr:str_glue]{glue syntax}.}
+(e.g. \code{"my_study"} produces \code{my_study_import.parquet} and
+\code{my_study_clean.parquet}; \code{edstr_extract()} writes \code{my_study_extract.xlsx},
+\code{.json} and \code{.rds} into an \verb{extract/} subdirectory).
+Supports \link[stringr:str_glue]{glue syntax}.}
 
 \item{edstr_text}{\verb{<character(1)>} Name of the text column in the data.
-Used as the default \code{text} argument in \code{edstr_clean()} and \code{edstr_view()}.}
+Supplies the default \code{text} argument of \code{edstr_clean()} and the default
+\code{text_input} argument of \code{edstr_extract()} and \code{edstr_view()}.}
 
 \item{edstr_overwrite}{\verb{<logical(1)>} Controls caching behaviour when an
 output file already exists:

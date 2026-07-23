@@ -38,8 +38,8 @@ and a unique identifier column.}
 Defaults to \code{getOption("edstr_text")} set by \code{\link[=edstr_config]{edstr_config()}}.}
 
 \item{id}{\verb{<character(1)>} Name of the unique identifier column. If not
-supplied, automatically detected (first column with no duplicates and
-no \code{NA}).}
+supplied, detected automatically: the one column with no duplicates and
+no \code{NA}, aborting if none or several qualify.}
 
 \item{group}{\verb{<character(1)>} Optional grouping column (e.g. patient ID
 when rows are documents). If \code{NULL}, a sequential \code{id_group} is created.}
@@ -62,7 +62,7 @@ every matching column is pseudonymised by masking (replaced with \code{"---"}).}
 \item{concepts}{\verb{<character|list>} Named vector or nested named list of
 regex patterns defining the concepts to search for. Each name becomes a
 concept key; nested names create sub-concepts (e.g.
-\code{list(cancer = c(sein = "sein|mammaire", poumon = "poumon"))}.}
+\code{list(cancer = c(sein = "sein|mammaire", poumon = "poumon"))}).}
 
 \item{collapse}{\verb{<logical(1)>} If \code{TRUE}, OR-combine concept patterns into
 a single regex: one for the whole set when \code{concepts} is flat, one per
@@ -111,8 +111,8 @@ highlighting in XLSX and gt output. Default \code{"#FF0000"}.}
 alongside XLSX output. Requires the \code{gt} package.}
 
 \item{dirname_suffix}{\verb{<character(1)>} Optional suffix appended to the
-output directory name. Defaults to \code{"sample_{sample}"} when \code{sample} is
-set.}
+\verb{extract/} subdirectory, not to \code{edstr_dirname} (e.g. \code{extract_sample_500}).
+Defaults to \code{"sample_{sample}"} when \code{sample} is set.}
 
 \item{filename_suffix}{\verb{<character(1)>} Optional suffix appended to output
 file names. Defaults to \code{dirname_suffix}.}

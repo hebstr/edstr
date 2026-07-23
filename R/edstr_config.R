@@ -8,10 +8,13 @@
 #' @param edstr_dirname `<character(1)>` Path to the output directory.
 #'   Created via [fs::dir_create()] if it does not exist.
 #' @param edstr_filename `<character(1)>` Prefix used to name output files
-#'   (e.g. `"my_study"` produces `my_study_import.rds`, `my_study_clean.rds`,
-#'   etc.). Supports [glue syntax][stringr::str_glue].
+#'   (e.g. `"my_study"` produces `my_study_import.parquet` and
+#'   `my_study_clean.parquet`; `edstr_extract()` writes `my_study_extract.xlsx`,
+#'   `.json` and `.rds` into an `extract/` subdirectory).
+#'   Supports [glue syntax][stringr::str_glue].
 #' @param edstr_text `<character(1)>` Name of the text column in the data.
-#'   Used as the default `text` argument in `edstr_clean()` and `edstr_view()`.
+#'   Supplies the default `text` argument of `edstr_clean()` and the default
+#'   `text_input` argument of `edstr_extract()` and `edstr_view()`.
 #' @param edstr_overwrite `<logical(1)>` Controls caching behaviour when an
 #'   output file already exists:
 #'   - `TRUE`: overwrite without prompting.
