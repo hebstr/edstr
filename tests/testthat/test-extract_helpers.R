@@ -101,6 +101,18 @@ test_that("parse_concepts: intersect with single concept errors", {
   )
 })
 
+test_that("parse_concepts: intersect with a single nested root errors", {
+  expect_error(
+    edstr:::.extract_parse_concepts(
+      concepts = list(cancer = list(sein = "sein", poumon = "poumon")),
+      collapse = FALSE,
+      intersect = TRUE,
+      starts_with_only = TRUE
+    ),
+    "Cannot intersect"
+  )
+})
+
 test_that("parse_concepts: starts_with_only = FALSE omits S*$", {
   result <- edstr:::.extract_parse_concepts(
     concepts = c(diabete = "diabet"),

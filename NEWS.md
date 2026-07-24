@@ -25,6 +25,18 @@
   nothing.
   Only a list of lists collapsed correctly.
 
+- `edstr_extract()` now aborts with an actionable message when a concept root
+  groups several sub-patterns as a named vector under `collapse = FALSE`,
+  instead of failing deep in tokenisation with a cryptic recycling error.
+  Track sub-concepts separately with a nested list,
+  `list(cancer = list(sein = "sein", poumon = "poumon"))`, which the
+  documented examples now use.
+
+- `edstr_extract(intersect = TRUE)` now rejects a single root that carries
+  several sub-concepts, instead of silently ignoring the intersection.
+  The guard counts roots, not concept keys, so a nested single-root input no
+  longer slips through.
+
 ## Performance
 
 - `edstr_extract()` is about 40% faster, with identical output.

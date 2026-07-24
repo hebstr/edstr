@@ -62,7 +62,7 @@ every matching column is pseudonymised by masking (replaced with \code{"---"}).}
 \item{concepts}{\verb{<character|list>} Named vector or nested named list of
 regex patterns defining the concepts to search for. Each name becomes a
 concept key; nested names create sub-concepts (e.g.
-\code{list(cancer = c(sein = "sein|mammaire", poumon = "poumon"))}).}
+\code{list(cancer = list(sein = "sein|mammaire", poumon = "poumon"))}).}
 
 \item{collapse}{\verb{<logical(1)>} If \code{TRUE}, OR-combine concept patterns into
 a single regex: one for the whole set when \code{concepts} is flat, one per

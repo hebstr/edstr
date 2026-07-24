@@ -102,7 +102,10 @@
 
     if (anyNA(w)) {
       astral <- is.na(w)
-      w[astral] <- nchar(.re2_fold(intToUtf8(cp[astral], multiple = TRUE)), "chars")
+      w[astral] <- nchar(
+        .re2_fold(intToUtf8(cp[astral], multiple = TRUE)),
+        "chars"
+      )
     }
 
     cumsum(w)

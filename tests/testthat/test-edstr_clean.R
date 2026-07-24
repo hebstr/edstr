@@ -92,7 +92,10 @@ test_that("edstr_clean() errors when text is not set anywhere", {
   )
 
   expect_error(
-    edstr_clean(data = data.frame(id = 1, note = "abc"), replace = c("a" = "b")),
+    edstr_clean(
+      data = data.frame(id = 1, note = "abc"),
+      replace = c("a" = "b")
+    ),
     "is not set"
   )
 })

@@ -47,10 +47,6 @@
     concepts <- easy_flatten(concepts)
   }
 
-  if (length(names(concepts)) == 1 && intersect) {
-    cli_abort("Cannot intersect with a single concept")
-  }
-
   regex_end <- if (starts_with_only) "\\S*$" else ""
 
   keys <- names(concepts)
@@ -65,6 +61,10 @@
   }
 
   root <- unique(str_remove(keys, "_.+"))
+
+  if (length(root) == 1 && intersect) {
+    cli_abort("Cannot intersect with a single concept")
+  }
 
   lst(
     keys = keys,
@@ -175,7 +175,10 @@
   if (any(dropped) || !all(had_text)) {
     strip_all <- \(x) {
       x |>
-        str_remove_all(regex("<(style|script)[^>]*>.*?</\\1>", dotall = TRUE)) |>
+        str_remove_all(regex(
+          "<(style|script)[^>]*>.*?</\\1>",
+          dotall = TRUE
+        )) |>
         str_remove_all(regex("<head[^>]*>.*?</head>", dotall = TRUE)) |>
         str_remove_all(regex("<!--.*?-->", dotall = TRUE)) |>
         str_remove_all("<[^>]+>") |>
@@ -320,7 +323,11 @@
 
   unmatched <- lst(
     n_no_concept = nrow(no_concept_all),
-    no_concept = if (unmatched_data) no_concept_all else no_concept_all |> slice(0),
+    no_concept = if (unmatched_data) {
+      no_concept_all
+    } else {
+      no_concept_all |> slice(0)
+    },
     no_source = unmatched_all |> filter(.data[[id]] %in% no_source_ids),
     empty_text = unmatched_all |> filter(.data[[id]] %in% empty_ids),
     outside_p = unmatched_all |> filter(.data[[id]] %in% outside_ids)

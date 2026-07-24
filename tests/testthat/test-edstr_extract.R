@@ -64,6 +64,35 @@ test_that("edstr_extract: excluding every match yields empty output without cras
   expect_named(result$regex$match, c("doc_id", "concept", "match"))
 })
 
+test_that("edstr_extract: a vector of sub-patterns under collapse = FALSE errors clearly", {
+  tmp <- withr::local_tempdir()
+  withr::local_options(
+    edstr_dirname = tmp,
+    edstr_filename = "test_multi_root",
+    edstr_text = "texte",
+    edstr_overwrite = TRUE
+  )
+
+  data <- data.frame(
+    doc_id = c("a", "b"),
+    texte = c(
+      '<p class="t">cancer du sein</p>',
+      '<p class="t">tumeur du poumon</p>'
+    ),
+    stringsAsFactors = FALSE
+  )
+
+  expect_error(
+    suppressMessages(edstr_extract(
+      data = data,
+      concepts = list(cancer = c(sein = "sein", poumon = "poumon")),
+      token = 1,
+      collapse = FALSE
+    )),
+    "cannot keep separate"
+  )
+})
+
 test_that("edstr_extract: document counts partition the screened set exactly", {
   tmp <- withr::local_tempdir()
   withr::local_options(
@@ -420,7 +449,10 @@ test_that("edstr_extract: dirname_suffix and filename_suffix affect paths", {
   save_dir <- file.path(tmp, "extract_custom")
 
   expect_true(dir.exists(save_dir))
-  expect_true(file.exists(file.path(save_dir, "test_suffix_extract_custom.rds")))
+  expect_true(file.exists(file.path(
+    save_dir,
+    "test_suffix_extract_custom.rds"
+  )))
   expect_true(
     file.exists(file.path(save_dir, "test_suffix_extract_custom.xlsx"))
   )

@@ -122,7 +122,10 @@ test_that("exclusions: exclus_auto_token_min gates auto-exclusion by n-gram size
   below <- exclusions(0)
 
   expect_equal(nrow(above$data_match_exclus$auto), 0)
-  expect_setequal(above$data_match_final$keep$texte, c("diabete", "diabete type 2"))
+  expect_setequal(
+    above$data_match_final$keep$texte,
+    c("diabete", "diabete type 2")
+  )
 
   expect_equal(below$data_match_exclus$auto$texte, "diabete type 2")
   expect_equal(below$data_match_exclus$auto$start, "diabete")

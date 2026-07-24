@@ -55,6 +55,16 @@
     )
   )
 
+  multi_root <- names(concepts_list$regex)[lengths(concepts_list$regex) > 1]
+
+  if (!collapse && length(multi_root) > 0) {
+    cli_abort(c(
+      "A concept root holds several sub-patterns as a vector, which {.code collapse = FALSE} cannot keep separate.",
+      "x" = "Affected root{?s}: {.val {multi_root}}.",
+      "i" = "Wrap sub-concepts in {.code list()} to track them separately, or set {.code collapse = TRUE} to OR-combine them."
+    ))
+  }
+
   ### CHECK IDS ------------------------------------------------------------------
 
   ids_list <- .timed(
@@ -492,7 +502,7 @@
 #' @param concepts `<character|list>` Named vector or nested named list of
 #'   regex patterns defining the concepts to search for. Each name becomes a
 #'   concept key; nested names create sub-concepts (e.g.
-#'   `list(cancer = c(sein = "sein|mammaire", poumon = "poumon"))`).
+#'   `list(cancer = list(sein = "sein|mammaire", poumon = "poumon"))`).
 #' @param collapse `<logical(1)>` If `TRUE`, OR-combine concept patterns into
 #'   a single regex: one for the whole set when `concepts` is flat, one per
 #'   root concept when it is nested. Requires at least 2 concepts.

@@ -141,7 +141,7 @@ result <- edstr_extract(
 result <- edstr_extract(
   data = df_clean,
   concepts = list(
-    fracture = c(
+    fracture = list(
       fesf = "fesf|extremite superieure",
       col = "col (du )?femur"
     )

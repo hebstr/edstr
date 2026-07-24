@@ -94,7 +94,9 @@
       cli_p_group_unmatched <- label_pct(
         cli_n_group_unmatched / n_distinct(data[[group]])
       )
-      cli_ul("{cli_n_group_unmatched} {group} ({cli_p_group_unmatched} {group})")
+      cli_ul(
+        "{cli_n_group_unmatched} {group} ({cli_p_group_unmatched} {group})"
+      )
     }
   }
 
