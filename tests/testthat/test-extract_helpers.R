@@ -39,7 +39,9 @@ test_that("parse_concepts: the default name is the same on both sentinel paths",
 
   expect_equal(unnamed$keys, collapsed$keys)
   expect_false(any(str_detect(collapsed$keys, "[^a-z0-9]")))
-  expect_false(any(collapsed$keys %in% c("n", "concept", "extract", "id_group")))
+  expect_false(any(
+    collapsed$keys %in% c("n", "concept", "extract", "id_group")
+  ))
 })
 
 test_that("parse_concepts: single named concept preserves name", {

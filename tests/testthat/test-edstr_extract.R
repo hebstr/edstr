@@ -281,9 +281,18 @@ test_that("edstr_extract: an apostrophe separator is not a source mismatch", {
     ))
   }
 
-  ascii <- extract_one('<p class="t">dilatation de l\' aorte thoracique</p>', "ascii")
-  typo <- extract_one('<p class="t">dilatation de l’ aorte thoracique</p>', "typo")
-  hyphen <- extract_one('<p class="t">dilatation de l-aorte thoracique</p>', "hyphen")
+  ascii <- extract_one(
+    '<p class="t">dilatation de l\' aorte thoracique</p>',
+    "ascii"
+  )
+  typo <- extract_one(
+    '<p class="t">dilatation de l’ aorte thoracique</p>',
+    "typo"
+  )
+  hyphen <- extract_one(
+    '<p class="t">dilatation de l-aorte thoracique</p>',
+    "hyphen"
+  )
 
   expect_equal(nrow(ascii$mismatched), 0)
   expect_equal(nrow(typo$mismatched), 0)
