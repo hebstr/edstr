@@ -290,6 +290,8 @@ set_class_css <- \(data, pattern, rows = NULL) {
   )
 }
 
+# shares its styling core with hebstr::.xlsx_add_sheet; keep the two in sync
+# (edstr keeps `...`/`visible` and per-sheet config, hebstr keeps `get_xlsx`)
 wb_add_custom <- \(
   x,
   sheet,
@@ -305,17 +307,43 @@ wb_add_custom <- \(
 ) {
   local_options(list(openxlsx2.maxWidth = max_width))
 
+  # wb_dims(select = "data") collapses onto the header row on a zero-row frame,
+  # so every data-scoped style has to be gated or it repaints the header
+  has_data <- nrow(data) > 0L
+
+  if (has_data && length(color)) {
+    color <- color |>
+      map(~ intersect(.x, names(data))) |>
+      compact()
+  }
+
   params <- list(
     dims = list(
       full = wb_dims(x = data),
       data = wb_dims(x = data, select = "data"),
-      cols = wb_dims(x = data, select = "col_names")
+      cols = wb_dims(x = data, select = "col_names"),
+      proto = wb_dims(
+        rows = seq_len(min(nrow(data) + 1L, 2L)),
+        cols = seq_len(ncol(data))
+      )
     ),
     colors = list(
       border = wb_color(border_color),
       header = wb_color(header_color)
     )
   )
+
+  add_data_font <- \(wb) {
+    if (!has_data) {
+      return(wb)
+    }
+
+    wb_add_font(
+      wb = wb,
+      dims = params$dims$data,
+      size = font_size
+    )
+  }
 
   add_color <- \(wb, vars, color) {
     wb_add_font(
@@ -327,7 +355,30 @@ wb_add_custom <- \(
     )
   }
 
-  output <- wb_add_worksheet(
+  # openxlsx2 scales quadratically on a wide border range, so the border is
+  # resolved on two prototype rows then broadcast. The header row is homogeneous,
+  # so it takes one style in bulk; data cells carry each column's number format,
+  # hence one prototype per column there
+  spread_header <- \(wb) {
+    wb_set_cell_style(
+      wb,
+      dims = params$dims$cols,
+      style = wb_get_cell_style(wb, dims = wb_dims(rows = 1L, cols = 1L))
+    )
+  }
+
+  spread_data <- \(wb, col) {
+    wb_set_cell_style(
+      wb,
+      dims = wb_dims(x = data, cols = col, select = "data"),
+      style = wb_get_cell_style(
+        wb,
+        dims = wb_dims(rows = if (has_data) 2L else 1L, cols = col)
+      )
+    )
+  }
+
+  wb_add_worksheet(
     wb = x,
     sheet = sheet,
     zoom = 105,
@@ -342,10 +393,7 @@ wb_add_custom <- \(
       size = font_size + 1,
       bold = TRUE
     ) |>
-    wb_add_font(
-      dims = params$dims$data,
-      size = font_size
-    ) |>
+    add_data_font() |>
     wb_add_fill(
       dims = params$dims$cols,
       color = params$colors$header
@@ -361,7 +409,7 @@ wb_add_custom <- \(
       wrap_text = TRUE
     ) |>
     wb_add_border(
-      dims = params$dims$full,
+      dims = params$dims$proto,
       top_color = params$colors$border,
       top_border = border_type,
       bottom_color = params$colors$border,
@@ -375,14 +423,18 @@ wb_add_custom <- \(
       inner_vcolor = params$colors$border,
       inner_vgrid = border_type
     ) |>
+    spread_header() |>
+    reduce(
+      .x = seq_len(ncol(data)),
+      .f = spread_data,
+      .init = _
+    ) |>
     reduce2(
       .x = color,
       .y = names(color),
       .f = add_color,
       .init = _
     )
-
-  output
 }
 
 .gc_r_java <- \() {

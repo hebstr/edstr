@@ -41,6 +41,12 @@
   `exclus_auto_token_min`, which is what its default of `10` means in practice.
   The scan used to run in full and have its entire output discarded.
 
+- The Excel export builds about 40% faster, with identical output.
+  Cell borders were painted over the whole table, which openxlsx2 resolves in
+  time that grows super-linearly with the range; the border style is now
+  resolved on two prototype rows and broadcast, so the largest sheet no longer
+  dominates the build.
+
 - `edstr_extract()` now matches the source text with the `re2` engine instead of
   ICU, which runs the concept alternation in a single linear pass.
   Matches are located on a `Latin-ASCII` copy of the source, the same
