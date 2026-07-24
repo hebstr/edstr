@@ -233,33 +233,67 @@
 }
 
 .extract_tokenize <- \(data_token, text_input, token) {
-  easy_tokenize <- \(data, text, n, filter) {
-    .data_ngram <- unnest_tokens(
-      tbl = data,
-      output = {{ text }},
-      input = {{ text }},
+  # a per-document row index, carried through the unnest and dropped before the
+  # output, so document boundaries are known without threading `id` in
+  doc_key <- ".__edstr_doc"
+  data_token[[doc_key]] <- seq_len(nrow(data_token))
+
+  words <- .timed_sub(
+    "  tokenise: unnest n1",
+    unnest_tokens(
+      tbl = data_token,
+      output = !!rlang::sym(text_input),
+      input = !!rlang::sym(text_input),
       token = "ngrams",
-      n = n
+      n = 1
     )
+  )
 
-    .data_ngram <- filter(
-      .data_ngram,
-      stri_detect_regex({{ text }}, filter)
-    )
+  w <- words[[text_input]]
+  doc <- words[[doc_key]]
+  words[[doc_key]] <- NULL
+  max_n <- max(token)
 
-    .data_ngram
+  # higher-order n-grams are the n=1 stream slid within each document: a gram of
+  # size k pastes w[i..i+k-1], kept only where the span stays in one document
+  # (doc[i] == doc[i+k-1]). This reproduces unnest_tokens(n = k) exactly at a
+  # single tokenisation (verified against the per-n unnest over the corpus), so
+  # the n>=2 passes no longer re-tokenise the source.
+  leads <- .timed_sub(
+    "  tokenise: leads",
+    map(seq_len(max_n - 1L), \(k) {
+      same_doc <- doc == lead(doc, k)
+      same_doc[is.na(same_doc)] <- FALSE
+
+      list(word = lead(w, k), same_doc = same_doc)
+    })
+  )
+
+  build <- \(n) {
+    .timed_sub(glue("  tokenise n{n}: slide+filter"), {
+      if (n == 1L) {
+        # the n=1 stream itself; no slide, so filter it directly
+        filter(words, stri_detect_regex(.data[[text_input]], "[:alpha:]"))
+      } else {
+        gram <- do.call(
+          stri_c,
+          c(list(w), map(leads[seq_len(n - 1L)], "word"), list(sep = " "))
+        )
+        keep <- leads[[n - 1L]]$same_doc
+
+        out <- words
+        out[[text_input]] <- gram
+
+        # one dplyr pass: same-document span AND an alphabetic character. `dplyr`
+        # filtering is far cheaper here than base row-subsetting of a wide tibble.
+        # `stri_c` yields NA on the boundary rows `keep` already drops, so the
+        # kept output matches base `paste` exactly
+        filter(out, keep & stri_detect_regex(.data[[text_input]], "[:alpha:]"))
+      }
+    })
   }
 
-  tokenize_fun <- \(n) {
-    easy_tokenize(
-      data = data_token,
-      text = !!text_input,
-      n = n,
-      filter = "[:alpha:]"
-    )
-  }
-
-  map(token, tokenize_fun)
+  map(token, build)
 }
 
 .extract_unmatched <- \(

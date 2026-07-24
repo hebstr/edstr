@@ -33,6 +33,7 @@
 #' @importFrom dplyr if_any
 #' @importFrom dplyr inner_join
 #' @importFrom dplyr last_col
+#' @importFrom dplyr lead
 #' @importFrom dplyr left_join
 #' @importFrom dplyr lst
 #' @importFrom dplyr matches
@@ -91,7 +92,7 @@
 #' @importFrom rlang is_named
 #' @importFrom rlang list2
 #' @importFrom rlang set_names
-#' @importFrom stringi stri_detect_regex stri_replace_all_fixed
+#' @importFrom stringi stri_c stri_detect_regex stri_replace_all_fixed
 #' @importFrom stringi stri_replace_all_regex stri_sub stri_trans_general
 #' @importFrom stringr regex
 #' @importFrom stringr str_detect

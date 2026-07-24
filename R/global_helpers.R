@@ -6,6 +6,18 @@ br <- \() cli_text("\n\n")
   expr
 }
 
+# opt-in sub-stage timer for perf campaigns: transparent (returns `expr`) unless
+# `edstr_profile` is set, so production runs keep the clean per-stage log
+.timed_sub <- \(msg, expr) {
+  if (!isTRUE(getOption("edstr_profile", FALSE))) {
+    return(expr)
+  }
+
+  tic(msg)
+  on.exit(toc(log = TRUE, quiet = TRUE))
+  expr
+}
+
 label_pct <- \(x) paste0(round(x * 100, 1), "%")
 
 read_query <- \(query, call = rlang::caller_env()) {
