@@ -453,6 +453,8 @@ test_that("unmatched: partitions unmatched docs into concept/empty/outside sets"
   expect_equal(res$unmatched$empty_text$doc_id, "2")
   expect_equal(res$unmatched$outside_p$doc_id, "3")
   expect_setequal(res$unmatched$no_concept$doc_id, c("4", "5"))
+  expect_equal(res$unmatched$n_no_concept, nrow(res$unmatched$no_concept))
+  expect_equal(res$unmatched$n_no_concept, 2)
 
   all_unmatched <- c(
     res$unmatched$no_concept$doc_id,
@@ -539,6 +541,7 @@ test_that("unmatched: no_source is populated regardless of unmatched_data", {
 
   expect_equal(res$unmatched$no_source$doc_id, "2")
   expect_equal(nrow(res$unmatched$no_concept), 0)
+  expect_equal(res$unmatched$n_no_concept, 1)
 })
 
 test_that("unmatched: unmatched_data = FALSE gates only the no_concept set", {
@@ -573,6 +576,7 @@ test_that("unmatched: unmatched_data = FALSE gates only the no_concept set", {
   )
 
   expect_equal(nrow(res$unmatched$no_concept), 0)
+  expect_equal(res$unmatched$n_no_concept, 2)
   expect_equal(res$unmatched$empty_text$doc_id, "2")
   expect_equal(res$unmatched$outside_p$doc_id, "3")
 })

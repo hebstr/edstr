@@ -31,6 +31,83 @@ test_that("edstr_extract: a true negative is separated from an empty source", {
   expect_equal(result$unmatched$no_concept$doc_id, "vrai_negatif")
 })
 
+test_that("edstr_extract: excluding every match yields empty output without crashing", {
+  tmp <- withr::local_tempdir()
+  withr::local_options(
+    edstr_dirname = tmp,
+    edstr_filename = "test_exclude_all",
+    edstr_text = "texte",
+    edstr_overwrite = TRUE
+  )
+
+  data <- data.frame(
+    doc_id = c("match", "neg"),
+    texte = c(
+      '<p class="t">oedeme aigu</p>',
+      '<p class="t">examen normal</p>'
+    ),
+    stringsAsFactors = FALSE
+  )
+
+  # every table is empty here, so openxlsx2 warns while padding each blank sheet
+  result <- suppressMessages(suppressWarnings(
+    edstr_extract(
+      data = data,
+      concepts = c(diag = "oedeme"),
+      token = 1,
+      exclus_manual = "oedeme"
+    )
+  ))
+
+  expect_equal(nrow(result$data$extract), 0)
+  expect_equal(nrow(result$regex$match), 0)
+  expect_named(result$regex$match, c("doc_id", "concept", "match"))
+})
+
+test_that("edstr_extract: document counts partition the screened set exactly", {
+  tmp <- withr::local_tempdir()
+  withr::local_options(
+    edstr_dirname = tmp,
+    edstr_filename = "test_partition",
+    edstr_text = "texte",
+    edstr_overwrite = TRUE
+  )
+
+  data <- data.frame(
+    doc_id = c("match", "neg", "na", "vide", "empty_markup", "outside"),
+    texte = c(
+      '<p class="t">oedeme aigu</p>',
+      '<p class="t">examen normal</p>',
+      NA_character_,
+      "",
+      '<p class="t"></p>',
+      "<div>oedeme dehors</div>"
+    ),
+    stringsAsFactors = FALSE
+  )
+
+  result <- suppressMessages(
+    edstr_extract(
+      data = data,
+      concepts = c(diag = "oedeme"),
+      token = 1,
+      unmatched_data = TRUE
+    )
+  )
+
+  unmatched <- result$unmatched
+  parts <- c(
+    matched = dplyr::n_distinct(result$match$init$doc_id),
+    no_concept = unmatched$n_no_concept,
+    no_source = nrow(unmatched$no_source),
+    empty_text = nrow(unmatched$empty_text),
+    outside_p = nrow(unmatched$outside_p)
+  )
+
+  expect_equal(sum(parts), nrow(result$data$base))
+  expect_equal(unname(parts), c(1, 1, 2, 1, 1))
+})
+
 test_that("edstr_extract: full pipeline runs and produces expected output", {
   tmp <- withr::local_tempdir()
   withr::local_options(

@@ -281,13 +281,12 @@
   empty_ids <- format_drops$empty_text
   outside_ids <- format_drops$outside_p
 
+  no_concept_all <- unmatched_all |>
+    filter(!.data[[id]] %in% c(no_source_ids, empty_ids, outside_ids))
+
   unmatched <- lst(
-    no_concept = if (unmatched_data) {
-      unmatched_all |>
-        filter(!.data[[id]] %in% c(no_source_ids, empty_ids, outside_ids))
-    } else {
-      unmatched_all |> slice(0)
-    },
+    n_no_concept = nrow(no_concept_all),
+    no_concept = if (unmatched_data) no_concept_all else no_concept_all |> slice(0),
     no_source = unmatched_all |> filter(.data[[id]] %in% no_source_ids),
     empty_text = unmatched_all |> filter(.data[[id]] %in% empty_ids),
     outside_p = unmatched_all |> filter(.data[[id]] %in% outside_ids)

@@ -63,13 +63,11 @@
     cli_ul("Manual: {nrow(data_match_exclus$manual)}")
   }
 
-  if (unmatched_data) {
-    cli_n_unmatched <- nrow(data_unmatched$no_concept)
-    cli_p_unmatched <- label_pct(cli_n_unmatched / nrow(data))
+  cli_n_unmatched <- data_unmatched$n_no_concept
+  cli_p_unmatched <- label_pct(cli_n_unmatched / nrow(data))
 
-    br()
-    cli_alert_info("{.strong Unmatched (no concept):} {cli_n_unmatched} {id}")
-  }
+  br()
+  cli_alert_info("{.strong Unmatched (no concept):} {cli_n_unmatched} {id}")
 
   br()
   cli_rule()
@@ -87,11 +85,11 @@
     cli_ul("{cli_n_group} {group} ({cli_p_group} {group})")
   }
 
-  if (unmatched_data && cli_n_unmatched > 0) {
+  if (cli_n_unmatched > 0) {
     br()
     cli_alert_success("{.strong {cli_n_unmatched} unmatched (no concept)}")
     cli_ul("{cli_n_unmatched} {id} ({cli_p_unmatched} {id})")
-    if (!is.null(which_group)) {
+    if (unmatched_data && !is.null(which_group)) {
       cli_n_group_unmatched <- n_distinct(data_unmatched$no_concept[[group]])
       cli_p_group_unmatched <- label_pct(
         cli_n_group_unmatched / n_distinct(data[[group]])

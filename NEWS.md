@@ -70,10 +70,11 @@
 
 - `edstr_extract()`: the `mismatch_data` argument is renamed to
   `unmatched_data`.
-  It now gates only the `unmatched$no_concept` set
+  It now gates only the rows of the `unmatched$no_concept` set
   (documents whose text was searched and matched no concept), which can be
   large;
-  the `no_source`, `empty_text` and `outside_p` sets are always populated.
+  the count `unmatched$n_no_concept` is always exact regardless, and the
+  `no_source`, `empty_text` and `outside_p` sets are always populated.
 
 - `edstr_extract()`: the `mismatch` output element (a list of `id` and
   `regex`) is replaced by two top-level elements.
@@ -100,7 +101,8 @@
   negatives.
   A document whose source is empty or `NA` is reported as `unmatched$no_source`
   instead of being counted with the documents that were searched and matched no
-  concept, so `unmatched$no_concept` is usable as a denominator.
+  concept, so `unmatched$n_no_concept` gives a usable denominator (always exact,
+  independent of `unmatched_data`).
 
 ## Internal changes
 

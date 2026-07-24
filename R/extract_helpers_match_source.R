@@ -69,6 +69,14 @@
   ) |>
     list_rbind()
 
+  if (ncol(data_regex_match) == 0) {
+    data_regex_match <- tibble(
+      !!id := data_match_df[[id]][0],
+      concept = character(),
+      match = character()
+    )
+  }
+
   data_regex_count <- count(
     x = data_regex_match,
     .data$concept,

@@ -518,10 +518,12 @@
 #' @param regex_replace `<character>` Optional named vector of additional
 #'   regex replacements for source matching (appended to the built-in accent
 #'   normalisation rules).
-#' @param unmatched_data `<logical(1)>` If `TRUE`, materialise the
+#' @param unmatched_data `<logical(1)>` If `TRUE`, materialise the row-level
 #'   `unmatched$no_concept` set (documents whose text was searched and matched
-#'   no concept), which can be large. The `no_source`, `empty_text` and
-#'   `outside_p` sets are always populated regardless. Default `FALSE`.
+#'   no concept), which can be large. Only the rows are gated: the count
+#'   `unmatched$n_no_concept` is always exact regardless. The `no_source`,
+#'   `empty_text` and `outside_p` sets are always populated too. Default
+#'   `FALSE`.
 #' @param concept_color `<character(1)>` Hex colour for concept highlighting
 #'   in XLSX and gt output. Default `"#0099FF"`.
 #' @param text_color `<character(1)>` Hex colour for text/extract
@@ -549,11 +551,15 @@
 #'     match counts).}
 #'   \item{`exclus`}{List: `match` (excluded matches), `count` (exclusion
 #'     counts).}
-#'   \item{`unmatched`}{List of `id`/`group` tibbles for documents with no
-#'     token match: `no_concept` (text searched, no concept matched, gated by
-#'     `unmatched_data`), `no_source` (source empty or `NA`, so never
-#'     searched), `empty_text` (source holding no text once markup is
-#'     stripped), `outside_p` (text outside `<p>` blocks).}
+#'   \item{`unmatched`}{List for documents with no token match. `n_no_concept`
+#'     `<integer(1)>` is the true-negative count, always exact regardless of
+#'     `unmatched_data`. Then `id`/`group` tibbles: `no_concept` (text searched,
+#'     no concept matched; rows materialised only when `unmatched_data = TRUE`,
+#'     otherwise a 0-row tibble while `n_no_concept` still holds the count),
+#'     `no_source` (source empty or `NA`, so never searched), `empty_text`
+#'     (source holding no text once markup is stripped), `outside_p` (text
+#'     outside `<p>` blocks). Read `n_no_concept` for the denominator, never
+#'     `nrow(no_concept)`.}
 #'   \item{`mismatched`}{Tibble of token vs source discrepancies (token
 #'     matches not confirmed in the source text).}
 #'   \item{`summary`}{List: `token` (summary by token), `concept` (summary

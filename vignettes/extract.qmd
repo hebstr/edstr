@@ -188,7 +188,8 @@ The other three record documents the pipeline could not evaluate, and keeping th
 
 The extraction summary always reports how many documents produced no matchable text, splitting the `no_source`, `empty_text` and `outside_p` counts.
 Those three sets are always populated in the output.
-The `no_concept` set can be large, so it is materialised only when `unmatched_data = TRUE`.
+The `no_concept` set can be large, so its rows are materialised only when `unmatched_data = TRUE`.
+Its count, `unmatched$n_no_concept`, is always exact regardless: read it for the denominator, never `nrow(unmatched$no_concept)`, which is `0` both when the set is genuinely empty and when it is merely unmaterialised.
 
 ```{r}
 #| label: extract-unmatched
@@ -219,7 +220,7 @@ The returned list contains:
 - `match`: initial and final (post-exclusion) matches
 - `count`: token-level and distinct match counts
 - `exclus`: excluded matches and counts
-- `unmatched`: documents with no token match, split by reason (`no_concept`, `no_source`, `empty_text`, `outside_p`)
+- `unmatched`: the true-negative count (`n_no_concept`, always exact) and documents with no token match, split by reason (`no_concept`, `no_source`, `empty_text`, `outside_p`)
 - `mismatched`: discrepancies between token and source matching
 - `summary`: summaries by token and concept, plus call parameters
 - `sheets`: data frames and optional `gt` tables for each Excel sheet
