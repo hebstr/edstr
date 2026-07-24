@@ -91,6 +91,65 @@ test_that("edstr_extract: a vector of sub-patterns under collapse = FALSE errors
     )),
     "cannot keep separate"
   )
+
+  expect_error(
+    suppressMessages(edstr_extract(
+      data = data,
+      concepts = list(
+        cancer = c(sein = "sein", poumon = "poumon"),
+        diab = "diabet"
+      ),
+      token = 1,
+      collapse = FALSE
+    )),
+    "cannot keep separate"
+  )
+
+  expect_no_error(
+    suppressMessages(edstr_extract(
+      data = data,
+      concepts = list(cancer = list(sein = "sein", poumon = "poumon")),
+      token = 1,
+      collapse = FALSE
+    ))
+  )
+})
+
+test_that("edstr_extract: a user column the output builds for itself errors", {
+  tmp <- withr::local_tempdir()
+  withr::local_options(
+    edstr_dirname = tmp,
+    edstr_filename = "test_reserved",
+    edstr_text = "texte",
+    edstr_overwrite = TRUE
+  )
+
+  extract_with <- function(extra, ...) {
+    data <- data.frame(
+      doc_id = c("1", "2"),
+      texte = c(
+        '<p class="t">oedeme aigu</p>',
+        '<p class="t">bilan normal</p>'
+      ),
+      stringsAsFactors = FALSE
+    )
+    if (!is.null(extra)) {
+      data[[extra]] <- c(10L, 20L)
+    }
+
+    suppressMessages(edstr_extract(
+      data = data,
+      concepts = c(diag = "oedeme"),
+      token = 1,
+      id = "doc_id",
+      ...
+    ))
+  }
+
+  # the guard aborts inside `.extract_check_ids`, so one end-to-end case is
+  # enough here; the reserved set itself is covered in test-extract_helpers.R
+  expect_error(extract_with("extract"), "builds for itself")
+  expect_no_error(extract_with(NULL))
 })
 
 test_that("edstr_extract: document counts partition the screened set exactly", {
@@ -135,6 +194,135 @@ test_that("edstr_extract: document counts partition the screened set exactly", {
 
   expect_equal(sum(parts), nrow(result$data$base))
   expect_equal(unname(parts), c(1, 1, 2, 1, 1))
+})
+
+test_that("edstr_extract: a document with no source contributes no token", {
+  tmp <- withr::local_tempdir()
+  withr::local_options(
+    edstr_dirname = tmp,
+    edstr_filename = "test_no_source_token",
+    edstr_text = "texte",
+    edstr_overwrite = TRUE
+  )
+
+  data <- data.frame(
+    doc_id = c("real", "missing"),
+    texte = c('<p class="t">natremie basse</p>', NA_character_),
+    stringsAsFactors = FALSE
+  )
+
+  result <- suppressMessages(
+    edstr_extract(
+      data = data,
+      concepts = c(sodium = "na"),
+      token = 1
+    )
+  )
+
+  expect_equal(result$unmatched$no_source$doc_id, "missing")
+  expect_false("missing" %in% result$match$init$doc_id)
+})
+
+test_that("edstr_extract: the default concept name survives the full pipeline", {
+  tmp <- withr::local_tempdir()
+  withr::local_options(
+    edstr_dirname = tmp,
+    edstr_filename = "test_sentinel",
+    edstr_text = "texte",
+    edstr_overwrite = TRUE
+  )
+
+  data <- data.frame(
+    doc_id = c("1", "2"),
+    texte = c(
+      '<p class="t">oedeme aigu</p>',
+      '<p class="t">diabete type 2</p>'
+    ),
+    stringsAsFactors = FALSE
+  )
+
+  unnamed <- suppressMessages(
+    edstr_extract(data = data, concepts = "oedeme", token = 1)
+  )
+
+  collapsed <- suppressMessages(
+    edstr_extract(
+      data = data,
+      concepts = c(a = "oedeme", b = "diabet"),
+      token = 1,
+      collapse = TRUE,
+      filename_suffix = "collapse"
+    )
+  )
+
+  for (result in list(unnamed, collapsed)) {
+    expect_true("concepts" %in% names(result$data$extract))
+    expect_true(all(c("concept", "extract") %in% names(result$data$extract)))
+    expect_no_match(result$data$note$texte, "<concept>", fixed = TRUE)
+  }
+})
+
+test_that("edstr_extract: an apostrophe separator is not a source mismatch", {
+  tmp <- withr::local_tempdir()
+  withr::local_options(
+    edstr_dirname = tmp,
+    edstr_filename = "test_apostrophe",
+    edstr_text = "texte",
+    edstr_overwrite = TRUE
+  )
+
+  extract_one <- function(texte, suffix) {
+    suppressMessages(edstr_extract(
+      data = data.frame(doc_id = "1", texte = texte, stringsAsFactors = FALSE),
+      concepts = c(aorte = "l aorte"),
+      token = c(1, 2),
+      starts_with_only = FALSE,
+      filename_suffix = suffix
+    ))
+  }
+
+  ascii <- extract_one('<p class="t">dilatation de l\' aorte thoracique</p>', "ascii")
+  typo <- extract_one('<p class="t">dilatation de l’ aorte thoracique</p>', "typo")
+  hyphen <- extract_one('<p class="t">dilatation de l-aorte thoracique</p>', "hyphen")
+
+  expect_equal(nrow(ascii$mismatched), 0)
+  expect_equal(nrow(typo$mismatched), 0)
+  expect_equal(nrow(hyphen$mismatched), 0)
+
+  expect_equal(ascii$data$extract$extract, "l' aorte")
+  expect_equal(hyphen$data$extract$extract, "l-aorte")
+})
+
+test_that("edstr_extract: excluded tokens are not reported as source mismatches", {
+  tmp <- withr::local_tempdir()
+  withr::local_options(
+    edstr_dirname = tmp,
+    edstr_filename = "test_exclus_mismatch",
+    edstr_text = "texte",
+    edstr_overwrite = TRUE
+  )
+
+  data <- data.frame(
+    doc_id = as.character(1:3),
+    texte = c(
+      '<p class="t">Patient diabetique</p>',
+      '<p class="t">Diabete type 2</p>',
+      '<p class="t">Suivi diabetologique</p>'
+    ),
+    stringsAsFactors = FALSE
+  )
+
+  result <- suppressMessages(
+    edstr_extract(
+      data = data,
+      concepts = c(diabete = "diabet"),
+      token = 1,
+      exclus_manual = "logique$"
+    )
+  )
+
+  expect_equal(result$exclus$match$manual$texte, "diabetologique")
+  expect_equal(nrow(result$mismatched), 0)
 })
 
 test_that("edstr_extract: full pipeline runs and produces expected output", {

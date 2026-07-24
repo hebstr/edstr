@@ -51,10 +51,14 @@ from \code{data} before extraction.}
 \code{sample} is used.}
 
 \item{ano_hash}{\verb{<character>} Regex pattern(s) matched against column names;
-every matching column is pseudonymised by hashing.}
+every matching column is pseudonymised by hashing. Cannot target the \code{id}
+or \code{group} column, which join the outputs back together; anonymise those
+before calling \code{edstr_extract()}.}
 
 \item{ano_hide}{\verb{<character>} Regex pattern(s) matched against column names;
-every matching column is pseudonymised by masking (replaced with \code{"---"}).}
+every matching column is pseudonymised by masking (replaced with \code{"---"}).
+Matched case-insensitively, and subject to the same key restriction as
+\code{ano_hash}.}
 
 \item{token}{\verb{<integer>} N-gram sizes to use for tokenisation. Default \code{1}
 (unigrams). Use \code{c(1, 2)} for unigrams and bigrams.}

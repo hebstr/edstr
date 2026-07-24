@@ -14,16 +14,18 @@
     concepts <- if (is_named(concepts)) {
       as.list(concepts)
     } else {
-      list("<concept>" = concepts)
+      list(concepts = concepts)
     }
   }
 
   .clean_concepts_names <- \(x) {
+    if (!is.null(names(x))) {
+      names(x) <- names(x) |> tolower() |> str_remove_all("[^a-z0-9]")
+    }
+
     if (!is.list(x)) {
       return(x)
     }
-
-    names(x) <- names(x) |> tolower() |> str_remove_all("[^a-z0-9]")
 
     map(x, .clean_concepts_names)
   }
@@ -41,7 +43,7 @@
     concepts <- if (any(lengths(concepts) > 1)) {
       map(concepts, ~ paste(unlist(.), collapse = "|"))
     } else {
-      set_names(paste(concepts, collapse = "|"), "<concept>")
+      set_names(paste(concepts, collapse = "|"), "concepts")
     }
   } else {
     concepts <- easy_flatten(concepts)
@@ -77,8 +79,8 @@
     regex = map(concepts, ~ glue("^({.}){regex_end}")),
     regex_df = tibble(
       concept_key = keys,
-      concept_name = unlist(names),
-      regex = unlist(regex)
+      concept_name = unlist(names, use.names = FALSE),
+      regex = unlist(regex, use.names = FALSE)
     )
   )
 }
@@ -88,12 +90,39 @@
   sample,
   text_input,
   id,
-  group
+  group,
+  concept_keys
 ) {
+  # every one of these is written by `.extract_results()`, silently overwriting
+  # or mangling a user column of the same name
+  reserved <- c("n", "concept", "extract", concept_keys)
+
+  if (is.null(group)) {
+    reserved <- c(reserved, "id_group")
+  }
+
+  clash <- intersect(names(data), reserved)
+
+  if (length(clash) > 0) {
+    cli_abort(c(
+      "{.arg data} holds {length(clash)} column{?s} the output builds for itself.",
+      "x" = "Reserved: {.val {clash}}.",
+      "i" = "Rename {qty(length(clash))}{?it/them} in {.arg data}, rename the
+             colliding concept, or pass {.arg group} to keep your own grouping
+             column."
+    ))
+  }
+
   which_key <- check_id_key(data = data, exclude = text_input, error = FALSE)
 
   if (is.null(id)) {
-    id <- check_id_key(data = data, exclude = text_input)
+    # a single candidate is already the answer; the re-scan exists only to raise
+    # the ambiguity error, which lists the candidates
+    id <- if (length(which_key) == 1) {
+      which_key
+    } else {
+      check_id_key(data = data, exclude = text_input)
+    }
   } else if (!(id %in% which_key)) {
     rlang::arg_match(id, which_key)
   }
@@ -139,6 +168,31 @@
   ano_hide
 ) {
   if (!is.null(ano_hash) || !is.null(ano_hide)) {
+    keys <- c(id, group)
+
+    # `easy_ano()` matches column names case-sensitively for `to_hash`
+    # (`str_subset()`) and case-insensitively for `to_hide` (`matches()`)
+    hit <- unique(c(
+      if (!is.null(ano_hash)) {
+        str_subset(keys, paste(ano_hash, collapse = "|"))
+      },
+      if (!is.null(ano_hide)) {
+        str_subset(
+          keys,
+          regex(paste(ano_hide, collapse = "|"), ignore_case = TRUE)
+        )
+      }
+    ))
+
+    if (length(hit) > 0) {
+      cli_abort(c(
+        "{.arg ano_hash} and {.arg ano_hide} cannot target a key column.",
+        "x" = "The pattern matches {.val {hit}}, which {?is/are} used to join
+               the outputs back together.",
+        "i" = "Anonymise the key before calling {.fn edstr_extract}."
+      ))
+    }
+
     data <- easy_ano(
       x = data,
       to_hash = ano_hash,
@@ -166,9 +220,13 @@
 
   data <- data[c(id, group, text_input)]
   raw <- data[[text_input]]
-  formatted <- easy_format(raw)
-
   had_text <- !is.na(raw) & raw != ""
+
+  formatted <- easy_format(raw)
+  # `paste()` renders an NA capture as the string "NA", which would reach
+  # tokenisation as a token on a document that has no source
+  formatted[!had_text] <- ""
+
   dropped <- had_text & (is.na(formatted) | formatted == "")
 
   drops <- NULL
@@ -337,7 +395,9 @@
     x |>
       stri_trans_general("Latin-ASCII") |>
       tolower() |>
-      str_replace_all(c("-(<br/>)?|-?<br/>" = " ", "\\s+" = " "))
+      # the separators source matching accepts for a token space, per the
+      # `[\s\-']+` substitution in `.extract_match_source()`
+      str_replace_all(c("-(<br/>)?|-?<br/>" = " ", "'" = " ", "\\s+" = " "))
   }
 
   mismatched <-

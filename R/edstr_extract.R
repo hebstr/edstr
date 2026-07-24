@@ -45,6 +45,20 @@
 
   ### PARSE CONCEPTS -------------------------------------------------------------
 
+  # checked before parsing: a multi-pattern root on a flat set breaks the
+  # `regex_df` build, and only a single root survives it through recycling
+  multi_root <- names(concepts)[
+    !map_lgl(concepts, is.list) & lengths(concepts) > 1
+  ]
+
+  if (!collapse && length(multi_root) > 0) {
+    cli_abort(c(
+      "A concept root holds several sub-patterns as a vector, which {.code collapse = FALSE} cannot keep separate.",
+      "x" = "Affected root{?s}: {.val {multi_root}}.",
+      "i" = "Wrap sub-concepts in {.code list()} to track them separately, or set {.code collapse = TRUE} to OR-combine them."
+    ))
+  }
+
   concepts_list <- .timed(
     "Parse concepts",
     .extract_parse_concepts(
@@ -55,21 +69,18 @@
     )
   )
 
-  multi_root <- names(concepts_list$regex)[lengths(concepts_list$regex) > 1]
-
-  if (!collapse && length(multi_root) > 0) {
-    cli_abort(c(
-      "A concept root holds several sub-patterns as a vector, which {.code collapse = FALSE} cannot keep separate.",
-      "x" = "Affected root{?s}: {.val {multi_root}}.",
-      "i" = "Wrap sub-concepts in {.code list()} to track them separately, or set {.code collapse = TRUE} to OR-combine them."
-    ))
-  }
-
   ### CHECK IDS ------------------------------------------------------------------
 
   ids_list <- .timed(
     "Check ids",
-    .extract_check_ids(data, sample, text_input, id, group)
+    .extract_check_ids(
+      data,
+      sample,
+      text_input,
+      id,
+      group,
+      concepts_list$keys
+    )
   )
 
   data <- ids_list$data
@@ -194,7 +205,7 @@
     "Unmatched",
     .extract_unmatched(
       data,
-      data_match,
+      data_id,
       data_match_init,
       data_regex_match,
       id,
@@ -494,9 +505,13 @@
 #' @param seed `<integer(1)>` Optional. Random seed for reproducibility when
 #'   `sample` is used.
 #' @param ano_hash `<character>` Regex pattern(s) matched against column names;
-#'   every matching column is pseudonymised by hashing.
+#'   every matching column is pseudonymised by hashing. Cannot target the `id`
+#'   or `group` column, which join the outputs back together; anonymise those
+#'   before calling `edstr_extract()`.
 #' @param ano_hide `<character>` Regex pattern(s) matched against column names;
 #'   every matching column is pseudonymised by masking (replaced with `"---"`).
+#'   Matched case-insensitively, and subject to the same key restriction as
+#'   `ano_hash`.
 #' @param token `<integer>` N-gram sizes to use for tokenisation. Default `1`
 #'   (unigrams). Use `c(1, 2)` for unigrams and bigrams.
 #' @param concepts `<character|list>` Named vector or nested named list of

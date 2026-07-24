@@ -2,6 +2,30 @@
 
 ## Bug fixes
 
+- `edstr_extract()` no longer searches documents that have no source text.
+  A `NA` source was formatted into the string `"NA"`, which reached tokenisation as the token `na` and could be matched by a concept, so a document reported as `unmatched$no_source` could also surface as a match.
+
+- `edstr_extract()` no longer reports excluded tokens as source mismatches.
+  Tokens dropped by `exclus_manual` or the automatic heuristics were compared against a source table built after those exclusions, so every one of them landed in `mismatched` with the warning "token matched, not confirmed in source".
+
+- `edstr_extract()` rejects a `data` column whose name the output builds for itself.
+  A column named `extract` or `id_group` was overwritten without a word, and one named like a concept key was silently split into `<key>.x` and `<key>.y`; `n` and `concept` aborted deep in the assembly with an opaque message once the whole pipeline had run.
+
+- `edstr_extract()` reports a multi-pattern concept root the same way whatever the root count.
+  The check ran after the concepts were parsed, and parsing survived that input on a single root only, through column recycling; two or more roots aborted earlier with `Tibble columns must have compatible sizes`.
+
+- `edstr_extract()` normalises sub-concept names given as a named character vector.
+  Only list names were lowercased and stripped, so `list(cancer = c("Sein Droit" = "sein"))` reached the `note` output as `class='extract Sein Droit'`, which a browser reads as two separate classes.
+
+- `edstr_extract()` rejects an `ano_hash` or `ano_hide` pattern that matches the `id` or `group` column.
+  Anonymising a key desynchronised the tokenised frame from the one carrying the results: pointing `ano_hide` at the document id reported every document as a true negative, with no error and no warning.
+
+- `edstr_extract()` no longer reports an apostrophe separator as a source mismatch.
+  Source matching accepts an apostrophe wherever a token holds a space, but the mismatch check normalised only hyphens and `<br/>`, so a span such as `l' aorte` was confirmed in the source and then reported as unconfirmed anyway.
+
+- `edstr_extract()` names the default concept `concepts` on every path.
+  An unnamed single concept produced the key `concept`, which collided with the `concept` output column and aborted the pipeline with `Can't select columns that don't exist`; a collapsed flat set produced the literal key `<concept>`, which surfaced as a column name and as a malformed CSS class in the `note` output.
+
 - `edstr_extract()` now pairs each n-gram size with its own tokenised text.
   A `token` vector that was not consecutive from `1` either matched against the
   wrong n-gram size without warning, as with `token = c(2, 1)`, or failed with

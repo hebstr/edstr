@@ -6,8 +6,40 @@ test_that("parse_concepts: single unnamed concept gets default name", {
     starts_with_only = TRUE
   )
 
-  expect_equal(result$keys, "concept")
-  expect_equal(result$root, "concept")
+  expect_equal(result$keys, "concepts")
+  expect_equal(result$root, "concepts")
+})
+
+test_that("parse_concepts: sub-concept names in a character vector are normalised", {
+  result <- edstr:::.extract_parse_concepts(
+    concepts = list(cancer = c("Sein Droit" = "sein"), diab = "diabet"),
+    collapse = FALSE,
+    intersect = FALSE,
+    starts_with_only = TRUE
+  )
+
+  expect_equal(result$regex_df$concept_name, c("seindroit", "diab"))
+  expect_false(any(str_detect(result$regex_df$concept_name, "[^a-z0-9_]")))
+})
+
+test_that("parse_concepts: the default name is the same on both sentinel paths", {
+  unnamed <- edstr:::.extract_parse_concepts(
+    concepts = "diabet",
+    collapse = FALSE,
+    intersect = FALSE,
+    starts_with_only = TRUE
+  )
+
+  collapsed <- edstr:::.extract_parse_concepts(
+    concepts = c(diabete = "diabet", cancer = "cancer"),
+    collapse = TRUE,
+    intersect = FALSE,
+    starts_with_only = TRUE
+  )
+
+  expect_equal(unnamed$keys, collapsed$keys)
+  expect_false(any(str_detect(collapsed$keys, "[^a-z0-9]")))
+  expect_false(any(collapsed$keys %in% c("n", "concept", "extract", "id_group")))
 })
 
 test_that("parse_concepts: single named concept preserves name", {
@@ -135,7 +167,8 @@ test_that("parse_concepts: nested list keeps single root key", {
 
   expect_equal(result$root, "cancer")
   expect_equal(nrow(result$regex_df), 2)
-  expect_equal(unname(result$regex_df$concept_name), c("sein", "poumon"))
+  expect_equal(result$regex_df$concept_name, c("sein", "poumon"))
+  expect_null(names(result$regex_df$regex))
 })
 
 test_that("parse_concepts: concept names are cleaned to lowercase alphanumeric", {
@@ -172,12 +205,51 @@ test_that("check_ids: auto-generates id_group when group is NULL", {
     sample = NULL,
     text_input = "texte",
     id = "doc_id",
-    group = NULL
+    group = NULL,
+    concept_keys = character()
   )
 
   expect_true("id_group" %in% names(result$data))
   expect_equal(result$group, "id_group")
   expect_equal(result$data$id_group, 1:3)
+})
+
+test_that("check_ids: a column the output builds for itself is reserved", {
+  df <- data.frame(
+    doc_id = c("a", "b", "c"),
+    texte = c("foo", "bar", "baz")
+  )
+
+  check_with <- function(extra, ...) {
+    data <- df
+    if (!is.null(extra)) {
+      data[[extra]] <- 1:3
+    }
+
+    edstr:::.extract_check_ids(
+      data = data,
+      sample = NULL,
+      text_input = "texte",
+      id = "doc_id",
+      ...
+    )
+  }
+
+  for (col in c("n", "concept", "extract", "id_group", "diag")) {
+    expect_error(
+      check_with(col, group = NULL, concept_keys = "diag"),
+      "builds for itself",
+      info = col
+    )
+  }
+
+  expect_no_error(check_with("token", group = NULL, concept_keys = "diag"))
+  expect_no_error(check_with(NULL, group = NULL, concept_keys = "diag"))
+
+  # an explicit `group` leaves the user's own `id_group` column alone
+  expect_no_error(
+    check_with("id_group", group = "id_group", concept_keys = "diag")
+  )
 })
 
 test_that("check_ids: sampling reduces rows", {
@@ -191,7 +263,8 @@ test_that("check_ids: sampling reduces rows", {
     sample = 10,
     text_input = "texte",
     id = "doc_id",
-    group = NULL
+    group = NULL,
+    concept_keys = character()
   )
 
   expect_equal(nrow(result$data), 10)
@@ -210,7 +283,8 @@ test_that("check_ids: invalid id errors", {
       sample = NULL,
       text_input = "texte",
       id = "nonexistent",
-      group = NULL
+      group = NULL,
+      concept_keys = character()
     ),
     "must be one of"
   )
@@ -674,7 +748,8 @@ test_that("check_ids: sample + seed produce reproducible rows", {
     sample = 10,
     text_input = "texte",
     id = "doc_id",
-    group = NULL
+    group = NULL,
+    concept_keys = character()
   )
 
   withr::local_seed(42)
@@ -683,7 +758,8 @@ test_that("check_ids: sample + seed produce reproducible rows", {
     sample = 10,
     text_input = "texte",
     id = "doc_id",
-    group = NULL
+    group = NULL,
+    concept_keys = character()
   )
 
   expect_equal(result1$data$doc_id, result2$data$doc_id)
@@ -701,7 +777,8 @@ test_that("check_ids: explicit group column is preserved", {
     sample = NULL,
     text_input = "texte",
     id = "doc_id",
-    group = "patient_id"
+    group = "patient_id",
+    concept_keys = character()
   )
 
   expect_equal(result$group, "patient_id")
@@ -709,7 +786,7 @@ test_that("check_ids: explicit group column is preserved", {
   expect_equal(result$data$patient_id, c("P1", "P1", "P2", "P2"))
 })
 
-test_that("format_text: ano_hash pseudonymises in tokenised data", {
+test_that("format_text: the tokenised frame keeps only the key and text columns", {
   df <- data.frame(
     doc_id = c("1", "2"),
     id_group = 1:2,
@@ -718,19 +795,25 @@ test_that("format_text: ano_hash pseudonymises in tokenised data", {
     stringsAsFactors = FALSE
   )
 
-  result <- edstr:::.extract_format_text(
-    data = df,
-    text_input = "texte",
-    id = "doc_id",
-    group = "id_group",
-    ano_hash = "nom",
-    ano_hide = NULL
-  )
+  format_one <- function(...) {
+    edstr:::.extract_format_text(
+      data = df,
+      text_input = "texte",
+      id = "doc_id",
+      group = "id_group",
+      ...
+    )
+  }
 
-  expect_false("nom" %in% names(result))
+  expect_equal(
+    names(format_one(ano_hash = NULL, ano_hide = NULL)),
+    c("doc_id", "id_group", "texte")
+  )
+  expect_false("nom" %in% names(format_one(ano_hash = "nom", ano_hide = NULL)))
+  expect_false("nom" %in% names(format_one(ano_hash = NULL, ano_hide = "nom")))
 })
 
-test_that("format_text: ano_hide masks columns before tokenisation", {
+test_that("format_text: anonymising a key column errors", {
   df <- data.frame(
     doc_id = c("1", "2"),
     id_group = 1:2,
@@ -739,14 +822,33 @@ test_that("format_text: ano_hide masks columns before tokenisation", {
     stringsAsFactors = FALSE
   )
 
-  result <- edstr:::.extract_format_text(
-    data = df,
-    text_input = "texte",
-    id = "doc_id",
-    group = "id_group",
-    ano_hash = NULL,
-    ano_hide = "nom"
+  format_one <- function(...) {
+    edstr:::.extract_format_text(
+      data = df,
+      text_input = "texte",
+      id = "doc_id",
+      group = "id_group",
+      ...
+    )
+  }
+
+  expect_error(
+    format_one(ano_hash = "doc_id", ano_hide = NULL),
+    "cannot target a key column"
+  )
+  expect_error(
+    format_one(ano_hash = NULL, ano_hide = "doc_id"),
+    "cannot target a key column"
+  )
+  expect_error(
+    format_one(ano_hash = NULL, ano_hide = "id"),
+    "cannot target a key column"
   )
 
-  expect_false("nom" %in% names(result))
+  # `ano_hide` is matched case-insensitively, `ano_hash` is not
+  expect_error(
+    format_one(ano_hash = NULL, ano_hide = "DOC_ID"),
+    "cannot target a key column"
+  )
+  expect_no_error(format_one(ano_hash = "DOC_ID", ano_hide = NULL))
 })
