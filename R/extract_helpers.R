@@ -159,47 +159,71 @@
   )
 }
 
+.extract_anonymise <- \(
+  data,
+  id,
+  group,
+  text_input,
+  ano_hash,
+  ano_hide
+) {
+  if (is.null(ano_hash) && is.null(ano_hide)) {
+    return(data)
+  }
+
+  patterns <- c(ano_hash, ano_hide)
+
+  matched <- map(
+    patterns,
+    ~ str_subset(names(data), regex(.x, ignore_case = TRUE))
+  )
+
+  empty <- patterns[lengths(matched) == 0]
+
+  if (length(empty) > 0) {
+    cli_abort(c(
+      "{.arg ano_hash} and {.arg ano_hide} must each match a column.",
+      "x" = "{.val {empty}} matches no column of {.arg data}.",
+      "i" = "Column names are matched as case-insensitive regular expressions."
+    ))
+  }
+
+  hit <- unique(unlist(matched))
+  keys <- intersect(hit, c(id, group))
+
+  if (length(keys) > 0) {
+    cli_abort(c(
+      "{.arg ano_hash} and {.arg ano_hide} cannot target a key column.",
+      "x" = "The pattern matches {.val {keys}}, which {?is/are} used to join
+             the outputs back together.",
+      "i" = "Anonymise the key before calling {.fn edstr_extract}."
+    ))
+  }
+
+  if (text_input %in% hit) {
+    cli_abort(c(
+      "{.arg ano_hash} and {.arg ano_hide} cannot target the text column.",
+      "x" = "The pattern matches {.val {text_input}}, the source every match is
+             read from.",
+      "i" = "The {.field extract} and {.field note} outputs quote that source
+             verbatim; drop the column before calling {.fn edstr_extract} if it
+             must not appear."
+    ))
+  }
+
+  easy_ano(
+    x = data,
+    to_hash = ano_hash,
+    to_hide = ano_hide
+  )
+}
+
 .extract_format_text <- \(
   data,
   text_input,
   id,
-  group,
-  ano_hash,
-  ano_hide
+  group
 ) {
-  if (!is.null(ano_hash) || !is.null(ano_hide)) {
-    keys <- c(id, group)
-
-    # `easy_ano()` matches column names case-sensitively for `to_hash`
-    # (`str_subset()`) and case-insensitively for `to_hide` (`matches()`)
-    hit <- unique(c(
-      if (!is.null(ano_hash)) {
-        str_subset(keys, paste(ano_hash, collapse = "|"))
-      },
-      if (!is.null(ano_hide)) {
-        str_subset(
-          keys,
-          regex(paste(ano_hide, collapse = "|"), ignore_case = TRUE)
-        )
-      }
-    ))
-
-    if (length(hit) > 0) {
-      cli_abort(c(
-        "{.arg ano_hash} and {.arg ano_hide} cannot target a key column.",
-        "x" = "The pattern matches {.val {hit}}, which {?is/are} used to join
-               the outputs back together.",
-        "i" = "Anonymise the key before calling {.fn edstr_extract}."
-      ))
-    }
-
-    data <- easy_ano(
-      x = data,
-      to_hash = ano_hash,
-      to_hide = ano_hide
-    )
-  }
-
   easy_format <- \(text) {
     format_text <- regex("\">(.+?)</p>", dotall = TRUE)
     format_tags <- regex("</?[a-z]+/?>")

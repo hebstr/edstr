@@ -182,3 +182,83 @@ test_that("set_class_css: private-use characters in source survive markup", {
 test_that("set_class_css: an empty pattern set leaves the text untouched", {
   expect_equal(edstr:::set_class_css("cancer", list()), "cancer")
 })
+
+test_that("easy_ano: hashing replaces the value and keeps a stable width", {
+  df <- data.frame(
+    ipp = c("111", "222", "111"),
+    autre = c("a", "b", "c"),
+    stringsAsFactors = FALSE
+  )
+
+  out <- edstr:::easy_ano(df, to_hash = "ipp")
+
+  expect_false(any(out$ipp %in% df$ipp))
+  expect_equal(out$autre, df$autre)
+  expect_equal(unique(nchar(out$ipp)), 16L)
+  expect_equal(out$ipp[[1]], out$ipp[[3]])
+  expect_false(out$ipp[[1]] == out$ipp[[2]])
+})
+
+test_that("easy_ano: hashing is deterministic across calls", {
+  df <- data.frame(ipp = "111", stringsAsFactors = FALSE)
+
+  expect_equal(
+    edstr:::easy_ano(df, to_hash = "ipp")$ipp,
+    edstr:::easy_ano(df, to_hash = "ipp")$ipp
+  )
+})
+
+test_that("easy_ano: hiding masks every matching column", {
+  df <- data.frame(
+    nom = c("Dupont", "Martin"),
+    prenom = c("Jean", "Marie"),
+    autre = c("a", "b"),
+    stringsAsFactors = FALSE
+  )
+
+  out <- edstr:::easy_ano(df, to_hide = c("nom", "prenom"))
+
+  expect_equal(out$nom, c("---", "---"))
+  expect_equal(out$prenom, c("---", "---"))
+  expect_equal(out$autre, df$autre)
+})
+
+test_that("easy_ano: both patterns are matched case-insensitively", {
+  df <- data.frame(
+    IPP = c("111", "222"),
+    Nom = c("Dupont", "Martin"),
+    stringsAsFactors = FALSE
+  )
+
+  out <- edstr:::easy_ano(df, to_hash = "ipp", to_hide = "nom")
+
+  expect_false(any(out$IPP %in% df$IPP))
+  expect_equal(out$Nom, c("---", "---"))
+})
+
+test_that("easy_ano: both patterns take the same regex dialect", {
+  df <- data.frame(
+    nom_pat = c("Dupont", "Martin"),
+    nom_med = c("Durand", "Petit"),
+    stringsAsFactors = FALSE
+  )
+
+  # a lookahead is the cheapest construct the two engines disagree on
+  expect_equal(
+    edstr:::easy_ano(df, to_hide = "^nom_(?!med)")$nom_pat,
+    c("---", "---")
+  )
+  expect_equal(
+    edstr:::easy_ano(df, to_hide = "^nom_(?!med)")$nom_med,
+    df$nom_med
+  )
+  expect_false(
+    any(edstr:::easy_ano(df, to_hash = "^nom_(?!med)")$nom_pat %in% df$nom_pat)
+  )
+})
+
+test_that("easy_ano: no pattern leaves the frame untouched", {
+  df <- data.frame(ipp = "111", stringsAsFactors = FALSE)
+
+  expect_equal(edstr:::easy_ano(df), df)
+})

@@ -50,15 +50,26 @@ from \code{data} before extraction.}
 \item{seed}{\verb{<integer(1)>} Optional. Random seed for reproducibility when
 \code{sample} is used.}
 
-\item{ano_hash}{\verb{<character>} Regex pattern(s) matched against column names;
-every matching column is pseudonymised by hashing. Cannot target the \code{id}
-or \code{group} column, which join the outputs back together; anonymise those
-before calling \code{edstr_extract()}.}
+\item{ano_hash}{\verb{<character>} Regex pattern(s) matched case-insensitively
+against column names; every matching column is pseudonymised by hashing.
+Applied to \code{data} before extraction, so every output frame (\code{data$base},
+\code{data$match}, \code{data$extract}, \code{data$note}, \code{sheets}, and the XLSX and gt
+tables built from them) carries the hashed values. The hash is unsalted
+and truncated to 16 hexadecimal characters: it is a pseudonym, stable
+across runs and therefore reversible by dictionary attack on a small
+domain such as a patient identifier. It is not anonymisation.}
 
-\item{ano_hide}{\verb{<character>} Regex pattern(s) matched against column names;
-every matching column is pseudonymised by masking (replaced with \code{"---"}).
-Matched case-insensitively, and subject to the same key restriction as
-\code{ano_hash}.}
+\item{ano_hide}{\verb{<character>} Regex pattern(s) matched case-insensitively
+against column names; every matching column is masked (replaced with
+\code{"---"}). Same application point and coverage as \code{ano_hash}.
+
+Both arguments abort rather than act silently when a pattern matches no
+column at all, matches the \code{id} or \code{group} column (which join the outputs
+back together), or matches \code{text_input}. Neither argument touches the
+source text: \code{data$extract}, \code{data$note} and the highlighted XLSX and gt
+output quote \code{text_input} verbatim by design. Neither touches the Parquet
+caches written upstream by \code{\link[=edstr_import]{edstr_import()}} and \code{\link[=edstr_clean]{edstr_clean()}}, which
+keep the source in clear.}
 
 \item{token}{\verb{<integer>} N-gram sizes to use for tokenisation. Default \code{1}
 (unigrams). Use \code{c(1, 2)} for unigrams and bigrams.}

@@ -110,6 +110,7 @@
 #' @importFrom stringr str_replace_all
 #' @importFrom stringr str_split_1
 #' @importFrom stringr str_squish
+#' @importFrom stringr str_sub
 #' @importFrom stringr str_subset
 #' @importFrom stringr str_view
 #' @importFrom tibble enframe

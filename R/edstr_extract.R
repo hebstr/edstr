@@ -89,6 +89,22 @@
   which_group <- ids_list$which_group
   nrow_init <- ids_list$nrow_init
 
+  ### ANONYMISATION --------------------------------------------------------------
+
+  # every output frame derives from `data`, so anonymising it once here is what
+  # makes the guarantee hold for all of them at the same time
+  data <- .timed(
+    "Anonymise",
+    .extract_anonymise(
+      data,
+      id,
+      group,
+      text_input,
+      ano_hash,
+      ano_hide
+    )
+  )
+
   ### FORMAT ---------------------------------------------------------------------
 
   cli_progress_step("{.strong Formatting source text}")
@@ -100,9 +116,7 @@
       data,
       text_input,
       id,
-      group,
-      ano_hash,
-      ano_hide
+      group
     )
   )
 
@@ -504,14 +518,25 @@
 #'   from `data` before extraction.
 #' @param seed `<integer(1)>` Optional. Random seed for reproducibility when
 #'   `sample` is used.
-#' @param ano_hash `<character>` Regex pattern(s) matched against column names;
-#'   every matching column is pseudonymised by hashing. Cannot target the `id`
-#'   or `group` column, which join the outputs back together; anonymise those
-#'   before calling `edstr_extract()`.
-#' @param ano_hide `<character>` Regex pattern(s) matched against column names;
-#'   every matching column is pseudonymised by masking (replaced with `"---"`).
-#'   Matched case-insensitively, and subject to the same key restriction as
-#'   `ano_hash`.
+#' @param ano_hash `<character>` Regex pattern(s) matched case-insensitively
+#'   against column names; every matching column is pseudonymised by hashing.
+#'   Applied to `data` before extraction, so every output frame (`data$base`,
+#'   `data$match`, `data$extract`, `data$note`, `sheets`, and the XLSX and gt
+#'   tables built from them) carries the hashed values. The hash is unsalted
+#'   and truncated to 16 hexadecimal characters: it is a pseudonym, stable
+#'   across runs and therefore reversible by dictionary attack on a small
+#'   domain such as a patient identifier. It is not anonymisation.
+#' @param ano_hide `<character>` Regex pattern(s) matched case-insensitively
+#'   against column names; every matching column is masked (replaced with
+#'   `"---"`). Same application point and coverage as `ano_hash`.
+#'
+#'   Both arguments abort rather than act silently when a pattern matches no
+#'   column at all, matches the `id` or `group` column (which join the outputs
+#'   back together), or matches `text_input`. Neither argument touches the
+#'   source text: `data$extract`, `data$note` and the highlighted XLSX and gt
+#'   output quote `text_input` verbatim by design. Neither touches the Parquet
+#'   caches written upstream by [edstr_import()] and [edstr_clean()], which
+#'   keep the source in clear.
 #' @param token `<integer>` N-gram sizes to use for tokenisation. Default `1`
 #'   (unigrams). Use `c(1, 2)` for unigrams and bigrams.
 #' @param concepts `<character|list>` Named vector or nested named list of

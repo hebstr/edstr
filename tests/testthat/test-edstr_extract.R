@@ -750,3 +750,72 @@ test_that("edstr_extract: bigram token matching works", {
   expect_equal(nrow(result$data$extract), 1)
   expect_equal(result$data$extract$doc_id, "1")
 })
+
+test_that("edstr_extract: anonymised values reach no observable output", {
+  tmp <- withr::local_tempdir()
+  withr::local_options(
+    edstr_dirname = tmp,
+    edstr_filename = "test_ano",
+    edstr_text = "texte",
+    edstr_overwrite = TRUE
+  )
+
+  data <- data.frame(
+    doc_id = as.character(1:2),
+    ipp = c("111", "222"),
+    nom = c("Dupont", "Martin"),
+    texte = c(
+      '<p class="t">oedeme aigu</p>',
+      '<p class="t">bilan normal</p>'
+    ),
+    stringsAsFactors = FALSE
+  )
+
+  result <- suppressMessages(
+    edstr_extract(
+      data = data,
+      concepts = c(diag = "oedeme"),
+      token = 1,
+      id = "doc_id",
+      ano_hash = "ipp",
+      ano_hide = "nom",
+      unmatched_data = TRUE,
+      save_as_gt = TRUE
+    )
+  )
+
+  # every clear value the two arguments promise to remove, hunted across the
+  # whole returned structure rather than one output at a time
+  clear <- c(data$ipp, data$nom)
+
+  holds_clear <- function(x) {
+    if (is.character(x)) {
+      return(any(x %in% clear))
+    }
+    if (is.list(x)) {
+      return(any(vapply(x, holds_clear, logical(1))))
+    }
+    FALSE
+  }
+
+  expect_false(holds_clear(result))
+  expect_false(holds_clear(readRDS(fs::path(
+    tmp,
+    "extract",
+    "test_ano_extract",
+    ext = "rds"
+  ))))
+
+  # positive assertions: `holds_clear()` above is satisfied by a column that is
+  # simply absent, so each frame states which values it carries
+  expect_equal(result$data$base$nom, c("---", "---"))
+  expect_false(any(result$data$base$ipp %in% data$ipp))
+  expect_equal(result$data$match$nom, "---")
+  expect_false(any(result$data$match$ipp %in% data$ipp))
+  expect_equal(result$data$extract$nom, "---")
+  expect_equal(result$data$note$nom, "---")
+  expect_false(any(result$data$note$ipp %in% data$ipp))
+  expect_equal(result$sheets$df$data$nom, "---")
+
+  expect_equal(unique(nchar(result$data$base$ipp)), 16L)
+})

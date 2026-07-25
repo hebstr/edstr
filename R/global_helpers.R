@@ -64,27 +64,31 @@ easy_ano <- \(
   x,
   to_hash = NULL,
   to_hide = NULL,
-  hash_trunc = 25,
+  hash_len = 16,
   hide_pattern = "---"
 ) {
   .ano_hash_fun <- \(x_hash, to_hash) {
-    hash_trunc <- as.character(hash_trunc)
-
     x_hash |>
       mutate(
         "{to_hash}" := map_chr(.data[[to_hash]], rlang::hash) |>
-          str_remove_all(glue(".{{{hash_trunc}}}$"))
+          str_sub(1L, hash_len)
       )
   }
 
+  # `matches()` would select through `grep()`, a different regex engine from the
+  # one the callers validate the pattern against
   .ano_hide_fun <- \(x_hide) {
-    x_hide |> mutate(across(matches(to_hide), ~hide_pattern))
+    hide_cols <-
+      names(x_hide) |>
+      str_subset(regex(paste(to_hide, collapse = "|"), ignore_case = TRUE))
+
+    x_hide |> mutate(across(all_of(hide_cols), ~hide_pattern))
   }
 
   if (!is.null(to_hash)) {
     .ano_data <-
       names(x) |>
-      str_subset(to_hash |> paste(collapse = "|")) |>
+      str_subset(regex(paste(to_hash, collapse = "|"), ignore_case = TRUE)) |>
       reduce(.ano_hash_fun, .init = x)
 
     if (!is.null(to_hide)) {

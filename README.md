@@ -172,6 +172,14 @@ copy of the source and sliced from the original, so extracted text keeps
 its accents, ligatures and case. Tokens that cannot be confirmed in the
 source are flagged as mismatches for review.
 
+**Pseudonymisation.** `ano_hash` and `ano_hide` take regex patterns
+matched case-insensitively against column names, and transform the
+matching columns before extraction, so every output carries the
+transformed values: the returned frames, the Excel sheets and the gt
+tables. Both abort rather than act silently when a pattern matches no
+column, matches the identifier or group column, or matches the text
+column.
+
 **Built-in caching.** `edstr_import()` and `edstr_clean()` write Parquet
 files; `edstr_extract()` writes an RDS file. The `edstr_overwrite`
 option (`TRUE` / `FALSE` / `NULL`) controls whether existing files are
@@ -189,6 +197,15 @@ overwritten, loaded silently, or trigger an interactive prompt.
   apply to n-grams larger than the threshold and no realistic `token`
   value reaches 11, so nothing is scanned and the heuristic never fires.
   Lower the threshold to enable it.
+- `ano_hash` is pseudonymisation, not anonymisation. The hash is
+  unsalted and stable across runs, which is what makes a patient
+  traceable between two extractions; it also means a small identifier
+  space can be reversed by enumerating it.
+- Neither `ano_hash` nor `ano_hide` touches the clinical text.
+  `data$extract`, `data$note` and the highlighted Excel output quote the
+  source column verbatim, since showing that text is what they are for,
+  and the Parquet caches written upstream by `edstr_import()` and
+  `edstr_clean()` keep the source in clear.
 
 ## Output
 

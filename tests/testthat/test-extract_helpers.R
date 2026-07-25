@@ -303,9 +303,7 @@ test_that("format_text: strips HTML tags and transliterates", {
     data = df,
     text_input = "texte",
     id = "doc_id",
-    group = "id_group",
-    ano_hash = NULL,
-    ano_hide = NULL
+    group = "id_group"
   )
 
   expect_false(grepl("<", result$texte))
@@ -324,9 +322,7 @@ test_that("format_text: keeps only id, group and text columns", {
     data = df,
     text_input = "texte",
     id = "doc_id",
-    group = "id_group",
-    ano_hash = NULL,
-    ano_hide = NULL
+    group = "id_group"
   )
 
   expect_equal(names(result), c("doc_id", "id_group", "texte"))
@@ -348,9 +344,7 @@ test_that("format_text: drop attribute carries empty-text and outside-<p> ids", 
       data = df,
       text_input = "texte",
       id = "doc_id",
-      group = "id_group",
-      ano_hash = NULL,
-      ano_hide = NULL
+      group = "id_group"
     )
   )
 
@@ -379,9 +373,7 @@ test_that("format_text: empty-source only yields no outside-<p> ids", {
       data = df,
       text_input = "texte",
       id = "doc_id",
-      group = "id_group",
-      ano_hash = NULL,
-      ano_hide = NULL
+      group = "id_group"
     ),
     "format_drops"
   )
@@ -407,9 +399,7 @@ test_that("format_text: NA or empty source lands in no_source", {
       data = df,
       text_input = "texte",
       id = "doc_id",
-      group = "id_group",
-      ano_hash = NULL,
-      ano_hide = NULL
+      group = "id_group"
     ),
     "format_drops"
   )
@@ -431,9 +421,7 @@ test_that("format_text: an empty source alone still attaches a drop partition", 
       data = df,
       text_input = "texte",
       id = "doc_id",
-      group = "id_group",
-      ano_hash = NULL,
-      ano_hide = NULL
+      group = "id_group"
     ),
     "format_drops"
   )
@@ -455,9 +443,7 @@ test_that("format_text: fully covered lot attaches no drop partition", {
       data = df,
       text_input = "texte",
       id = "doc_id",
-      group = "id_group",
-      ano_hash = NULL,
-      ano_hide = NULL
+      group = "id_group"
     )
   )
 
@@ -797,60 +783,102 @@ test_that("format_text: the tokenised frame keeps only the key and text columns"
     stringsAsFactors = FALSE
   )
 
-  format_one <- function(...) {
-    edstr:::.extract_format_text(
-      data = df,
-      text_input = "texte",
-      id = "doc_id",
-      group = "id_group",
-      ...
-    )
-  }
-
-  expect_equal(
-    names(format_one(ano_hash = NULL, ano_hide = NULL)),
-    c("doc_id", "id_group", "texte")
+  result <- edstr:::.extract_format_text(
+    data = df,
+    text_input = "texte",
+    id = "doc_id",
+    group = "id_group"
   )
-  expect_false("nom" %in% names(format_one(ano_hash = "nom", ano_hide = NULL)))
-  expect_false("nom" %in% names(format_one(ano_hash = NULL, ano_hide = "nom")))
+
+  expect_equal(names(result), c("doc_id", "id_group", "texte"))
 })
 
-test_that("format_text: anonymising a key column errors", {
-  df <- data.frame(
+ano_df <- function() {
+  data.frame(
     doc_id = c("1", "2"),
     id_group = 1:2,
+    ipp = c("111", "222"),
     nom = c("Dupont", "Martin"),
     texte = '<p class="t">diabetique</p>',
     stringsAsFactors = FALSE
   )
+}
 
-  format_one <- function(...) {
-    edstr:::.extract_format_text(
-      data = df,
-      text_input = "texte",
-      id = "doc_id",
-      group = "id_group",
-      ...
-    )
-  }
+ano_one <- function(...) {
+  edstr:::.extract_anonymise(
+    data = ano_df(),
+    id = "doc_id",
+    group = "id_group",
+    text_input = "texte",
+    ...
+  )
+}
 
+test_that("anonymise: the returned frame carries the anonymised columns", {
+  out <- ano_one(ano_hash = "ipp", ano_hide = "nom")
+
+  expect_equal(names(out), names(ano_df()))
+  expect_false(any(out$ipp %in% ano_df()$ipp))
+  expect_equal(out$nom, c("---", "---"))
+  expect_equal(out$doc_id, ano_df()$doc_id)
+  expect_equal(out$texte, ano_df()$texte)
+})
+
+test_that("anonymise: no pattern returns the frame untouched", {
+  expect_equal(ano_one(ano_hash = NULL, ano_hide = NULL), ano_df())
+})
+
+test_that("anonymise: targeting a key column errors", {
   expect_error(
-    format_one(ano_hash = "doc_id", ano_hide = NULL),
+    ano_one(ano_hash = "doc_id", ano_hide = NULL),
     "cannot target a key column"
   )
   expect_error(
-    format_one(ano_hash = NULL, ano_hide = "doc_id"),
+    ano_one(ano_hash = NULL, ano_hide = "doc_id"),
     "cannot target a key column"
   )
   expect_error(
-    format_one(ano_hash = NULL, ano_hide = "id"),
+    ano_one(ano_hash = NULL, ano_hide = "id"),
     "cannot target a key column"
   )
 
-  # `ano_hide` is matched case-insensitively, `ano_hash` is not
+  # `group` alone: every other pattern here also reaches `id`
   expect_error(
-    format_one(ano_hash = NULL, ano_hide = "DOC_ID"),
+    ano_one(ano_hash = "group", ano_hide = NULL),
     "cannot target a key column"
   )
-  expect_no_error(format_one(ano_hash = "DOC_ID", ano_hide = NULL))
+  expect_error(
+    ano_one(ano_hash = NULL, ano_hide = "group"),
+    "cannot target a key column"
+  )
+
+  # both arguments are matched case-insensitively
+  expect_error(
+    ano_one(ano_hash = NULL, ano_hide = "DOC_ID"),
+    "cannot target a key column"
+  )
+  expect_error(
+    ano_one(ano_hash = "DOC_ID", ano_hide = NULL),
+    "cannot target a key column"
+  )
+})
+
+test_that("anonymise: targeting the text column errors", {
+  expect_error(
+    ano_one(ano_hash = "texte", ano_hide = NULL),
+    "cannot target the text column"
+  )
+  expect_error(
+    ano_one(ano_hash = NULL, ano_hide = "TEXTE"),
+    "cannot target the text column"
+  )
+})
+
+test_that("anonymise: a pattern matching no column errors", {
+  expect_error(ano_one(ano_hash = "absent", ano_hide = NULL), "matches no column")
+  expect_error(ano_one(ano_hash = NULL, ano_hide = "absent"), "matches no column")
+  expect_error(
+    ano_one(ano_hash = c("ipp", "absent"), ano_hide = NULL),
+    "matches no column"
+  )
 })

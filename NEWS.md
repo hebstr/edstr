@@ -17,6 +17,12 @@
 - `edstr_extract()` normalises sub-concept names given as a named character vector.
   Only list names were lowercased and stripped, so `list(cancer = c("Sein Droit" = "sein"))` reached the `note` output as `class='extract Sein Droit'`, which a browser reads as two separate classes.
 
+- `edstr_extract()` applies `ano_hash` and `ano_hide` to every output.
+  The anonymised frame was built inside the text formatter and then reduced to the key and text columns, which dropped every column it had transformed before anything read it, while every output kept deriving from the untouched input: `ano_hash = "ipp"` left the column in clear in `data$base`, `data$extract`, `data$note`, the Excel sheets and the `gt` tables, with the documentation promising the opposite.
+  Anonymisation now runs once on the input frame, before extraction.
+  Both arguments are matched case-insensitively (`ano_hash` was case-sensitive, so a pattern could silently miss a capitalised column), the hash keeps 16 hexadecimal characters instead of 7 (28 bits collided with probability \~12% over 8000 rows), and a pattern matching no column, or matching `text_input`, now aborts instead of passing silently.
+  Both also read their pattern in the same regex dialect: `ano_hide` was applied through `grep()`, so a construct such as a lookahead passed validation and then failed inside `dplyr` with `invalid regular expression`.
+
 - `edstr_extract()` rejects an `ano_hash` or `ano_hide` pattern that matches the `id` or `group` column.
   Anonymising a key desynchronised the tokenised frame from the one carrying the results: pointing `ano_hide` at the document id reported every document as a true negative, with no error and no warning.
 

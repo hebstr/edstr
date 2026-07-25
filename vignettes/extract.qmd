@@ -158,8 +158,17 @@ result <- edstr_extract(
 
 Two arguments handle de-identification before extraction:
 
-- `ano_hash`: column names whose values are replaced by truncated hashes.
+- `ano_hash`: column names whose values are replaced by a 16-character hash.
 - `ano_hide`: column names whose values are masked with `"---"`.
+
+Both take regex patterns matched case-insensitively against column names, and both apply to the input frame before anything derives from it, so every output carries the transformed values: `data$base`, `data$match`, `data$extract`, `data$note`, the Excel sheets and the `gt` tables.
+
+They abort rather than act silently when a pattern matches no column, matches the `id` or `group` column, or matches the text column.
+
+Two limits are worth stating plainly.
+The hash is unsalted and stable across runs, which is what makes a patient traceable between two extractions; it also means a small identifier space can be reversed by enumerating it.
+This is pseudonymisation, not anonymisation.
+And neither argument touches the clinical text itself: `data$extract`, `data$note` and the highlighted Excel output quote the source verbatim, since showing that text is what they are for.
 
 ```{r}
 #| label: extract-ano
@@ -168,7 +177,7 @@ Two arguments handle de-identification before extraction:
 result <- edstr_extract(
   data = df_clean,
   concepts = c(fracture = "fracture"),
-  ano_hash = "id_pat",
+  ano_hash = "ipp",
   ano_hide = "patient_name",
   group = "id_pat"
 )
