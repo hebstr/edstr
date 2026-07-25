@@ -69,6 +69,11 @@
   wrong n-gram size without warning, as with `token = c(2, 1)`, or failed with
   `subscript out of bounds`, as with `token = c(1, 3)`.
 
+- `edstr_extract()` keeps invisible formatting characters in the `note` output.
+  The highlighting restored its spans through a fixed-string search, which skips default-ignorable code points, so a zero-width no-break space (U+FEFF) sitting next to a highlighted match was consumed along with the placeholder and deleted from the text.
+  Exports produced on Windows carry that character at the head of a document.
+  Characters ICU does not skip, the soft hyphen among them, were never affected.
+
 - `edstr_extract()` no longer highlights its own markup in the `note` output.
   A concept matching a word the markup itself uses, such as `extract`, `span`,
   `class`, or another concept's name, produced nested and malformed spans.

@@ -94,6 +94,16 @@ test_that("re2_prepare: an astral code point keeps the width map aligned", {
   )
 })
 
+test_that("re2_prepare: a missing document does not stop the width map", {
+  prep <- edstr:::.re2_prepare(c("cœur battant", NA_character_, "coeur"))
+
+  expect_false(prep$expand[[2]])
+  expect_equal(
+    edstr:::.re2_extract_prepared(prep, "(?i)\\b(coeur)\\b"),
+    list("cœur", character(0), "coeur")
+  )
+})
+
 test_that("re2_extract_prepared: both offset maps run on a non-ASCII fold", {
   pua <- intToUtf8(0xF0A7)
   prep <- edstr:::.re2_prepare(paste0("le cœur ", pua, " bat fort"))

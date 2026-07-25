@@ -263,7 +263,7 @@ gt_text_align <- \(
   for (base in planes) {
     range <- paste0("[", intToUtf8(base), "-", intToUtf8(base + n - 1L), "]")
 
-    if (!any(stri_detect_regex(x, range))) {
+    if (!any(stri_detect_regex(x, range), na.rm = TRUE)) {
       return(intToUtf8(base + seq_len(n) - 1L, multiple = TRUE))
     }
   }
@@ -315,13 +315,19 @@ set_class_css <- \(data, pattern, rows = NULL) {
     string
   }
 
-  stri_replace_all_fixed(
+  markup <- c(
+    str_glue("<span class='extract {names(pattern)}'>"),
+    "</span>"
+  )
+
+  # a fixed-string search skips default-ignorable code points, so it deletes any
+  # U+FEFF it passes over: the restore runs on escaped code points instead, and
+  # the markup has `$` and `\` escaped out of it, the first introducing a
+  # backreference on the replacement side, the second escaping it
+  stri_replace_all_regex(
     str = reduce(seq_along(pattern), fun, .init = data),
-    pattern = c(open, close),
-    replacement = c(
-      str_glue("<span class='extract {names(pattern)}'>"),
-      "</span>"
-    ),
+    pattern = map_chr(c(open, close), .re2_char_class),
+    replacement = stri_replace_all_regex(markup, "([\\\\$])", "\\\\$1"),
     vectorize_all = FALSE
   )
 }

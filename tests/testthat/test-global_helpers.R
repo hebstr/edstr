@@ -93,6 +93,13 @@ test_that("pua_guard: errors when every candidate plane is occupied", {
   expect_length(edstr:::.pua_guard("texte normal", 2L), 2L)
 })
 
+test_that("pua_guard: a missing value does not stop the plane search", {
+  expect_length(
+    edstr:::.pua_guard(c("texte normal", NA_character_), 2L),
+    2L
+  )
+})
+
 
 test_that("set_class_css: wraps a match in a concept-classed span", {
   out <- edstr:::set_class_css(
@@ -200,6 +207,17 @@ test_that("set_class_css: private-use characters in source survive markup", {
 
 test_that("set_class_css: an empty pattern set leaves the text untouched", {
   expect_equal(edstr:::set_class_css("cancer", list()), "cancer")
+})
+
+test_that("set_class_css: default-ignorable code points survive the restore", {
+  bom <- intToUtf8(0xFEFF)
+  pattern <- list(tumeur = "(?i)\\b(cancer)\\b")
+
+  expect_equal(edstr:::set_class_css(bom, pattern), bom)
+  expect_equal(
+    edstr:::set_class_css(paste0(bom, "cancer"), pattern),
+    paste0(bom, "<span class='extract tumeur'>cancer</span>")
+  )
 })
 
 test_that("easy_ano: hashing replaces the value and keeps a stable width", {

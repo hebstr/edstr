@@ -121,12 +121,13 @@
   # Latin-ASCII never deletes a character (verified over all of Unicode), so an
   # unchanged length means every character mapped to exactly one: no offset
   # map is needed for that document.
-  expand <- folded_len != nchar(text, "chars")
+  known <- !is.na(folded_len)
+  expand <- known & folded_len != nchar(text, "chars")
 
   list(
     text = text,
     folded = folded,
-    ascii = nchar(folded, "bytes") == folded_len,
+    ascii = known & nchar(folded, "bytes") == folded_len,
     folded_len = folded_len,
     expand = expand,
     width = .re2_widths(text, expand)
