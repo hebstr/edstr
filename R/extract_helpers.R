@@ -204,18 +204,27 @@
     format_text <- regex("\">(.+?)</p>", dotall = TRUE)
     format_tags <- regex("</?[a-z]+/?>")
 
-    text |>
-      str_match_all(format_text) |>
-      map(~ .[, 2]) |>
-      map_chr(
-        ~ . |>
-          str_replace_all(format_tags, " ") |>
-          paste(collapse = " ")
-      ) |>
-      str_squish() |>
-      # the same fold source matching uses, so a token and the folded source are
-      # the same string by construction
-      .re2_fold()
+    captured <- .timed_sub(
+      "  format: html capture",
+      text |>
+        str_match_all(format_text) |>
+        map(~ .[, 2])
+    )
+
+    stripped <- .timed_sub(
+      "  format: strip+squish",
+      captured |>
+        map_chr(
+          ~ . |>
+            str_replace_all(format_tags, " ") |>
+            paste(collapse = " ")
+        ) |>
+        str_squish()
+    )
+
+    # the same fold source matching uses, so a token and the folded source are
+    # the same string by construction
+    .timed_sub("  format: re2 fold", .re2_fold(stripped))
   }
 
   data <- data[c(id, group, text_input)]

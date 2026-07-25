@@ -51,23 +51,29 @@
     as.list() |>
     set_names(data_regex_df$concept)
 
-  data_regex_prep <- .re2_prepare(data_match_df[[text_input]])
+  data_regex_prep <- .timed_sub(
+    "  source: re2 prepare",
+    .re2_prepare(data_match_df[[text_input]])
+  )
 
-  data_regex_match <- imap(
-    data_regex_list,
-    ~ view_output(
-      data = data_match_df,
-      text_input = text_input,
-      pattern = .x,
-      id = id,
-      error_empty = FALSE,
-      match_only = TRUE,
-      prep = data_regex_prep
+  data_regex_match <- .timed_sub(
+    "  source: K passes",
+    imap(
+      data_regex_list,
+      ~ view_output(
+        data = data_match_df,
+        text_input = text_input,
+        pattern = .x,
+        id = id,
+        error_empty = FALSE,
+        match_only = TRUE,
+        prep = data_regex_prep
+      ) |>
+        pluck("match") |>
+        mutate(concept = .y, .before = "match")
     ) |>
-      pluck("match") |>
-      mutate(concept = .y, .before = "match")
-  ) |>
-    list_rbind()
+      list_rbind()
+  )
 
   if (ncol(data_regex_match) == 0) {
     data_regex_match <- tibble(
@@ -77,11 +83,14 @@
     )
   }
 
-  data_regex_count <- count(
-    x = data_regex_match,
-    .data$concept,
-    .data$match,
-    sort = TRUE
+  data_regex_count <- .timed_sub(
+    "  source: count",
+    count(
+      x = data_regex_match,
+      .data$concept,
+      .data$match,
+      sort = TRUE
+    )
   )
 
   list(

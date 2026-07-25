@@ -8,11 +8,16 @@
   group,
   intersect
 ) {
-  token_extract <- \(x, key) {
+  token_extract <- \(x, key, n) {
     occ <- data_token[[key]]
-    vocab <- distinct(occ, pick(all_of(text_input)))
 
-    hits <-
+    vocab <- .timed_sub(
+      glue("  match n{n}: vocab"),
+      distinct(occ, pick(all_of(text_input)))
+    )
+
+    hits <- .timed_sub(
+      glue("  match n{n}: K ICU scans"),
       imap(
         x,
         \(regex, concept_key) {
@@ -22,38 +27,45 @@
             mutate(concept_hit = concept_key)
         }
       ) |>
-      list_rbind()
+        list_rbind()
+    )
 
-    occ |>
-      inner_join(hits, by = text_input, relationship = "many-to-many") |>
-      mutate(
-        !!id := .data[[id]],
-        !!group := .data[[group]],
-        concept = .data$concept_hit,
-        !!text_input := .data$match,
-        .before = all_of(text_input),
-        .keep = "none"
-      ) |>
-      drop_na() |>
-      # arrange() is stable, so sorting on the concept factor alone restores
-      # concept-major order and leaves each concept's rows in occurrence order
-      arrange(factor(.data$concept, levels = names(x)))
+    .timed_sub(
+      glue("  match n{n}: join+reshape"),
+      occ |>
+        inner_join(hits, by = text_input, relationship = "many-to-many") |>
+        mutate(
+          !!id := .data[[id]],
+          !!group := .data[[group]],
+          concept = .data$concept_hit,
+          !!text_input := .data$match,
+          .before = all_of(text_input),
+          .keep = "none"
+        ) |>
+        drop_na() |>
+        # arrange() is stable, so sorting on the concept factor alone restores
+        # concept-major order and leaves each concept's rows in occurrence order
+        arrange(factor(.data$concept, levels = names(x)))
+    )
   }
 
   data_token_list <- imap(
     token,
     # keyed on the n-gram table's own name, since `token` holds sizes, not positions
-    ~ token_extract(concepts_list$regex, .y)
+    \(n, key) token_extract(concepts_list$regex, key, n)
   )
 
-  data_token_match <- map(
-    data_token_list,
-    ~ count(
-      x = .,
-      .data$concept,
-      pick(all_of(text_input)),
-      name = "match",
-      sort = TRUE
+  data_token_match <- .timed_sub(
+    "  match: counts",
+    map(
+      data_token_list,
+      ~ count(
+        x = .,
+        .data$concept,
+        pick(all_of(text_input)),
+        name = "match",
+        sort = TRUE
+      )
     )
   )
 
