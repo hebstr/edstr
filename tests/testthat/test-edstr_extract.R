@@ -105,6 +105,21 @@ test_that("edstr_extract: a vector of sub-patterns under collapse = FALSE errors
     "cannot keep separate"
   )
 
+  # the hint sends users to `list()`, so a vector inside one must abort the
+  # same way instead of failing later on a tibble recycling error
+  expect_error(
+    suppressMessages(edstr_extract(
+      data = data,
+      concepts = list(
+        cancer = list(sein = c("sein", "mammaire")),
+        diab = "diabet"
+      ),
+      token = 1,
+      collapse = FALSE
+    )),
+    "cancer_sein"
+  )
+
   expect_no_error(
     suppressMessages(edstr_extract(
       data = data,
@@ -423,6 +438,10 @@ test_that("edstr_extract: extract and note output are stable (refactor oracle)",
 
   expect_snapshot_value(result$data$extract, style = "json2")
   expect_snapshot_value(result$data$note, style = "json2")
+
+  # the delivered XLSX and gt sort on this column, so it must not be text
+  expect_type(result$data$extract$n, "integer")
+  expect_equal(result$data$extract$n, seq_len(nrow(result$data$extract)))
 })
 
 test_that("edstr_extract: loads cached RDS when file exists", {
@@ -613,6 +632,19 @@ test_that("edstr_extract: multiple concepts with intersect", {
 
   expect_equal(nrow(result$data$extract), 1)
   expect_equal(result$data$extract$doc_id, "1")
+
+  # a document matching a single root is a non-case, not a document the
+  # accounting may drop: every input row lands in exactly one bucket
+  expect_equal(result$unmatched$n_no_concept, 3)
+  expect_equal(
+    nrow(result$data$extract) +
+      result$unmatched$n_no_concept +
+      nrow(result$unmatched$no_source) +
+      nrow(result$unmatched$empty_text) +
+      nrow(result$unmatched$outside_p),
+    nrow(data)
+  )
+  expect_setequal(result$data$match$doc_id, c("1", "2", "3"))
 })
 
 test_that("edstr_extract: dirname_suffix and filename_suffix affect paths", {

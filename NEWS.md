@@ -67,6 +67,72 @@
   The guard counts roots, not concept keys, so a nested single-root input no
   longer slips through.
 
+- `edstr_extract(collapse = TRUE)` now collapses a set of single-pattern nested
+  lists instead of deparsing it.
+  `list(cancer = list(sein = "sein"), diab = list(t2 = "diabet"))` leaves every
+  root at length one, which took the flat branch and used the R source of each
+  inner list as its pattern.
+  The regex stayed syntactically valid, so the run ended on `No matches found`
+  with nothing else to go on.
+
+- A `.sql` file passed to `edstr_import(query = )` keeps the comment markers
+  that sit inside a string literal.
+  Comment stripping ran on the raw text, so `LIKE '%--%'` was truncated to
+  `LIKE '%` and `nom != '---'`, the package's own default hide pattern, to
+  `nom != '`.
+  Those break loudly on an unbalanced quote, but a block marker spanning two
+  literals did not: `SELECT '/*' AS a, 'x' AS b, '*/' AS c FROM t` was sent as
+  `SELECT '' AS c FROM t`, valid SQL over a different result set.
+
+- An empty Excel sheet keeps a uniform header row.
+  `wb_dims(select = "data")` collapses onto the header on a zero-row frame, and
+  the concept and text colouring was the one data-scoped style left ungated, so
+  it repainted the header cells of the columns it targets.
+  A colour naming a column absent from an empty sheet also aborted the whole
+  workbook build with `Column exceeds valid range`, the normalisation that
+  filters such names running only when the frame carried rows.
+
+- The `n` row counter of `data$extract` and `data$note` is an integer.
+  It came from `rownames_to_column()`, so it was text: the delivered Excel sheet
+  and the `gt` table sorted it lexicographically, putting row `10` before row
+  `2`.
+
+- `edstr_extract()` reports a multi-pattern concept at any nesting depth.
+  The guard inspected the top level only, so its own hint, wrapping sub-concepts
+  in `list()`, led straight to a shape it no longer covered:
+  `list(cancer = list(sein = c("sein", "mammaire")))` reached the `regex_df`
+  build and died on `Tibble columns must have compatible sizes`.
+  The abort now names the flattened concept, `cancer_sein`.
+
+- `edstr_extract(ano_hash = )` keeps missing values missing.
+  Every `NA` in a hashed column was hashed like any other value and came back as
+  one shared 16-character pseudonym, so completeness reporting saw no missing
+  value left and, worse, a join on the pseudonymised column matched all the
+  identity-unknown rows with one another, merging distinct records into a single
+  pseudo-patient.
+  `id` and `group` are out of reach of the pattern, but any secondary
+  identifier is not.
+
+- `edstr_extract(intersect = TRUE)` now counts a document matching some roots
+  but not all as a non-case, instead of dropping it from every output.
+  Such a document was absent from `data$extract` and from all four `unmatched`
+  buckets at once, so the counts did not close and `n_no_concept`, which the
+  documentation designates as the denominator, was understated: a prevalence
+  over three documents where one matched both roots, one matched a single root
+  and one matched neither came out at 1/2 instead of 1/3.
+  It now lands in `no_concept`, the unit under `intersect = TRUE` being the
+  compound concept.
+  `data$match` stays pre-intersect, so
+  `anti_join(data$match, data$extract, by = id)` still recovers the set.
+  Results stored from an earlier `intersect = TRUE` run are not comparable.
+
+- `edstr_extract()` rejects two concepts that share a sub-name.
+  `list(cancer = c(sein = "mammaire"), benin = c(sein = "adenofibrome"))` kept
+  the roots apart in the dummy columns but labelled both `sein`, and the
+  sub-name is what groups the source passes, so the two concepts were matched
+  as one and the `concept` column contradicted the dummy columns on the same
+  row.
+
 ## Performance
 
 - `edstr_extract()` is about 40% faster, with identical output.

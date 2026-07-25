@@ -111,6 +111,33 @@ test_that("parse_concepts: collapse OR-combines a nested character list", {
   )
 })
 
+test_that("parse_concepts: colliding sub-names error", {
+  expect_error(
+    edstr:::.extract_parse_concepts(
+      concepts = list(
+        cancer = c(sein = "mammaire"),
+        benin = c(sein = "adenofibrome")
+      ),
+      collapse = FALSE,
+      intersect = FALSE,
+      starts_with_only = TRUE
+    ),
+    "sub-names"
+  )
+})
+
+test_that("parse_concepts: collapse flattens single-pattern list() leaves", {
+  result <- edstr:::.extract_parse_concepts(
+    concepts = list(cancer = list(sein = "sein"), diab = list(t2 = "diabet")),
+    collapse = TRUE,
+    intersect = FALSE,
+    starts_with_only = TRUE
+  )
+
+  expect_equal(result$keys, "concepts")
+  expect_equal(result$regex_df$regex, "^(sein|diabet)\\S*$")
+})
+
 test_that("parse_concepts: collapse with single concept errors", {
   expect_error(
     edstr:::.extract_parse_concepts(
@@ -499,7 +526,7 @@ test_that("unmatched: partitions unmatched docs into concept/empty/outside sets"
     id_group = 1:5,
     texte = "x"
   )
-  data_match_init <- data.frame(doc_id = "1")
+  match_id <- data.frame(doc_id = "1")
   data_match <- data.frame(
     doc_id = character(),
     concept = character(),
@@ -515,7 +542,7 @@ test_that("unmatched: partitions unmatched docs into concept/empty/outside sets"
   res <- edstr:::.extract_unmatched(
     data = data,
     data_match = data_match,
-    data_match_init = data_match_init,
+    match_id = match_id,
     data_regex_match = data_regex_match,
     id = "doc_id",
     group = "id_group",
@@ -546,7 +573,7 @@ test_that("unmatched: no_source is kept out of the no_concept set", {
     id_group = 1:5,
     texte = "x"
   )
-  data_match_init <- data.frame(doc_id = "1")
+  match_id <- data.frame(doc_id = "1")
   data_match <- data.frame(
     doc_id = character(),
     concept = character(),
@@ -562,7 +589,7 @@ test_that("unmatched: no_source is kept out of the no_concept set", {
   res <- edstr:::.extract_unmatched(
     data = data,
     data_match = data_match,
-    data_match_init = data_match_init,
+    match_id = match_id,
     data_regex_match = data_regex_match,
     id = "doc_id",
     group = "id_group",
@@ -600,7 +627,7 @@ test_that("unmatched: no_source is populated regardless of unmatched_data", {
       concept = character(),
       texte = character()
     ),
-    data_match_init = data.frame(doc_id = "1"),
+    match_id = data.frame(doc_id = "1"),
     data_regex_match = data.frame(
       doc_id = character(),
       concept = character(),
@@ -624,7 +651,7 @@ test_that("unmatched: unmatched_data = FALSE gates only the no_concept set", {
     id_group = 1:5,
     texte = "x"
   )
-  data_match_init <- data.frame(doc_id = "1")
+  match_id <- data.frame(doc_id = "1")
   data_match <- data.frame(
     doc_id = character(),
     concept = character(),
@@ -640,7 +667,7 @@ test_that("unmatched: unmatched_data = FALSE gates only the no_concept set", {
   res <- edstr:::.extract_unmatched(
     data = data,
     data_match = data_match,
-    data_match_init = data_match_init,
+    match_id = match_id,
     data_regex_match = data_regex_match,
     id = "doc_id",
     group = "id_group",
@@ -657,7 +684,7 @@ test_that("unmatched: unmatched_data = FALSE gates only the no_concept set", {
 
 test_that("unmatched: mismatched captures token matches absent from source", {
   data <- data.frame(doc_id = "1", id_group = 1, texte = "x")
-  data_match_init <- data.frame(doc_id = "1")
+  match_id <- data.frame(doc_id = "1")
   data_match <- data.frame(
     doc_id = "1",
     concept = "c1",
@@ -672,7 +699,7 @@ test_that("unmatched: mismatched captures token matches absent from source", {
   res <- edstr:::.extract_unmatched(
     data = data,
     data_match = data_match,
-    data_match_init = data_match_init,
+    match_id = match_id,
     data_regex_match = data_regex_match,
     id = "doc_id",
     group = "id_group",

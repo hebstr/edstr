@@ -113,7 +113,8 @@ normalisation rules).}
 
 \item{unmatched_data}{\verb{<logical(1)>} If \code{TRUE}, materialise the row-level
 \code{unmatched$no_concept} set (documents whose text was searched and matched
-no concept), which can be large. Only the rows are gated: the count
+no concept, or no longer match the intersection when \code{intersect = TRUE}),
+which can be large. Only the rows are gated: the count
 \code{unmatched$n_no_concept} is always exact regardless. The \code{no_source},
 \code{empty_text} and \code{outside_p} sets are always populated too. Default
 \code{FALSE}.}
@@ -158,7 +159,10 @@ otherwise a 0-row tibble while \code{n_no_concept} still holds the count),
 \code{no_source} (source empty or \code{NA}, so never searched), \code{empty_text}
 (source holding no text once markup is stripped), \code{outside_p} (text
 outside \verb{<p>} blocks). Read \code{n_no_concept} for the denominator, never
-\code{nrow(no_concept)}.}
+\code{nrow(no_concept)}. Under \code{intersect = TRUE} the unit is the compound
+concept, so a document matching some roots but not all counts as a
+non-case in \code{no_concept}; \code{data$match} stays pre-intersect, and
+\code{anti_join(data$match, data$extract, by = id)} recovers that set.}
 \item{\code{mismatched}}{Tibble of token vs source discrepancies (token
 matches not confirmed in the source text).}
 \item{\code{summary}}{List: \code{token} (summary by token), \code{concept} (summary

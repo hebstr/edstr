@@ -43,7 +43,7 @@
     concepts <- if (any(lengths(concepts) > 1)) {
       map(concepts, ~ paste(unlist(.), collapse = "|"))
     } else {
-      set_names(paste(concepts, collapse = "|"), "concepts")
+      set_names(paste(unlist(concepts), collapse = "|"), "concepts")
     }
   } else {
     concepts <- easy_flatten(concepts)
@@ -62,6 +62,19 @@
     ))
   }
 
+  concept_names <- imap(concepts, ~ if (is_named(.x)) names(.x) else .y)
+
+  flat_names <- unlist(concept_names, use.names = FALSE)
+
+  if (anyDuplicated(flat_names)) {
+    dupes <- unique(flat_names[duplicated(flat_names)])
+    cli_abort(c(
+      "Concept sub-names collide after normalisation.",
+      "x" = "These normalised sub-names are duplicated: {.val {dupes}}.",
+      "i" = "Sub-names label the {.code concept} column and group the source passes, so distinct concepts sharing one would merge; rename them so they stay distinct."
+    ))
+  }
+
   root <- unique(str_remove(keys, "_.+"))
 
   if (length(root) == 1 && intersect) {
@@ -71,7 +84,7 @@
   lst(
     keys = keys,
     root = root,
-    names = imap(concepts, ~ if (is_named(.x)) names(.x) else .y),
+    names = concept_names,
     str = lst(
       comma = str_flatten_comma(root),
       inter = glue("[{paste(root, collapse = ' AND ')}]")
@@ -393,7 +406,7 @@
 .extract_unmatched <- \(
   data,
   data_match,
-  data_match_init,
+  match_id,
   data_regex_match,
   id,
   group,
@@ -401,9 +414,12 @@
   unmatched_data,
   format_drops
 ) {
+  # `match_id`, not the pre-intersect frame: under `intersect = TRUE` a document
+  # matching some roots but not all is a non-case, and leaving it out of every
+  # bucket understates the denominator `n_no_concept` is documented to be
   unmatched_all <-
     data[c(id, group)] |>
-    filter(!.data[[id]] %in% data_match_init[[id]])
+    filter(!.data[[id]] %in% match_id[[id]])
 
   no_source_ids <- format_drops$no_source
   empty_ids <- format_drops$empty_text
@@ -490,7 +506,7 @@
     reduce(inner_join, by = c(id, group)) |>
     relocate("concept", "extract", .after = last_col()) |>
     arrange(pick(all_of(c(group, id)))) |>
-    rownames_to_column("n")
+    mutate(n = row_number(), .before = 1L)
 }
 
 .extract_summary <- \(

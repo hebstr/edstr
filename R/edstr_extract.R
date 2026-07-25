@@ -45,16 +45,24 @@
 
   ### PARSE CONCEPTS -------------------------------------------------------------
 
-  # checked before parsing: a multi-pattern root on a flat set breaks the
-  # `regex_df` build, and only a single root survives it through recycling
-  multi_root <- names(concepts)[
-    !map_lgl(concepts, is.list) & lengths(concepts) > 1
-  ]
+  # checked before parsing: a multi-pattern leaf breaks the `regex_df` build,
+  # and only a single one survives it through recycling. Walked at any depth,
+  # since the hint below sends users to `list()`, whose leaves fail the same way
+  .multi_leaf <- \(x, path) {
+    if (!is.list(x)) {
+      return(if (length(x) > 1) path else NULL)
+    }
 
-  if (!collapse && length(multi_root) > 0) {
+    imap(x, ~ .multi_leaf(.x, paste(path, .y, sep = "_"))) |>
+      unlist(use.names = FALSE)
+  }
+
+  multi_leaf <- imap(concepts, ~ .multi_leaf(.x, .y)) |> unlist(use.names = FALSE)
+
+  if (!collapse && length(multi_leaf) > 0) {
     cli_abort(c(
-      "A concept root holds several sub-patterns as a vector, which {.code collapse = FALSE} cannot keep separate.",
-      "x" = "Affected root{?s}: {.val {multi_root}}.",
+      "A concept holds several sub-patterns as a vector, which {.code collapse = FALSE} cannot keep separate.",
+      "x" = "Affected concept{?s}: {.val {multi_leaf}}.",
       "i" = "Wrap sub-concepts in {.code list()} to track them separately, or set {.code collapse = TRUE} to OR-combine them."
     ))
   }
@@ -220,7 +228,7 @@
     .extract_unmatched(
       data,
       data_id,
-      data_match_init,
+      match_id,
       data_regex_match,
       id,
       group,
@@ -570,7 +578,8 @@
 #'   normalisation rules).
 #' @param unmatched_data `<logical(1)>` If `TRUE`, materialise the row-level
 #'   `unmatched$no_concept` set (documents whose text was searched and matched
-#'   no concept), which can be large. Only the rows are gated: the count
+#'   no concept, or no longer match the intersection when `intersect = TRUE`),
+#'   which can be large. Only the rows are gated: the count
 #'   `unmatched$n_no_concept` is always exact regardless. The `no_source`,
 #'   `empty_text` and `outside_p` sets are always populated too. Default
 #'   `FALSE`.
@@ -609,7 +618,10 @@
 #'     `no_source` (source empty or `NA`, so never searched), `empty_text`
 #'     (source holding no text once markup is stripped), `outside_p` (text
 #'     outside `<p>` blocks). Read `n_no_concept` for the denominator, never
-#'     `nrow(no_concept)`.}
+#'     `nrow(no_concept)`. Under `intersect = TRUE` the unit is the compound
+#'     concept, so a document matching some roots but not all counts as a
+#'     non-case in `no_concept`; `data$match` stays pre-intersect, and
+#'     `anti_join(data$match, data$extract, by = id)` recovers that set.}
 #'   \item{`mismatched`}{Tibble of token vs source discrepancies (token
 #'     matches not confirmed in the source text).}
 #'   \item{`summary`}{List: `token` (summary by token), `concept` (summary

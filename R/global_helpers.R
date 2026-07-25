@@ -28,11 +28,20 @@ read_query <- \(query, call = rlang::caller_env()) {
     return(query)
   }
 
-  lines <- read_lines(file = query, skip_empty_rows = TRUE)
-  lines <- str_remove(lines, "--.*$")
+  # the alternation consumes a quoted literal before its content can be read as
+  # a comment marker, so `LIKE '%--%'` and `'/*'` survive the stripping
+  .strip_comments <- \(x, comment) {
+    str_replace_all(
+      x,
+      paste0("'[^']*'|", comment),
+      \(m) ifelse(str_detect(m, "^'"), m, "")
+    )
+  }
 
-  block <- str_flatten(lines, "\n")
-  block <- str_remove_all(block, "/\\*[\\s\\S]*?\\*/")
+  lines <- read_lines(file = query, skip_empty_rows = TRUE)
+  lines <- .strip_comments(lines, "--.*$")
+
+  block <- .strip_comments(str_flatten(lines, "\n"), "/\\*[\\s\\S]*?\\*/")
 
   lines <- str_split_1(block, "\n")
   lines <- lines[str_detect(lines, "\\S")]
@@ -67,11 +76,19 @@ easy_ano <- \(
   hash_len = 16,
   hide_pattern = "---"
 ) {
+  # `NA` is the absence of a value, not a value: hashing it would give every
+  # unknown identity one shared pseudonym, which a join then treats as a match
   .ano_hash_fun <- \(x_hash, to_hash) {
     x_hash |>
       mutate(
-        "{to_hash}" := map_chr(.data[[to_hash]], rlang::hash) |>
-          str_sub(1L, hash_len)
+        "{to_hash}" := map_chr(
+          .data[[to_hash]],
+          ~ if (is.na(.x)) {
+            NA_character_
+          } else {
+            str_sub(rlang::hash(.x), 1L, hash_len)
+          }
+        )
       )
   }
 
@@ -273,7 +290,10 @@ set_class_css <- \(data, pattern, rows = NULL) {
 
   pattern_id <- map_chr(names(pattern), class_flatten)
 
-  pattern <- set_names(pattern, pattern_id) |> map_chr(regex)
+  # case insensitivity is baked into the patterns by `regex_wrap`'s `(?i)`, not
+  # set here: `regex()` defaults to a case-sensitive object anyway, and `map_chr`
+  # would strip its class before `str_replace_all` could read any option
+  pattern <- set_names(pattern, pattern_id) |> unlist()
 
   guard <- .pua_guard(data, length(pattern) + 1L)
   open <- guard[seq_along(pattern)]
@@ -362,6 +382,10 @@ wb_add_custom <- \(
   }
 
   add_color <- \(wb, vars, color) {
+    if (!has_data) {
+      return(wb)
+    }
+
     wb_add_font(
       wb = wb,
       dims = wb_dims(x = data, cols = vars, select = "data"),

@@ -32,6 +32,25 @@ test_that("read_query: comments are stripped and the query flattened", {
   expect_match(out, "FROM patients$")
 })
 
+test_that("read_query: a comment marker inside a literal is not a comment", {
+  path <- withr::local_tempfile(
+    fileext = ".sql",
+    lines = c(
+      "SELECT '/*' AS a, '*/' AS b, 'it''s' AS c, -- inline comment",
+      "  note",
+      "FROM patients",
+      "WHERE code LIKE '%--%' AND nom != '---' /* block comment */"
+    )
+  )
+
+  out <- suppressMessages(edstr:::read_query(path))
+
+  expect_no_match(out, "comment")
+  expect_match(out, "'%--%'", fixed = TRUE)
+  expect_match(out, "'---'", fixed = TRUE)
+  expect_match(out, "'/*' AS a, '*/' AS b, 'it''s' AS c", fixed = TRUE)
+})
+
 test_that("read_query: a comment-only file errors", {
   path <- withr::local_tempfile(
     fileext = ".sql",
@@ -199,6 +218,26 @@ test_that("easy_ano: hashing replaces the value and keeps a stable width", {
   expect_false(out$ipp[[1]] == out$ipp[[2]])
 })
 
+test_that("easy_ano: hashing keeps missing values missing", {
+  df <- data.frame(
+    ipp = c("111", NA, "111", NA),
+    num = c(1L, 2L, NA, NA)
+  )
+
+  out <- edstr:::easy_ano(df, to_hash = "ipp|num")
+
+  expect_equal(is.na(out$ipp), is.na(df$ipp))
+  expect_equal(is.na(out$num), is.na(df$num))
+  expect_equal(out$ipp[[1]], out$ipp[[3]])
+  expect_equal(unique(nchar(na.omit(out$ipp))), 16L)
+})
+
+test_that("easy_ano: hashing a fully missing column leaves it missing", {
+  df <- data.frame(ipp = rep(NA_character_, 3L))
+
+  expect_true(all(is.na(edstr:::easy_ano(df, to_hash = "ipp")$ipp)))
+})
+
 test_that("easy_ano: hashing is deterministic across calls", {
   df <- data.frame(ipp = "111", stringsAsFactors = FALSE)
 
@@ -261,4 +300,46 @@ test_that("easy_ano: no pattern leaves the frame untouched", {
   df <- data.frame(ipp = "111", stringsAsFactors = FALSE)
 
   expect_equal(edstr:::easy_ano(df), df)
+})
+
+test_that("wb_add_custom: a zero-row sheet keeps a uniform header", {
+  empty <- data.frame(a = character(), b = character())
+
+  style <- \(color) {
+    wb <- suppressWarnings(
+      edstr:::wb_add_custom(openxlsx2::wb_workbook(), "s", empty, color = color)
+    )
+
+    unname(c(
+      openxlsx2::wb_get_cell_style(wb, "s", dims = "A1"),
+      openxlsx2::wb_get_cell_style(wb, "s", dims = "B1")
+    ))
+  }
+
+  # `wb_dims(select = "data")` collapses onto the header row here, so a
+  # data-scoped colour would repaint it
+  expect_equal(style(list("#FF0000" = "a")), style(NULL))
+  expect_length(unique(style(list("#FF0000" = "a"))), 1L)
+
+  # the `intersect()` normalisation runs only when the frame carries rows
+  expect_no_error(style(list("#FF0000" = "absente")))
+})
+
+test_that("wb_add_custom: colouring still applies when the frame carries rows", {
+  df <- data.frame(a = c("x", "y"), b = c("u", "v"))
+
+  wb <- suppressWarnings(
+    edstr:::wb_add_custom(
+      openxlsx2::wb_workbook(),
+      "s",
+      df,
+      color = list("#FF0000" = "a")
+    )
+  )
+
+  cell <- \(dims) unname(openxlsx2::wb_get_cell_style(wb, "s", dims = dims))
+
+  expect_equal(cell("A1"), cell("B1"))
+  expect_false(cell("A2") == cell("B2"))
+  expect_equal(cell("A2"), cell("A3"))
 })

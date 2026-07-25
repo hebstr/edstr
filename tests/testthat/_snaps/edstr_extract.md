@@ -21,9 +21,9 @@
       },
       "value": [
         {
-          "type": "character",
+          "type": "integer",
           "attributes": {},
-          "value": ["1", "2", "3", "4", "5"]
+          "value": [1, 2, 3, 4, 5]
         },
         {
           "type": "character",
@@ -86,9 +86,9 @@
       },
       "value": [
         {
-          "type": "character",
+          "type": "integer",
           "attributes": {},
-          "value": ["1", "2", "3", "4", "5"]
+          "value": [1, 2, 3, 4, 5]
         },
         {
           "type": "character",
