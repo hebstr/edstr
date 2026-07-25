@@ -4,7 +4,7 @@
 \alias{edstr_clean}
 \title{Clean text data}
 \usage{
-edstr_clean(data, text = getOption("edstr_text"), replace)
+edstr_clean(data, text = getOption("edstr_text"), replace = NULL)
 }
 \arguments{
 \item{data}{\verb{<data.frame>} The data to clean. Must contain the column
@@ -16,7 +16,7 @@ to the \code{edstr_text} option set by \code{\link[=edstr_config]{edstr_config()
 \item{replace}{A named character vector or a list of named character
 vectors. Names are regex patterns, values are replacements. When a list
 is provided, each element is applied sequentially via
-\code{\link[stringr:str_replace_all]{stringr::str_replace_all()}}.}
+\code{\link[stringr:str_replace_all]{stringr::str_replace_all()}}. Required.}
 }
 \value{
 A \link{data.frame} with the cleaned text column.

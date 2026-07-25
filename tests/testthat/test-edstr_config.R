@@ -146,12 +146,53 @@ test_that("edstr_config() rejects invalid edstr_overwrite", {
   )
 })
 
+test_that("edstr_config() rejects invalid edstr_connect_dir", {
+  tmp <- withr::local_tempdir()
+
+  # `fs::file_exists()` would otherwise raise a bare R error deep in
+  # `edstr_import()` instead of a cli abort here
+  expect_error(
+    edstr_config(
+      edstr_dirname = tmp,
+      edstr_filename = "x",
+      edstr_connect_dir = 123
+    ),
+    "edstr_connect_dir"
+  )
+  expect_error(
+    edstr_config(
+      edstr_dirname = tmp,
+      edstr_filename = "x",
+      edstr_connect_dir = c("a.yml", "b.yml")
+    ),
+    "edstr_connect_dir"
+  )
+})
+
+test_that("edstr_config() sets edstr_connect_dir for edstr_import", {
+  withr::local_options(edstr_dirname = NULL, edstr_connect_dir = NULL)
+
+  tmp <- withr::local_tempdir()
+  connect <- file.path(tmp, "connect.yml")
+
+  suppressMessages(
+    edstr_config(
+      edstr_dirname = tmp,
+      edstr_filename = "x",
+      edstr_connect_dir = connect
+    )
+  )
+
+  expect_equal(getOption("edstr_connect_dir"), connect)
+})
+
 test_that("edstr_config() defaults text and overwrite to NULL", {
   withr::local_options(
     edstr_dirname = NULL,
     edstr_filename = NULL,
     edstr_text = "previous",
-    edstr_overwrite = TRUE
+    edstr_overwrite = TRUE,
+    edstr_connect_dir = "previous.yml"
   )
 
   tmp <- withr::local_tempdir()
@@ -165,4 +206,5 @@ test_that("edstr_config() defaults text and overwrite to NULL", {
 
   expect_null(getOption("edstr_text"))
   expect_null(getOption("edstr_overwrite"))
+  expect_null(getOption("edstr_connect_dir"))
 })

@@ -12,7 +12,9 @@ Description: Extract structured variables from clinical text. Import
 License: GPL (>= 3)
 URL: https://hebstr.github.io/edstr/, https://github.com/hebstr/edstr
 BugReports: https://github.com/hebstr/edstr/issues
-SystemRequirements: Java (>= 8), Oracle Instant Client
+SystemRequirements: Java (>= 8), Oracle JDBC driver (see
+    DatabaseConnector::downloadJdbcDrivers()), Quarto command line tool
+    (<https://github.com/quarto-dev/quarto-cli>)
 Encoding: UTF-8
 Depends:
     R (>= 4.4.0)

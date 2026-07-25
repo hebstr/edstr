@@ -20,6 +20,10 @@
 #'   - `TRUE`: overwrite without prompting.
 #'   - `FALSE`: load the cached file without prompting.
 #'   - `NULL` (default): prompt the user interactively.
+#' @param edstr_connect_dir `<character(1)>` Path to the YAML connection file
+#'   holding the driver, address and TNS entries [edstr_import()] reads.
+#'   Supplies its default `connect_dir` argument. The file is read when
+#'   `edstr_import()` runs, so it need not exist yet.
 #' @param ... Additional options passed to [options()].
 #'
 #' @return Invisibly returns `NULL`. Called for its side effects (setting
@@ -39,6 +43,7 @@ edstr_config <- \(
   edstr_filename,
   edstr_text = NULL,
   edstr_overwrite = NULL,
+  edstr_connect_dir = NULL,
   ...
 ) {
   if (!is.character(edstr_dirname) || length(edstr_dirname) != 1L) {
@@ -67,12 +72,21 @@ edstr_config <- \(
       "{.arg edstr_overwrite} must be {.code TRUE}, {.code FALSE}, or {.code NULL}"
     )
   }
+  if (
+    !is.null(edstr_connect_dir) &&
+      (!is.character(edstr_connect_dir) || length(edstr_connect_dir) != 1L)
+  ) {
+    cli_abort(
+      "{.arg edstr_connect_dir} must be a single character string ({.cls character(1)}) or {.code NULL}"
+    )
+  }
 
   options(
     edstr_dirname = fs::dir_create(str_glue(edstr_dirname)),
     edstr_filename = str_glue(edstr_filename),
     edstr_text = edstr_text,
     edstr_overwrite = edstr_overwrite,
+    edstr_connect_dir = edstr_connect_dir,
     ...
   )
 

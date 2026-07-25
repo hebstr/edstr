@@ -64,6 +64,86 @@ test_that("edstr_extract: excluding every match yields empty output without cras
   expect_named(result$regex$match, c("doc_id", "concept", "match"))
 })
 
+test_that("edstr_extract: a document whose every match is excluded is a true negative", {
+  tmp <- withr::local_tempdir()
+  withr::local_options(
+    edstr_dirname = tmp,
+    edstr_filename = "test_excluded_negative",
+    edstr_text = "texte",
+    edstr_overwrite = TRUE
+  )
+
+  data <- data.frame(
+    doc_id = c("kept", "all_excluded", "other", "true_neg"),
+    texte = c(
+      '<p class="t">diabete franc</p>',
+      '<p class="t">patient diabetique</p>',
+      '<p class="t">cancer du sein</p>',
+      '<p class="t">examen normal</p>'
+    ),
+    stringsAsFactors = FALSE
+  )
+
+  result <- suppressMessages(
+    edstr_extract(
+      data = data,
+      concepts = c(diabete = "diabet", cancer = "cancer"),
+      token = 1,
+      exclus_manual = "diabetique",
+      unmatched_data = TRUE
+    )
+  )
+
+  unmatched <- result$unmatched
+  parts <- c(
+    extract = nrow(result$data$extract),
+    no_concept = unmatched$n_no_concept,
+    no_source = nrow(unmatched$no_source),
+    empty_text = nrow(unmatched$empty_text),
+    outside_p = nrow(unmatched$outside_p)
+  )
+
+  expect_equal(sum(parts), nrow(data))
+  expect_setequal(result$data$extract$doc_id, c("kept", "other"))
+  expect_setequal(unmatched$no_concept$doc_id, c("all_excluded", "true_neg"))
+  expect_equal(unmatched$n_no_concept, 2L)
+})
+
+test_that("edstr_extract: a concept matching nothing still gets its dummy column", {
+  tmp <- withr::local_tempdir()
+  withr::local_options(
+    edstr_dirname = tmp,
+    edstr_filename = "test_absent_concept",
+    edstr_text = "texte",
+    edstr_overwrite = TRUE
+  )
+
+  data <- data.frame(
+    doc_id = c("d1", "d2", "d3"),
+    texte = c(
+      '<p class="t">diabete franc</p>',
+      '<p class="t">cancer du sein</p>',
+      '<p class="t">examen normal</p>'
+    ),
+    stringsAsFactors = FALSE
+  )
+
+  concepts <- c(diabete = "diabet", cancer = "cancer", tumeur = "tumeurxyz")
+
+  result <- suppressMessages(
+    edstr_extract(data = data, concepts = concepts, token = 1)
+  )
+
+  # the dummy block follows the declared set, so a downstream loop over the keys
+  # reads a zero column instead of NULL
+  expect_true(all(names(concepts) %in% names(result$data$extract)))
+  expect_equal(result$data$extract$tumeur, rep(0, nrow(result$data$extract)))
+  expect_equal(
+    names(result$data$extract)[5:7],
+    c("diabete", "cancer", "tumeur")
+  )
+})
+
 test_that("edstr_extract: a vector of sub-patterns under collapse = FALSE errors clearly", {
   tmp <- withr::local_tempdir()
   withr::local_options(
@@ -165,6 +245,60 @@ test_that("edstr_extract: a user column the output builds for itself errors", {
   # enough here; the reserved set itself is covered in test-extract_helpers.R
   expect_error(extract_with("extract"), "builds for itself")
   expect_no_error(extract_with(NULL))
+})
+
+test_that("edstr_extract: a missing concepts set is named before the pipeline runs", {
+  tmp <- withr::local_tempdir()
+  withr::local_options(
+    edstr_dirname = tmp,
+    edstr_filename = "test_no_concepts",
+    edstr_text = "texte",
+    edstr_overwrite = TRUE
+  )
+
+  # `imap()` walks nothing on an empty set, so without this guard the run
+  # reaches the matching stage and reports "No matches found"
+  expect_error(
+    suppressMessages(
+      edstr_extract(data = data.frame(doc_id = "1", texte = "x"))
+    ),
+    "`concepts` is not set"
+  )
+})
+
+test_that("edstr_extract: an identifier column named `id` is not masked", {
+  tmp <- withr::local_tempdir()
+  withr::local_options(
+    edstr_dirname = tmp,
+    edstr_filename = "test_id_mask",
+    edstr_text = "texte",
+    edstr_overwrite = TRUE
+  )
+
+  data <- data.frame(
+    id = c("d1", "d2", "d3"),
+    texte = c(
+      '<p class="t">oedeme aigu</p>',
+      '<p class="t">examen sans particularite</p>',
+      '<p class="t">oedeme franc</p>'
+    ),
+    stringsAsFactors = FALSE
+  )
+
+  # `id` names a column and holds a column name, so any bare `id` left inside a
+  # data mask resolves to the column and subscripts with a vector
+  result <- suppressMessages(
+    edstr_extract(
+      data = data,
+      concepts = c(diag = "oedeme"),
+      token = 1,
+      unmatched_data = TRUE
+    )
+  )
+
+  expect_setequal(result$data$extract$id, c("d1", "d3"))
+  expect_equal(result$unmatched$no_concept$id, "d2")
+  expect_equal(result$unmatched$n_no_concept, 1L)
 })
 
 test_that("edstr_extract: document counts partition the screened set exactly", {

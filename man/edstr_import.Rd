@@ -29,11 +29,14 @@ converted to lowercase.}
 
 \item{password}{\verb{<character(1)>} Database password. Defaults to an
 interactive prompt via \code{rstudioapi::askForPassword()} (if available)
-or \code{readline()}.}
+or \code{readline()}, which echoes what is typed. Required outside an
+interactive session, where a prompt would answer itself with \code{""} and
+spend an authentication attempt. An empty string is rejected everywhere,
+\code{Sys.getenv()} returning one for an unset variable.}
 
 \item{connect_dir}{\verb{<character(1)>} Path to the YAML connection
 configuration file read by \code{\link[config:get]{config::get()}}. Defaults to
-\code{getOption("edstr_connect_dir")}.}
+\code{getOption("edstr_connect_dir")}, set by \code{\link[=edstr_config]{edstr_config()}}.}
 
 \item{tns}{\verb{<character(1)>} TNS alias to select from the connection
 configuration (default \code{"vlp"}).}

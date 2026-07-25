@@ -35,8 +35,13 @@ pak::pak("hebstr/edstr")
 - **Java JDK** (\>= 8): required by rJava and DatabaseConnector for
   Oracle JDBC connectivity. On Debian/Ubuntu:
   `sudo apt install default-jdk` then `sudo R CMD javareconf`.
-- **Oracle Instant Client**: required for `edstr_import()` to connect to
-  an Oracle database.
+- **Oracle JDBC driver**: required for `edstr_import()` to connect to an
+  Oracle database. Fetch the JAR with
+  `DatabaseConnector::downloadJdbcDrivers("oracle")` and point the
+  `db.path` entry of your connection YAML at the folder holding it.
+- **[Quarto](https://quarto.org) command line tool**: required to build
+  the vignettes when installing from source. Not needed to use the
+  package.
 
 If you do not need the database import step (`edstr_import()`), you can
 still use the cleaning and extraction functions on locally loaded data
@@ -73,7 +78,7 @@ exploration and does not save anything.
 
 | Function | Description |
 |----|----|
-| `edstr_config()` | Set global options: output directory, file prefix, text column, and caching behaviour. Must be called first. |
+| `edstr_config()` | Set global options: output directory, file prefix, text column, caching behaviour, and connection file path. Must be called first. |
 | `edstr_import()` | Execute a SQL query against an Oracle database and cache the result as Parquet. |
 | `edstr_clean()` | Apply sequential regex replacements to a text column and cache the result. |
 | `edstr_extract()` | Tokenize text, match concepts, filter false positives, re-match against source text, and export results as XLSX, JSON, and RDS. |

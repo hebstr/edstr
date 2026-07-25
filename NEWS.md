@@ -1,6 +1,38 @@
 # edstr (development version)
 
+## New features
+
+- `edstr_config()` gains `edstr_connect_dir`, the connection file path `edstr_import()` reads.
+  It was the one package option reachable only through `...`, so it never appeared in `?edstr_config` and a mistyped value reached `fs::file_exists()` as a bare R error instead of a cli abort.
+  Like the other optional settings, leaving it out resets it.
+
 ## Bug fixes
+
+- `edstr_extract()` accepts a `data` whose identifier column is named `id`.
+  Inside the data-masked filters the column shadowed the argument holding its own name, so the subscript received a vector and the run aborted on `no such index at level 1` before producing anything.
+
+- `edstr_extract()` returns its result invisibly, as documented.
+  Neither the computed nor the cached path was invisible, so an unassigned call auto-printed the whole nested list on top of the summary it had just formatted.
+  Assigning the result is unaffected.
+
+- `edstr_clean()`, `edstr_view()` and `edstr_extract()` name the argument they are missing.
+  `replace`, `pattern` and `concepts` had no default, so omitting one produced R's bare `argument "x" is missing, with no default` instead of the actionable abort `edstr_import()` already gave for `query`.
+  For `concepts` the run got further still: the leaf walk skips an empty set, so the pipeline reached the matching stage and blamed "No matches found".
+
+- `edstr_import()` refuses an empty password instead of sending it.
+  `readline()` answers itself with `""` when nobody is there to type, and `Sys.getenv()` yields `""` for an unset variable, so a scripted run reached the server with an empty password and spent an authentication attempt against the account's lockout counter instead of reporting a missing credential.
+  `password` is now required outside an interactive session, and `""` is rejected in every session.
+
+- `edstr_extract()` keeps the `" ; "` separator in `data$note$extract`.
+  A semicolon strip left over from the CSV output deleted it, so the column ran its matches together on a double space while `data$note$concept`, in the same frame, kept the separator: splitting both on `" ; "` returned incomparable lengths.
+  Stored `note` output from an earlier run differs on this column.
+
+- `edstr_extract()` gives every declared concept a column in `data$extract`.
+  A concept no surviving match reached got no column at all instead of a column of `0`, so the delivered schema followed the corpus rather than the concept set, and a prevalence loop over the keys read `sum(NULL)`, which is `0`, and looked correct.
+
+- `edstr_extract()` counts a document whose every match is excluded as a true negative.
+  Such a document was dropped from `data$extract` yet kept out of every `unmatched` bucket, so it was reported nowhere and `n_no_concept`, documented as exact, understated the denominator.
+  It now lands in `no_concept`, the exclusions having ruled its matches false positives.
 
 - `edstr_extract()` no longer searches documents that have no source text.
   A `NA` source was formatted into the string `"NA"`, which reached tokenisation as the token `na` and could be matched by a concept, so a document reported as `unmatched$no_source` could also surface as a match.
@@ -164,6 +196,9 @@
 
 ## Documentation
 
+- The `edstr_extract()` example runs.
+  It was wrapped in `\dontrun{}` because it drew its input from `edstr_import()`, so no line of the flagship function's documentation was ever executed; it now builds an inline data frame under `tempdir()`, like the `edstr_clean()` example, and only `edstr_import()` still needs `\dontrun{}`.
+
 - New `vignette("matching")` explains the two matching stages, why concept
   patterns are written without accents, and how the accented source form is
   recovered.
@@ -171,8 +206,6 @@
 - `exclus_auto_token_min` is now documented as what it is: a threshold measured in
   n-gram sizes, whose default of `10` sits above every realistic `token` value and so
   disables automatic exclusion entirely.
-  The scan runs whatever the threshold is, so the default pays its cost without keeping
-  its result.
   Lower it below the smallest n-gram size of interest to enable the heuristic.
 
 - `ngrams` in `edstr_view()` is described consistently in the vignettes and the

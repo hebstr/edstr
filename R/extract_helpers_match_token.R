@@ -96,6 +96,10 @@
     data_match_init[id]
   }
 
+  # hoisted out of the mask below: a bare `id` there resolves to the column of
+  # that name, not to the argument holding it
+  match_ids <- match_id[[id]]
+
   data_match <-
     data_match_init |>
     rename(concept_key = "concept") |>
@@ -103,7 +107,7 @@
       concept = map_chr(.data$concept_key, ~ concepts_list$names[[.]]),
       .after = "concept_key"
     ) |>
-    filter(.data[[id]] %in% match_id[[id]])
+    filter(.data[[id]] %in% match_ids)
 
   if (nrow(data_match) == 0) {
     abort_intersect <- if (intersect) " at intersection" else ""
@@ -111,12 +115,15 @@
     cli_abort("{.strong No matches found{abort_intersect}}")
   }
 
+  match_init_ids <- data_match_init[[id]]
+  match_final_ids <- data_match[[id]]
+
   data_match_init_df <-
     data |>
     select(-all_of(text_input)) |>
-    filter(.data[[id]] %in% data_match_init[[id]])
+    filter(.data[[id]] %in% match_init_ids)
 
-  data_match_df <- data |> filter(.data[[id]] %in% data_match[[id]])
+  data_match_df <- data |> filter(.data[[id]] %in% match_final_ids)
 
   lst(
     data_match = data_match,

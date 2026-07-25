@@ -14,7 +14,7 @@
 #' @param replace A named character vector or list of named character vectors.
 #'   Optional regex replacements applied to the text *before* matching
 #'   (see [edstr_clean()] for details).
-#' @param pattern `<character(1)>` Regex pattern to search for.
+#' @param pattern `<character(1)>` Regex pattern to search for. Required.
 #' @param ngrams `<integer(1)>` Total n-gram window size including the
 #'   matched token (default `1`). For example, `ngrams = 3` with
 #'   `pattern = "diabete"` matches `"diabete type 2"`.
@@ -41,10 +41,17 @@ edstr_view <- \(
   text_input = getOption("edstr_text"),
   id = NULL,
   replace = NULL,
-  pattern,
+  pattern = NULL,
   ngrams = 1,
   ...
 ) {
+  if (is.null(pattern)) {
+    cli_abort(c(
+      "{.arg pattern} is not set",
+      "i" = "Pass a regex to search for, e.g. {.code pattern = \"diabet\"}"
+    ))
+  }
+
   check_class(data, "data.frame")
   check_class(text_input, "character")
   check_class(pattern, "character")

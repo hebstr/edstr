@@ -31,7 +31,8 @@
     ""
   }
 
-  cli_n_id <- nrow(data_id |> filter(.data[[id]] %in% match_id[[id]]))
+  match_ids <- match_id[[id]]
+  cli_n_id <- nrow(data_id |> filter(.data[[id]] %in% match_ids))
   cli_p_id <- label_pct(nrow(data) / nrow_init)
 
   cli_n_match <- n_distinct(data_match_init[[id]])

@@ -9,7 +9,7 @@ edstr_view(
   text_input = getOption("edstr_text"),
   id = NULL,
   replace = NULL,
-  pattern,
+  pattern = NULL,
   ngrams = 1,
   ...
 )
@@ -28,7 +28,7 @@ no \code{NA}, aborting if none or several qualify.}
 Optional regex replacements applied to the text \emph{before} matching
 (see \code{\link[=edstr_clean]{edstr_clean()}} for details).}
 
-\item{pattern}{\verb{<character(1)>} Regex pattern to search for.}
+\item{pattern}{\verb{<character(1)>} Regex pattern to search for. Required.}
 
 \item{ngrams}{\verb{<integer(1)>} Total n-gram window size including the
 matched token (default \code{1}). For example, \code{ngrams = 3} with

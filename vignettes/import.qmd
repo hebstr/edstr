@@ -36,11 +36,13 @@ Connection parameters (`user`, `password`, `tns`) configure access to the Oracle
 ## Connection file
 
 `edstr_import()` reads the driver, address, and TNS entries from a YAML connection file loaded by the `config` package.
-Set its path once with `options(edstr_connect_dir = "path/to/connect.yml")`, or pass `connect_dir` directly.
+Set its path once with `edstr_config(edstr_connect_dir = "path/to/connect.yml")`, or pass `connect_dir` directly.
 The function aborts if neither is set or the file is missing.
 :::
 
-If `password` is omitted, `edstr_import()` prompts for it interactively: the RStudio password dialog when available, otherwise `readline()`.
+If `password` is omitted in an interactive session, `edstr_import()` prompts for it: the RStudio password dialog when available, otherwise `readline()`, which echoes what is typed.
+Outside an interactive session there is no prompt to answer, so `password` is required: a `readline()` with nobody to answer it returns `""`, which the server counts as a failed authentication attempt against the account's lockout counter.
+An empty string is rejected in every session, `Sys.getenv()` returning one for an unset variable.
 
 ```{r}
 #| error: true

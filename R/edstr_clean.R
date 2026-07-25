@@ -61,7 +61,7 @@
 #' @param replace A named character vector or a list of named character
 #'   vectors. Names are regex patterns, values are replacements. When a list
 #'   is provided, each element is applied sequentially via
-#'   [stringr::str_replace_all()].
+#'   [stringr::str_replace_all()]. Required.
 #'
 #' @return A [data.frame] with the cleaned text column.
 #' @export
@@ -87,12 +87,18 @@
 edstr_clean <- \(
   data,
   text = getOption("edstr_text"),
-  replace
+  replace = NULL
 ) {
   if (is.null(text)) {
     cli_abort(c(
       "{.arg text} is not set",
       "i" = "Set {.code edstr_text} via {.fn edstr_config} or pass {.arg text} explicitly"
+    ))
+  }
+  if (is.null(replace)) {
+    cli_abort(c(
+      "{.arg replace} is not set",
+      "i" = "Pass a named vector of replacements, e.g. {.code replace = c(\"pattern\" = \"remplacement\")}"
     ))
   }
 

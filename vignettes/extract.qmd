@@ -94,6 +94,8 @@ When multiple concepts are defined, two modes alter the matching logic:
   Useful when sub-concepts are synonyms that should be treated as one.
 - **`intersect = TRUE`**: keeps only documents that match **all** root-level concepts.
   Useful for narrowing results to co-occurrences.
+  A document matching some roots but not all becomes a non-case, counted in `unmatched$no_concept`: the denominator you read is therefore the one for the compound concept, not for any single root.
+  `data$match` stays pre-intersect, so `anti_join(data$match, data$extract, by = id)` recovers the partial matches.
 
 Both require at least two concepts.
 
@@ -133,7 +135,7 @@ result <- edstr_extract(
 
 Heuristic-based filtering on long tokens.
 `exclus_auto_token_min` sets the n-gram size above which auto-exclusion applies, in the same unit as `token`.
-Its default of `10` is above any realistic n-gram size, so out of the box the heuristic scans and then discards everything it found: lower the threshold below your smallest `token` value to actually enable it.
+Its default of `10` is above any realistic n-gram size, so out of the box no token clears the threshold and the heuristic is skipped: lower it below your smallest `token` value to actually enable it.
 `exclus_auto_escape` removes specific tokens from the match pool before auto-exclusion runs.
 
 ## Sampling
@@ -188,6 +190,8 @@ result <- edstr_extract(
 Documents that produce no token match are reported separately, split by reason:
 
 - `no_concept`: the text was searched and matched no concept.
+  A document whose every match is ruled out by the exclusions belongs here too, those matches having been judged false positives.
+  Under `intersect = TRUE` the unit is the compound concept, so a document matching some roots but not all lands here as well, even though it did match something.
 - `no_source`: the source is empty or missing, so there was nothing to search.
 - `empty_text`: the source holds no text once its markup is stripped.
 - `outside_p`: the document has text, but it falls outside the `<p>` blocks the formatter reads.

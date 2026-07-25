@@ -414,12 +414,15 @@
   unmatched_data,
   format_drops
 ) {
-  # `match_id`, not the pre-intersect frame: under `intersect = TRUE` a document
-  # matching some roots but not all is a non-case, and leaving it out of every
-  # bucket understates the denominator `n_no_concept` is documented to be
+  # the confirmed-match set, after both the intersection and the exclusions: a
+  # document matching some roots but not all, or whose every match is excluded,
+  # is a non-case, and leaving it out of every bucket understates the
+  # denominator `n_no_concept` is documented to be
+  match_ids <- match_id[[id]]
+
   unmatched_all <-
     data[c(id, group)] |>
-    filter(!.data[[id]] %in% match_id[[id]])
+    filter(!.data[[id]] %in% match_ids)
 
   no_source_ids <- format_drops$no_source
   empty_ids <- format_drops$empty_text
@@ -470,6 +473,7 @@
   data_regex_match,
   data_regex_str,
   data_regex_prep,
+  concept_keys,
   id,
   group
 ) {
@@ -497,6 +501,18 @@
       values_from = "concept_key"
     ) |>
     mutate(across(!all_of(c(id, group)), ~ ifelse(is.na(.), 0, 1)))
+
+  # the pivot can only name columns it finds rows for, so a concept no surviving
+  # match reaches would make the block follow the corpus, not the declared set
+  extract_concept_dummy[
+    setdiff(concept_keys, names(extract_concept_dummy))
+  ] <- 0
+
+  extract_concept_dummy <- relocate(
+    extract_concept_dummy,
+    all_of(concept_keys),
+    .after = last_col()
+  )
 
   lst(
     data = extract_data,

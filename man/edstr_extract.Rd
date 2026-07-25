@@ -14,7 +14,7 @@ edstr_extract(
   ano_hash = NULL,
   ano_hide = NULL,
   token = 1,
-  concepts,
+  concepts = NULL,
   collapse = FALSE,
   intersect = FALSE,
   starts_with_only = TRUE,
@@ -77,7 +77,8 @@ keep the source in clear.}
 \item{concepts}{\verb{<character|list>} Named vector or nested named list of
 regex patterns defining the concepts to search for. Each name becomes a
 concept key; nested names create sub-concepts (e.g.
-\code{list(cancer = list(sein = "sein|mammaire", poumon = "poumon"))}).}
+\code{list(cancer = list(sein = "sein|mammaire", poumon = "poumon"))}).
+Required.}
 
 \item{collapse}{\verb{<logical(1)>} If \code{TRUE}, OR-combine concept patterns into
 a single regex: one for the whole set when \code{concepts} is flat, one per
@@ -104,8 +105,8 @@ apply to tokens with \code{n > exclus_auto_token_min}, measured in the same
 unit as \code{token}. The default therefore disables the heuristic for every
 realistic \code{token} value: with \code{token = c(1, 2, 3)} no token exceeds
 \code{10}. Set it below the smallest n-gram size of interest to enable it.
-The scan runs either way, so leaving the default in place pays its cost
-without keeping its result.}
+When no n-gram clears the threshold the scan has nothing to look at and
+is skipped, so the default costs nothing.}
 
 \item{regex_replace}{\verb{<character>} Optional named vector of additional
 regex replacements for source matching (appended to the built-in accent
@@ -136,12 +137,13 @@ Defaults to \code{"sample_{sample}"} when \code{sample} is set.}
 file names. Defaults to \code{dirname_suffix}.}
 }
 \value{
-A nested list (invisibly returned from cache when the RDS file
-already exists) with elements:
+Invisibly, a nested list with elements:
 \describe{
 \item{\code{data}}{List of data frames: \code{base} (input without text),
-\code{match} (initial matches), \code{extract} (final extraction), \code{note}
-(extraction with highlight markup applied).}
+\code{match} (initial matches), \code{extract} (final extraction, carrying one
+\code{0}/\code{1} column per declared concept key, in that order, whether or not
+the concept matched anything), \code{note} (extraction with highlight markup
+applied).}
 \item{\code{regex}}{List: \code{concepts} (parsed patterns), \code{replace}
 (replacement rules), \code{final} (combined regex), \code{match} (source-level
 matches).}
@@ -159,10 +161,15 @@ otherwise a 0-row tibble while \code{n_no_concept} still holds the count),
 \code{no_source} (source empty or \code{NA}, so never searched), \code{empty_text}
 (source holding no text once markup is stripped), \code{outside_p} (text
 outside \verb{<p>} blocks). Read \code{n_no_concept} for the denominator, never
-\code{nrow(no_concept)}. Under \code{intersect = TRUE} the unit is the compound
-concept, so a document matching some roots but not all counts as a
-non-case in \code{no_concept}; \code{data$match} stays pre-intersect, and
-\code{anti_join(data$match, data$extract, by = id)} recovers that set.}
+\code{nrow(no_concept)}. A document whose every match is excluded counts as a
+non-case in \code{no_concept} too, the exclusions having ruled its matches
+false positives. Under \code{intersect = TRUE} the unit is the compound
+concept, so a document whose token matches do not cover every root counts
+as a non-case as well; the intersection is evaluated on those token
+matches, before the exclusions, so a document that loses a whole root to
+an exclusion is still delivered, carrying the roots that survived.
+\code{data$match} stays pre-intersect and pre-exclusion, and
+\code{anti_join(data$match, data$extract, by = id)} recovers those sets.}
 \item{\code{mismatched}}{Tibble of token vs source discrepancies (token
 matches not confirmed in the source text).}
 \item{\code{summary}}{List: \code{token} (summary by token), \code{concept} (summary
@@ -180,16 +187,24 @@ XLSX, JSON, and RDS files.
 Requires \code{\link[=edstr_config]{edstr_config()}} to be called first.
 }
 \examples{
-\dontrun{
-edstr_config(edstr_dirname = "output", edstr_filename = "my_study")
+\donttest{
+edstr_config(
+  edstr_dirname = tempdir(), edstr_filename = "my_study",
+  edstr_text = "note_text", edstr_overwrite = TRUE
+)
 
-df <- edstr_import(query = "sql/my_query.sql")
+df_clean <- data.frame(
+  id = 1:3,
+  note_text = c(
+    "<p class=\"n\">diabete de type 2</p>",
+    "<p class=\"n\">bilan normal</p>",
+    "<p class=\"n\">tumeur mammaire</p>"
+  )
+)
 
 result <- edstr_extract(
-  data = df,
-  concepts = c(diabete = "diabet", cancer = "cancer|tumeur"),
-  token = c(1, 2),
-  intersect = TRUE
+  data = df_clean,
+  concepts = c(diabete = "diabet", cancer = "cancer|tumeur")
 )
 }
 

@@ -113,7 +113,7 @@
         {
           "type": "character",
           "attributes": {},
-          "value": ["<span class='extract diabete'>diabetique<\/span>  <span class='extract cancer'>cancer<\/span>", "<span class='extract diabete'>diabete<\/span>", "<span class='extract cancer'>Cancer<\/span>", "<span class='extract diabete'>Diabete<\/span>  <span class='extract cancer'>cancer<\/span>", "<span class='extract cancer'>cancer<\/span>  <span class='extract diabete'>diabete<\/span>"]
+          "value": ["<span class='extract diabete'>diabetique<\/span> ; <span class='extract cancer'>cancer<\/span>", "<span class='extract diabete'>diabete<\/span>", "<span class='extract cancer'>Cancer<\/span>", "<span class='extract diabete'>Diabete<\/span> ; <span class='extract cancer'>cancer<\/span>", "<span class='extract cancer'>cancer<\/span> ; <span class='extract diabete'>diabete<\/span>"]
         }
       ]
     }

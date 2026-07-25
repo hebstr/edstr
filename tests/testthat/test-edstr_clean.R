@@ -11,6 +11,21 @@ test_that("edstr_clean() errors when edstr_config is not set", {
   )
 })
 
+test_that("edstr_clean() names the missing replace rather than the promise", {
+  tmp <- withr::local_tempdir()
+  withr::local_options(
+    edstr_dirname = tmp,
+    edstr_filename = "test",
+    edstr_text = "texte",
+    edstr_overwrite = TRUE
+  )
+
+  expect_error(
+    edstr_clean(data = data.frame(id = 1, texte = "x")),
+    "`replace` is not set"
+  )
+})
+
 test_that("edstr_clean() errors when data is not a data.frame", {
   tmp <- withr::local_tempdir()
   withr::local_options(

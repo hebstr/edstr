@@ -11,6 +11,11 @@ inst/doc
 /.claude/
 /dev/
 /data*/
+# R/sysdata.rda is tracked, so its generator has to be reachable from a clone;
+# git cannot re-include a path whose parent directory is excluded
+!/data-raw/
+/data-raw/*
+!/data-raw/*.R
 
 # CRAN
 cran-comments.md

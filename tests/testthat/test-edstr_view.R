@@ -1,3 +1,10 @@
+test_that("edstr_view() names the missing pattern rather than the promise", {
+  expect_error(
+    edstr_view(data = data.frame(id = 1, note = "x")),
+    "`pattern` is not set"
+  )
+})
+
 test_that("edstr_view() errors when data is not a data.frame", {
   expect_error(
     edstr_view(data = "not_df", pattern = "abc"),

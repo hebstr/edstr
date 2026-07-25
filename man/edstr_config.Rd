@@ -9,6 +9,7 @@ edstr_config(
   edstr_filename,
   edstr_text = NULL,
   edstr_overwrite = NULL,
+  edstr_connect_dir = NULL,
   ...
 )
 }
@@ -33,6 +34,11 @@ output file already exists:
 \item \code{FALSE}: load the cached file without prompting.
 \item \code{NULL} (default): prompt the user interactively.
 }}
+
+\item{edstr_connect_dir}{\verb{<character(1)>} Path to the YAML connection file
+holding the driver, address and TNS entries \code{\link[=edstr_import]{edstr_import()}} reads.
+Supplies its default \code{connect_dir} argument. The file is read when
+\code{edstr_import()} runs, so it need not exist yet.}
 
 \item{...}{Additional options passed to \code{\link[=options]{options()}}.}
 }

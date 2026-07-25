@@ -18,14 +18,31 @@
   if (is.null(connect_dir)) {
     cli_abort(c(
       "{.arg connect_dir} is not set",
-      "i" = "Set {.code options(edstr_connect_dir = ...)} or pass {.arg connect_dir} explicitly"
+      "i" = "Set {.arg edstr_connect_dir} in {.fn edstr_config} or pass {.arg connect_dir} explicitly"
     ))
   }
 
   if (!fs::file_exists(connect_dir)) {
     cli_abort(c(
       "{.arg connect_dir} file not found: {.path {connect_dir}}",
-      "i" = "Check the path passed to {.arg connect_dir} or {.code options(edstr_connect_dir)}"
+      "i" = "Check the path passed to {.arg connect_dir} or set in {.fn edstr_config}"
+    ))
+  }
+
+  # an empty password reaches the server as a failed attempt against the
+  # account's lockout counter rather than as a missing credential, and a prompt
+  # answers itself with `""` when nobody is there to type
+  if (is.null(password)) {
+    if (!rlang::is_interactive()) {
+      cli_abort(c(
+        "{.arg password} is required outside an interactive session",
+        "i" = "Pass {.arg password} explicitly: there is no prompt to answer here"
+      ))
+    }
+  } else if (!nzchar(password)) {
+    cli_abort(c(
+      "{.arg password} is empty",
+      "i" = "Pass a non-empty password, or omit it to be prompted for one"
     ))
   }
 
@@ -129,10 +146,13 @@
 #' @param user `<character(1)>` Database username.
 #' @param password `<character(1)>` Database password. Defaults to an
 #'   interactive prompt via `rstudioapi::askForPassword()` (if available)
-#'   or `readline()`.
+#'   or `readline()`, which echoes what is typed. Required outside an
+#'   interactive session, where a prompt would answer itself with `""` and
+#'   spend an authentication attempt. An empty string is rejected everywhere,
+#'   `Sys.getenv()` returning one for an unset variable.
 #' @param connect_dir `<character(1)>` Path to the YAML connection
 #'   configuration file read by [config::get()]. Defaults to
-#'   `getOption("edstr_connect_dir")`.
+#'   `getOption("edstr_connect_dir")`, set by [edstr_config()].
 #' @param tns `<character(1)>` TNS alias to select from the connection
 #'   configuration (default `"vlp"`).
 #' @param ... Additional arguments passed to

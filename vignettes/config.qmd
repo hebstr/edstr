@@ -85,6 +85,23 @@ edstr_config(
 )
 ```
 
+## Connection file
+
+Setting `edstr_connect_dir` avoids repeating the path to the YAML connection file `edstr_import()` reads.
+
+```{r}
+#| eval: false
+
+edstr_config(
+  edstr_dirname = "output/my_study",
+  edstr_filename = "my_study",
+  edstr_connect_dir = "config/connect.yml"
+)
+```
+
+The file is only read when `edstr_import()` runs, so it need not exist at configuration time.
+If omitted, the path must be passed to `edstr_import()` as `connect_dir`.
+
 ## Additional options
 
 Extra named arguments are passed directly to `options()`, which can be useful for setting project-level options alongside `edstr`.

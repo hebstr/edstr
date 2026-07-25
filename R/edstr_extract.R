@@ -45,6 +45,15 @@
 
   ### PARSE CONCEPTS -------------------------------------------------------------
 
+  # before the leaf walk below, which `imap()` skips on an empty input, letting
+  # a missing set run four stages deep and surface as "No matches found"
+  if (is.null(concepts)) {
+    cli_abort(c(
+      "{.arg concepts} is not set",
+      "i" = "Pass a named pattern, e.g. {.code concepts = c(diabete = \"diabet\")}"
+    ))
+  }
+
   # checked before parsing: a multi-pattern leaf breaks the `regex_df` build,
   # and only a single one survives it through recycling. Walked at any depth,
   # since the hint below sends users to `list()`, whose leaves fail the same way
@@ -228,7 +237,7 @@
     .extract_unmatched(
       data,
       data_id,
-      match_id,
+      data_id,
       data_regex_match,
       id,
       group,
@@ -251,6 +260,7 @@
       data_regex_match,
       data_regex_str,
       data_regex_prep,
+      concepts_list$keys,
       id,
       group
     )
@@ -389,8 +399,7 @@
           .data[[text_input]],
           data_regex_list,
           rows = note_rows
-        ),
-        extract = str_remove_all(.data$extract, ";")
+        )
       ) |>
       select(-any_of(concepts_list$keys))
   )
@@ -551,6 +560,7 @@
 #'   regex patterns defining the concepts to search for. Each name becomes a
 #'   concept key; nested names create sub-concepts (e.g.
 #'   `list(cancer = list(sein = "sein|mammaire", poumon = "poumon"))`).
+#'   Required.
 #' @param collapse `<logical(1)>` If `TRUE`, OR-combine concept patterns into
 #'   a single regex: one for the whole set when `concepts` is flat, one per
 #'   root concept when it is nested. Requires at least 2 concepts.
@@ -571,8 +581,8 @@
 #'   unit as `token`. The default therefore disables the heuristic for every
 #'   realistic `token` value: with `token = c(1, 2, 3)` no token exceeds
 #'   `10`. Set it below the smallest n-gram size of interest to enable it.
-#'   The scan runs either way, so leaving the default in place pays its cost
-#'   without keeping its result.
+#'   When no n-gram clears the threshold the scan has nothing to look at and
+#'   is skipped, so the default costs nothing.
 #' @param regex_replace `<character>` Optional named vector of additional
 #'   regex replacements for source matching (appended to the built-in accent
 #'   normalisation rules).
@@ -595,12 +605,13 @@
 #' @param filename_suffix `<character(1)>` Optional suffix appended to output
 #'   file names. Defaults to `dirname_suffix`.
 #'
-#' @return A nested list (invisibly returned from cache when the RDS file
-#'   already exists) with elements:
+#' @return Invisibly, a nested list with elements:
 #' \describe{
 #'   \item{`data`}{List of data frames: `base` (input without text),
-#'     `match` (initial matches), `extract` (final extraction), `note`
-#'     (extraction with highlight markup applied).}
+#'     `match` (initial matches), `extract` (final extraction, carrying one
+#'     `0`/`1` column per declared concept key, in that order, whether or not
+#'     the concept matched anything), `note` (extraction with highlight markup
+#'     applied).}
 #'   \item{`regex`}{List: `concepts` (parsed patterns), `replace`
 #'     (replacement rules), `final` (combined regex), `match` (source-level
 #'     matches).}
@@ -618,10 +629,15 @@
 #'     `no_source` (source empty or `NA`, so never searched), `empty_text`
 #'     (source holding no text once markup is stripped), `outside_p` (text
 #'     outside `<p>` blocks). Read `n_no_concept` for the denominator, never
-#'     `nrow(no_concept)`. Under `intersect = TRUE` the unit is the compound
-#'     concept, so a document matching some roots but not all counts as a
-#'     non-case in `no_concept`; `data$match` stays pre-intersect, and
-#'     `anti_join(data$match, data$extract, by = id)` recovers that set.}
+#'     `nrow(no_concept)`. A document whose every match is excluded counts as a
+#'     non-case in `no_concept` too, the exclusions having ruled its matches
+#'     false positives. Under `intersect = TRUE` the unit is the compound
+#'     concept, so a document whose token matches do not cover every root counts
+#'     as a non-case as well; the intersection is evaluated on those token
+#'     matches, before the exclusions, so a document that loses a whole root to
+#'     an exclusion is still delivered, carrying the roots that survived.
+#'     `data$match` stays pre-intersect and pre-exclusion, and
+#'     `anti_join(data$match, data$extract, by = id)` recovers those sets.}
 #'   \item{`mismatched`}{Tibble of token vs source discrepancies (token
 #'     matches not confirmed in the source text).}
 #'   \item{`summary`}{List: `token` (summary by token), `concept` (summary
@@ -632,16 +648,24 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' edstr_config(edstr_dirname = "output", edstr_filename = "my_study")
+#' \donttest{
+#' edstr_config(
+#'   edstr_dirname = tempdir(), edstr_filename = "my_study",
+#'   edstr_text = "note_text", edstr_overwrite = TRUE
+#' )
 #'
-#' df <- edstr_import(query = "sql/my_query.sql")
+#' df_clean <- data.frame(
+#'   id = 1:3,
+#'   note_text = c(
+#'     "<p class=\"n\">diabete de type 2</p>",
+#'     "<p class=\"n\">bilan normal</p>",
+#'     "<p class=\"n\">tumeur mammaire</p>"
+#'   )
+#' )
 #'
 #' result <- edstr_extract(
-#'   data = df,
-#'   concepts = c(diabete = "diabet", cancer = "cancer|tumeur"),
-#'   token = c(1, 2),
-#'   intersect = TRUE
+#'   data = df_clean,
+#'   concepts = c(diabete = "diabet", cancer = "cancer|tumeur")
 #' )
 #' }
 #'
@@ -655,7 +679,7 @@ edstr_extract <- \(
   ano_hash = NULL,
   ano_hide = NULL,
   token = 1,
-  concepts,
+  concepts = NULL,
   collapse = FALSE,
   intersect = FALSE,
   starts_with_only = TRUE,
@@ -722,13 +746,17 @@ edstr_extract <- \(
     )
   }
 
-  if (fs::file_exists(save_extract$rds)) {
-    cli_check(
-      config_file = save_files,
-      fun_save = fun_save,
-      fun_load = \() .extract_load(save_dir, save_files, save_extract)
-    )
-  } else {
-    fun_save()
-  }
+  # the summary is already printed by then, and auto-printing the nested list on
+  # top of it would bury it; visibility must not depend on the cache either
+  invisible(
+    if (fs::file_exists(save_extract$rds)) {
+      cli_check(
+        config_file = save_files,
+        fun_save = fun_save,
+        fun_load = \() .extract_load(save_dir, save_files, save_extract)
+      )
+    } else {
+      fun_save()
+    }
+  )
 }
