@@ -405,8 +405,7 @@
 
 .extract_unmatched <- \(
   data,
-  data_match,
-  match_id,
+  data_id,
   data_regex_match,
   id,
   group,
@@ -414,11 +413,13 @@
   unmatched_data,
   format_drops
 ) {
-  # the confirmed-match set, after both the intersection and the exclusions: a
-  # document matching some roots but not all, or whose every match is excluded,
-  # is a non-case, and leaving it out of every bucket understates the
-  # denominator `n_no_concept` is documented to be
-  match_ids <- match_id[[id]]
+  # the confirmed-match set, after the intersection, the exclusions and the
+  # source confirmation: a document matching some roots but not all, or whose
+  # every match is excluded or unconfirmed in the source, is a non-case, and
+  # leaving it out of every bucket understates the denominator `n_no_concept` is
+  # documented to be. `mismatched` cannot stand in for that bucket: it is per
+  # match, so a partially confirmed document is in it and in `extract` at once
+  match_ids <- intersect(data_id[[id]], data_regex_match[[id]])
 
   unmatched_all <-
     data[c(id, group)] |>
@@ -453,7 +454,7 @@
   }
 
   mismatched <-
-    data_match |>
+    data_id |>
     select(all_of(id), "concept", match = !!text_input) |>
     mutate(match = .conv_fun(.data$match)) |>
     anti_join(
@@ -548,7 +549,7 @@
 
   summary_concept <- list(
     match = set_summary("concept"),
-    id = imap(
+    id = map(
       list(id, group),
       ~ summarise(
         data_id,

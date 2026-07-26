@@ -29,6 +29,16 @@ test_that("edstr_extract: a true negative is separated from an empty source", {
 
   expect_setequal(result$unmatched$no_source$doc_id, c("na", "vide"))
   expect_equal(result$unmatched$no_concept$doc_id, "vrai_negatif")
+
+  # the saved files quote the source text verbatim, so the directory is the only
+  # thing keeping a clinical extract off a shared host
+  skip_on_os("windows")
+  save_dir <- fs::path(tmp, "extract")
+  expect_true(fs::dir_exists(save_dir))
+  expect_equal(
+    substr(as.character(fs::file_info(save_dir)$permissions), 1, 9),
+    "rwx------"
+  )
 })
 
 test_that("edstr_extract: excluding every match yields empty output without crashing", {
@@ -107,6 +117,52 @@ test_that("edstr_extract: a document whose every match is excluded is a true neg
   expect_setequal(result$data$extract$doc_id, c("kept", "other"))
   expect_setequal(unmatched$no_concept$doc_id, c("all_excluded", "true_neg"))
   expect_equal(unmatched$n_no_concept, 2L)
+})
+
+test_that("edstr_extract: a document whose every match is a source mismatch is a true negative", {
+  tmp <- withr::local_tempdir()
+  withr::local_options(
+    edstr_dirname = tmp,
+    edstr_filename = "test_mismatch_negative",
+    edstr_text = "texte",
+    edstr_overwrite = TRUE
+  )
+
+  # `all_mismatched` only forms the bigram across the `<p>` concatenation, so the
+  # token matches and the source never confirms it
+  data <- data.frame(
+    doc_id = c("kept", "all_mismatched", "true_neg"),
+    texte = c(
+      '<p class="t">grande aorte visible</p>',
+      '<p class="t">grande</p><p class="t">aorte</p>',
+      '<p class="t">examen normal</p>'
+    ),
+    stringsAsFactors = FALSE
+  )
+
+  result <- suppressMessages(
+    edstr_extract(
+      data = data,
+      concepts = c(aorte = "grande aorte"),
+      ngram_max = 2,
+      unmatched_data = TRUE
+    )
+  )
+
+  unmatched <- result$unmatched
+  parts <- c(
+    extract = nrow(result$data$extract),
+    no_concept = unmatched$n_no_concept,
+    no_source = nrow(unmatched$no_source),
+    empty_text = nrow(unmatched$empty_text),
+    outside_p = nrow(unmatched$outside_p)
+  )
+
+  expect_equal(sum(parts), nrow(data))
+  expect_setequal(result$data$extract$doc_id, "kept")
+  expect_setequal(unmatched$no_concept$doc_id, c("all_mismatched", "true_neg"))
+  expect_equal(unmatched$n_no_concept, 2L)
+  expect_setequal(result$mismatched$doc_id, "all_mismatched")
 })
 
 test_that("edstr_extract: a concept matching nothing still gets its dummy column", {
@@ -294,6 +350,38 @@ test_that("edstr_extract: a degenerate ngram_max is named before the pipeline ru
   expect_error(extract_with(NA), "single whole number")
   expect_error(extract_with(c(1, 2)), "single whole number")
   expect_error(extract_with("2"), "single whole number")
+})
+
+test_that("edstr_extract: a non-scalar exclusion pattern is named before the pipeline runs", {
+  tmp <- withr::local_tempdir()
+  withr::local_options(
+    edstr_dirname = tmp,
+    edstr_filename = "test_exclus_scalar",
+    edstr_text = "texte",
+    edstr_overwrite = TRUE
+  )
+
+  data <- data.frame(doc_id = "1", texte = '<p class="t">oedeme aigu</p>')
+
+  extract_with <- function(...) {
+    suppressMessages(edstr_extract(
+      data = data,
+      concepts = c(diag = "oedeme"),
+      ngram_max = 1,
+      ...
+    ))
+  }
+
+  # a length > 1 pattern recycles against the matched rows and applies a
+  # different one to each whenever the two lengths coincide, so it has to abort
+  # by name rather than reach `str_detect()`
+  for (bad in list(c("a", "b"), character(), 42, TRUE, NA)) {
+    expect_error(extract_with(exclus_manual = bad), "single regex string")
+    expect_error(extract_with(exclus_auto_escape = bad), "single regex string")
+  }
+
+  # `NA_character_` stays a scalar and keeps meaning "no exclusion"
+  expect_no_error(extract_with(exclus_manual = NA_character_))
 })
 
 test_that("edstr_extract: an identifier column named `id` is not masked", {

@@ -166,7 +166,8 @@ otherwise a 0-row tibble while \code{n_no_concept} still holds the count),
 outside \verb{<p>} blocks). Read \code{n_no_concept} for the denominator, never
 \code{nrow(no_concept)}. A document whose every match is excluded counts as a
 non-case in \code{no_concept} too, the exclusions having ruled its matches
-false positives. Under \code{intersect = TRUE} the unit is the compound
+false positives, and so does one whose every match fails source
+confirmation. Under \code{intersect = TRUE} the unit is the compound
 concept, so a document whose token matches do not cover every root counts
 as a non-case as well; the intersection is evaluated on those token
 matches, before the exclusions, so a document that loses a whole root to
@@ -174,7 +175,9 @@ an exclusion is still delivered, carrying the roots that survived.
 \code{data$match} stays pre-intersect and pre-exclusion, and
 \code{anti_join(data$match, data$extract, by = id)} recovers those sets.}
 \item{\code{mismatched}}{Tibble of token vs source discrepancies (token
-matches not confirmed in the source text).}
+matches not confirmed in the source text). One row per match, not per
+document, so a document whose matches are only partly confirmed appears
+here and in \code{data$extract} at once.}
 \item{\code{summary}}{List: \code{token} (summary by token), \code{concept} (summary
 by concept), \code{params} (call parameters).}
 \item{\code{sheets}}{List: \code{df} (data frames per Excel sheet), \code{gt} (gt

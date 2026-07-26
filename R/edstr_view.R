@@ -56,6 +56,22 @@ edstr_view <- \(
   check_class(text_input, "character")
   check_class(pattern, "character")
 
+  # a length > 1 `ngrams` glues into as many patterns, which recycle against the
+  # rows instead of erroring whenever the two lengths happen to match
+  if (
+    !is.numeric(ngrams) ||
+      length(ngrams) != 1L ||
+      !is.finite(ngrams) ||
+      ngrams < 1 ||
+      ngrams != trunc(ngrams)
+  ) {
+    cli_abort(c(
+      "{.arg ngrams} must be a single whole number, {.val {1}} or more",
+      "x" = "Got {.val {ngrams}}.",
+      "i" = "It is the total window width captured around a match, the matched token included: {.code ngrams = 3} captures up to two further tokens."
+    ))
+  }
+
   cli_h1("edstr_view")
   br()
 

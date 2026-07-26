@@ -8,6 +8,24 @@
 
 ## Bug fixes
 
+- `edstr_extract()` creates its output directory private to the user (`0700`) instead of leaving it at the ambient umask.
+  The saved XLSX, RDS and note quote the source text verbatim and `ano_hash` / `ano_hide` do not cover it, so on a shared host a clinical extract was readable by anyone able to traverse the parent directory.
+  An output directory that already exists keeps the permissions it was created with, so restrict earlier ones by hand.
+
+- `edstr_import()` no longer echoes the database password when prompting for it.
+  Outside RStudio the prompt fell back to `readline()`, which printed every keystroke and left the credential in the terminal scrollback; it now reads through `askpass::askpass()` (new `Suggests`).
+
+- `edstr_view()` enforces the `<integer(1)>` contract its documentation already stated for `ngrams`.
+  The value reached the regex quantifier unchecked, so `0` or a fractional value surfaced as a raw ICU `U_REGEX_BAD_INTERVAL`, and a length-2 vector recycled against a two-row frame, searching each row with a different window and reporting nothing.
+
+- `edstr_extract()` enforces the `<character(1)>` contract its documentation already stated for `exclus_manual` and `exclus_auto_escape`.
+  A length-2 `exclus_manual` died on `'length = 2' in coercion to 'logical(1)'` fourteen frames into the exclusions stage, and the same value in `exclus_auto_escape` died on a vctrs recycling error one stage earlier.
+  Worse than either, a value as long as the matched-row count recycled instead of failing, applying a different pattern to each row.
+  Alternation goes inside the pattern, `"a|b"` rather than `c("a", "b")`.
+
+- `edstr_extract()` counts a document whose every match fails source confirmation as a true negative.
+  Such a document was dropped from `data$extract` by the join on the confirmed matches while still counting as matched for the unmatched split, so it reached neither the delivered frame nor any `unmatched` bucket and `n_no_concept`, the documented denominator, was short by that set.
+
 - `edstr_extract()` accepts a `data` whose identifier column is named `id`.
   Inside the data-masked filters the column shadowed the argument holding its own name, so the subscript received a vector and the run aborted on `no such index at level 1` before producing anything.
 

@@ -130,7 +130,6 @@
     data_match_init = data_match_init,
     data_match_init_df = data_match_init_df,
     data_match_df = data_match_df,
-    data_token_match = data_token_match,
-    match_id = match_id
+    data_token_match = data_token_match
   )
 }

@@ -526,23 +526,17 @@ test_that("unmatched: partitions unmatched docs into concept/empty/outside sets"
     id_group = 1:5,
     texte = "x"
   )
-  match_id <- data.frame(doc_id = "1")
-  data_match <- data.frame(
-    doc_id = character(),
-    concept = character(),
-    texte = character()
-  )
+  data_id <- data.frame(doc_id = "1", concept = "c1", texte = "x")
   data_regex_match <- data.frame(
-    doc_id = character(),
-    concept = character(),
-    match = character()
+    doc_id = "1",
+    concept = "c1",
+    match = "x"
   )
   format_drops <- list(empty_text = "2", outside_p = "3")
 
   res <- edstr:::.extract_unmatched(
     data = data,
-    data_match = data_match,
-    match_id = match_id,
+    data_id = data_id,
     data_regex_match = data_regex_match,
     id = "doc_id",
     group = "id_group",
@@ -573,23 +567,17 @@ test_that("unmatched: no_source is kept out of the no_concept set", {
     id_group = 1:5,
     texte = "x"
   )
-  match_id <- data.frame(doc_id = "1")
-  data_match <- data.frame(
-    doc_id = character(),
-    concept = character(),
-    texte = character()
-  )
+  data_id <- data.frame(doc_id = "1", concept = "c1", texte = "x")
   data_regex_match <- data.frame(
-    doc_id = character(),
-    concept = character(),
-    match = character()
+    doc_id = "1",
+    concept = "c1",
+    match = "x"
   )
   format_drops <- list(no_source = "2", empty_text = "3", outside_p = "4")
 
   res <- edstr:::.extract_unmatched(
     data = data,
-    data_match = data_match,
-    match_id = match_id,
+    data_id = data_id,
     data_regex_match = data_regex_match,
     id = "doc_id",
     group = "id_group",
@@ -622,16 +610,11 @@ test_that("unmatched: no_source is populated regardless of unmatched_data", {
 
   res <- edstr:::.extract_unmatched(
     data = data,
-    data_match = data.frame(
-      doc_id = character(),
-      concept = character(),
-      texte = character()
-    ),
-    match_id = data.frame(doc_id = "1"),
+    data_id = data.frame(doc_id = "1", concept = "c1", texte = "x"),
     data_regex_match = data.frame(
-      doc_id = character(),
-      concept = character(),
-      match = character()
+      doc_id = "1",
+      concept = "c1",
+      match = "x"
     ),
     id = "doc_id",
     group = "id_group",
@@ -651,23 +634,17 @@ test_that("unmatched: unmatched_data = FALSE gates only the no_concept set", {
     id_group = 1:5,
     texte = "x"
   )
-  match_id <- data.frame(doc_id = "1")
-  data_match <- data.frame(
-    doc_id = character(),
-    concept = character(),
-    texte = character()
-  )
+  data_id <- data.frame(doc_id = "1", concept = "c1", texte = "x")
   data_regex_match <- data.frame(
-    doc_id = character(),
-    concept = character(),
-    match = character()
+    doc_id = "1",
+    concept = "c1",
+    match = "x"
   )
   format_drops <- list(empty_text = "2", outside_p = "3")
 
   res <- edstr:::.extract_unmatched(
     data = data,
-    data_match = data_match,
-    match_id = match_id,
+    data_id = data_id,
     data_regex_match = data_regex_match,
     id = "doc_id",
     group = "id_group",
@@ -684,8 +661,7 @@ test_that("unmatched: unmatched_data = FALSE gates only the no_concept set", {
 
 test_that("unmatched: mismatched captures token matches absent from source", {
   data <- data.frame(doc_id = "1", id_group = 1, texte = "x")
-  match_id <- data.frame(doc_id = "1")
-  data_match <- data.frame(
+  data_id <- data.frame(
     doc_id = "1",
     concept = "c1",
     texte = "AVC"
@@ -698,8 +674,7 @@ test_that("unmatched: mismatched captures token matches absent from source", {
 
   res <- edstr:::.extract_unmatched(
     data = data,
-    data_match = data_match,
-    match_id = match_id,
+    data_id = data_id,
     data_regex_match = data_regex_match,
     id = "doc_id",
     group = "id_group",

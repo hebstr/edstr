@@ -95,7 +95,9 @@
   }
 
   sheet_configs <- list(
-    data = list(color = mk_color(c(data_id$concept_key, "concept"), "extract")),
+    data = list(
+      color = mk_color(c(unique(data_id$concept_key), "concept"), "extract")
+    ),
     token_regex = list(
       color = mk_color(
         str_subset(names(concepts_list$regex_df), "concept"),
@@ -126,18 +128,14 @@
     params = list(halign = "left")
   )
 
+  # keyed on the shape, not on a name: a gated sheet is the `lst(data, rows,
+  # visible)` wrapper, a plain one is the frame itself. Reaching for `$rows` on
+  # every sheet would partial-match a user column named `rows...` and hand back
+  # that column instead of the sheet
   get_sheet_data <- \(name) {
-    if (name == "token_exclusion") {
-      return(data_sheets$token_exclusion$rows)
-    }
-    if (name == "unmatched") {
-      return(data_sheets$unmatched$rows)
-    }
-    if (name == "mismatched") {
-      return(data_sheets$mismatched$rows)
-    }
+    .sheet <- data_sheets[[name]]
 
-    data_sheets[[name]]
+    if (is.data.frame(.sheet)) .sheet else .sheet$rows
   }
 
   reduce2(

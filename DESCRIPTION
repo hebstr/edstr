@@ -43,6 +43,7 @@ Imports:
     utils,
     withr
 Suggests:
+    askpass,
     gt,
     rstudioapi,
     knitr,

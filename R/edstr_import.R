@@ -59,7 +59,12 @@
     if (rlang::is_installed("rstudioapi") && rstudioapi::isAvailable()) {
       rstudioapi::askForPassword()
     } else {
-      readline("Password: ")
+      # `readline()` would echo the credential into the terminal scrollback
+      rlang::check_installed(
+        "askpass",
+        reason = "to read the password without echoing it."
+      )
+      askpass::askpass("Password: ")
     }
 
   connection <- DatabaseConnector::connect(
@@ -70,13 +75,6 @@
     password = password,
     ...
   )
-
-  # connection <- DBI::dbConnect(
-  #   drv = duckdb::duckdb(),
-  #   dbdir = "demo/collect/data/test.duckdb"
-  # )
-
-  # on.exit(DBI::dbDisconnect(connection))
 
   on.exit(DatabaseConnector::disconnect(connection), add = TRUE)
   on.exit(.gc_r_java(), add = TRUE)
@@ -146,7 +144,7 @@
 #' @param user `<character(1)>` Database username.
 #' @param password `<character(1)>` Database password. Defaults to an
 #'   interactive prompt via `rstudioapi::askForPassword()` (if available)
-#'   or `readline()`, which echoes what is typed. Required outside an
+#'   or `askpass::askpass()`, neither of which echoes. Required outside an
 #'   interactive session, where a prompt would answer itself with `""` and
 #'   spend an authentication attempt. An empty string is rejected everywhere,
 #'   `Sys.getenv()` returning one for an unset variable.

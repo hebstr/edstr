@@ -33,7 +33,7 @@ test_that("edstr_import() refuses a missing password outside an interactive sess
     rlang_interactive = FALSE
   )
 
-  # `readline()` would answer itself with "", which the server counts as a
+  # a prompt would answer itself with "", which the server counts as a
   # failed attempt rather than a missing credential
   expect_error(
     edstr_import(query = "SELECT 1", connect_dir = connect),

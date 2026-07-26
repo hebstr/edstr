@@ -29,7 +29,7 @@ converted to lowercase.}
 
 \item{password}{\verb{<character(1)>} Database password. Defaults to an
 interactive prompt via \code{rstudioapi::askForPassword()} (if available)
-or \code{readline()}, which echoes what is typed. Required outside an
+or \code{askpass::askpass()}, neither of which echoes. Required outside an
 interactive session, where a prompt would answer itself with \code{""} and
 spend an authentication attempt. An empty string is rejected everywhere,
 \code{Sys.getenv()} returning one for an unset variable.}

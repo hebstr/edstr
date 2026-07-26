@@ -137,6 +137,23 @@ test_that("edstr_view() supports ngrams > 1", {
   expect_equal(result_3$match$match, "diabete type 2")
 })
 
+test_that("edstr_view() rejects an ngrams that is not a single whole number >= 1", {
+  withr::local_options(edstr_text = "note")
+
+  # a length-2 `ngrams` recycles 1:1 against a 2-row frame, so each row would be
+  # searched with a different window and nothing would signal it
+  input <- data.frame(id = 1:2, note = c("diabete type 2", "diabete gestationnel"))
+
+  for (bad in list(0, -1, 2.5, NA_integer_, Inf, c(1, 2), integer(), "3")) {
+    expect_error(
+      suppressMessages(
+        edstr_view(data = input, pattern = "diabete", ngrams = bad)
+      ),
+      "single whole number"
+    )
+  }
+})
+
 test_that("edstr_view() auto-detects id column", {
   withr::local_options(edstr_text = "note")
 

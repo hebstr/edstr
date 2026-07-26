@@ -41,7 +41,27 @@
     ))
   }
 
-  fs::dir_create(save_dir)
+  # alternation belongs inside the pattern: a length > 1 value recycles against
+  # the matched rows and silently applies a different pattern to each whenever
+  # the two lengths coincide, and any other length dies inside `str_detect()`
+  .check_exclus <- \(x, arg) {
+    if (!is.null(x) && (!is.character(x) || length(x) != 1L)) {
+      cli_abort(c(
+        "{.arg {arg}} must be a single regex string or {.code NULL}",
+        "x" = "Got {.obj_type_friendly {x}} of length {length(x)}.",
+        "i" = "Alternate inside the pattern: {.code \"a|b\"}, not {.code c(\"a\", \"b\")}."
+      ))
+    }
+  }
+
+  .check_exclus(exclus_manual, "exclus_manual")
+  .check_exclus(exclus_auto_escape, "exclus_auto_escape")
+
+  # the saved XLSX, RDS and note quote `text_input` verbatim, and `ano_hash` /
+  # `ano_hide` do not cover it, so the directory is what keeps a clinical extract
+  # off a shared host. Only applied on creation: an existing directory keeps the
+  # permissions it was created with
+  fs::dir_create(save_dir, mode = "0700")
 
   cli_save_extract <- map(
     set_names(c("xlsx", "rds", "json")),
@@ -191,7 +211,6 @@
   data_match_init_df <- match_tokens$data_match_init_df
   data_match_df <- match_tokens$data_match_df
   data_token_match <- match_tokens$data_token_match
-  match_id <- match_tokens$match_id
 
   ### EXCLUSIONS -----------------------------------------------------------------
 
@@ -252,7 +271,6 @@
     "Unmatched",
     .extract_unmatched(
       data,
-      data_id,
       data_id,
       data_regex_match,
       id,
@@ -496,7 +514,6 @@
     data,
     data_id,
     data_match_init,
-    match_id,
     concepts_list,
     nrow_init,
     id,
@@ -650,7 +667,8 @@
 #'     outside `<p>` blocks). Read `n_no_concept` for the denominator, never
 #'     `nrow(no_concept)`. A document whose every match is excluded counts as a
 #'     non-case in `no_concept` too, the exclusions having ruled its matches
-#'     false positives. Under `intersect = TRUE` the unit is the compound
+#'     false positives, and so does one whose every match fails source
+#'     confirmation. Under `intersect = TRUE` the unit is the compound
 #'     concept, so a document whose token matches do not cover every root counts
 #'     as a non-case as well; the intersection is evaluated on those token
 #'     matches, before the exclusions, so a document that loses a whole root to
@@ -658,7 +676,9 @@
 #'     `data$match` stays pre-intersect and pre-exclusion, and
 #'     `anti_join(data$match, data$extract, by = id)` recovers those sets.}
 #'   \item{`mismatched`}{Tibble of token vs source discrepancies (token
-#'     matches not confirmed in the source text).}
+#'     matches not confirmed in the source text). One row per match, not per
+#'     document, so a document whose matches are only partly confirmed appears
+#'     here and in `data$extract` at once.}
 #'   \item{`summary`}{List: `token` (summary by token), `concept` (summary
 #'     by concept), `params` (call parameters).}
 #'   \item{`sheets`}{List: `df` (data frames per Excel sheet), `gt` (gt
