@@ -121,6 +121,50 @@ test_that("re2_extract_prepared: both offset maps run on a non-ASCII fold", {
   )
 })
 
+test_that("re2_extract_prepared: a decomposed source reaches the guard", {
+  # the fallback re-matches the folded pattern against the unfolded original,
+  # which a decomposed accent defeats: the NFC item in DEFERRED.md pins the cost
+  prep <- edstr:::.re2_prepare(stringi::stri_trans_nfd("cérébral"))
+  width <- prep$width[[1]]
+
+  expect_true(prep$expand)
+  expect_true(width[length(width)] != prep$folded_len)
+  expect_equal(
+    edstr:::.re2_extract_prepared(prep, "(?i)\\b(cerebral)\\b"),
+    list(character(0))
+  )
+})
+
+test_that("re2_extract_prepared: the ICU fallback keeps re2's whole-text anchors", {
+  prep <- edstr:::.re2_prepare("cœur\nbat\nbat")
+
+  broken <- prep
+  width <- broken$width[[1]]
+  width[length(width)] <- width[length(width)] - 1L
+  broken$width[[1]] <- width
+
+  expect_equal(edstr:::.re2_extract_prepared(prep, "bat$"), list("bat"))
+  expect_equal(edstr:::.re2_extract_prepared(broken, "bat$"), list("bat"))
+})
+
+test_that("re2_prepare: an expansion cancelling a deletion still maps offsets", {
+  # the guillemets expand (+2) while the two decomposed accents are deleted
+  # (-2), so the folded length ties the original without a 1:1 mapping
+  x <- paste0(
+    "le patient dit « infarctus ",
+    stringi::stri_trans_nfd("cérébral"),
+    " » fin"
+  )
+  prep <- edstr:::.re2_prepare(x)
+
+  expect_equal(prep$folded_len, nchar(x, "chars"))
+  expect_true(prep$expand)
+  expect_equal(
+    edstr:::.re2_extract_prepared(prep, "(?i)\\b(infarctus)\\b"),
+    list("infarctus")
+  )
+})
+
 test_that("re2_extract_prepared: a broken width map falls back to ICU", {
   prep <- edstr:::.re2_prepare("cœur battant")
 
@@ -129,8 +173,8 @@ test_that("re2_extract_prepared: a broken width map falls back to ICU", {
     list("cœur")
   )
 
-  # the guard only fires when the per-character widths stop summing to the
-  # folded length, which no known code point produces: corrupt the map instead
+  # real input reaching the guard is covered above; corrupting the map pins the
+  # fallback on its own, on a minimal deterministic case
   broken <- prep
   width <- broken$width[[1]]
   width[length(width)] <- width[length(width)] - 1L

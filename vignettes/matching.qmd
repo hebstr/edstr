@@ -90,7 +90,8 @@ The mapping assumes the transliteration is context free, meaning that transliter
 ## Why not simply strip the accents
 
 A tempting alternative is a fold that only removes diacritics, by decomposing each character, dropping the combining marks, and recomposing.
-It has the appeal of preserving string length exactly, which makes position mapping trivial.
+It has the appeal of preserving string length on precomposed text, which makes position mapping trivial there.
+Text that arrives already decomposed shortens instead, since the marks it drops were separate characters to begin with, so equal length is never on its own a proof that positions did not move.
 
 It also silently loses the ligatures, because Unicode gives them no decomposition at all.
 

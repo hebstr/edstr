@@ -3,11 +3,16 @@
 # linear pass where ICU backtracking re-evaluates each branch per document.
 #
 # The fold uses the same Latin-ASCII transliteration as tokenisation, so a
-# matched token and the folded source are the same string by construction, and
-# re2's ASCII-only \b lands on real word edges. Latin-ASCII is not length
-# preserving (oe-ligature -> "oe"), so positions are carried back through two
-# maps: re2 byte offsets -> folded character indices -> original character
-# indices, the original then being sliced to recover the true surface form.
+# matched token and the folded source are the same string by construction.
+# re2's \b is ASCII-only, so it lands on real word edges wherever the fold is
+# pure ASCII, which is not everywhere: Latin-ASCII transliterates Latin script
+# only, and a Greek or Cyrillic letter survives it (micro sign, beta, gamma,
+# ohm). Such a letter is a word character to ICU and a boundary to re2, so the
+# two engines can disagree on a match edge that touches one. Latin-ASCII is
+# not length preserving (oe-ligature -> "oe"), so positions are carried back
+# through two maps: re2 byte offsets -> folded character indices -> original
+# character indices, the original then being sliced to recover the true
+# surface form.
 #
 # The second map relies on Latin-ASCII being context free, i.e. transliterating
 # a string character by character equals transliterating it whole. Per document,
@@ -24,9 +29,10 @@
 #
 # Only the code points actually present in `x` are repaired, which is what keeps
 # the repair free: a clinical corpus carries a couple of dozen of the ~4300.
-# a character class of escaped code points. The set holds combining marks and
-# zero-width characters, which attach to their neighbour when written literally
-# and silently mangle the class.
+# Detecting the protected ones among them needs a character class of escaped
+# code points. The set holds combining marks and zero-width characters, which
+# attach to their neighbour when written literally and silently mangle the
+# class.
 .re2_char_class <- \(char) {
   code_point <- vapply(char, utf8ToInt, integer(1), USE.NAMES = FALSE)
 
@@ -39,7 +45,7 @@
   paste0("[", paste(escaped, collapse = ""), "]")
 }
 
-.re2_fold <- \(x) {
+.re2_fold <- \(x, detail = FALSE) {
   residue <- stri_replace_all_regex(x, "[\\u0000-\\u007F]+", "")
   present <- intToUtf8(
     unique(utf8ToInt(paste(residue, collapse = ""))),
@@ -47,7 +53,7 @@
   )
 
   if (length(present) == 0) {
-    return(x)
+    return(if (detail) list(folded = x, icu = rep(FALSE, length(x))) else x)
   }
 
   protect <- .re2_protect[.re2_protect %in% present]
@@ -80,7 +86,7 @@
     out[icu] <- stri_trans_general(x[icu], "Latin-ASCII")
   }
 
-  out
+  if (detail) list(folded = out, icu = icu) else out
 }
 
 # position in the output -> index of the input unit that produced it,
@@ -115,14 +121,17 @@
 }
 
 .re2_prepare <- \(text) {
-  folded <- .re2_fold(text)
+  fold <- .re2_fold(text, detail = TRUE)
+  folded <- fold$folded
   folded_len <- nchar(folded, "chars")
 
-  # Latin-ASCII never deletes a character (verified over all of Unicode), so an
-  # unchanged length means every character mapped to exactly one: no offset
-  # map is needed for that document.
+  # on the fast path no code point folds to nothing, so an unchanged length
+  # means every character mapped to exactly one and no offset map is needed.
+  # A document routed to ICU can lose a character (a combining mark is dropped
+  # onto its base), where a cancelling expansion leaves the length unchanged
+  # and proves nothing: it always carries a map, and the width guard decides.
   known <- !is.na(folded_len)
-  expand <- known & folded_len != nchar(text, "chars")
+  expand <- known & (fold$icu | folded_len != nchar(text, "chars"))
 
   list(
     text = text,
@@ -137,7 +146,8 @@
 .re2_extract_prepared <- \(prep, pattern) {
   pattern <- as.character(pattern)
   loc <- re2_locate_all(prep$folded, re2_regexp(pattern))
-  icu_pattern <- regex(pattern, multiline = TRUE)
+  # stands in for the re2 pass, so it takes re2's anchors, not per-line ones
+  icu_pattern <- regex(pattern)
 
   map2(loc, seq_along(prep$folded), \(m, i) {
     if (nrow(m) == 0) {

@@ -8,6 +8,16 @@
 
 ## Bug fixes
 
+- `edstr_extract()` returns the true surface form for a document whose folded length ties the original by coincidence.
+  Matches are located on a `Latin-ASCII` copy of the source and their positions travel back to the original through a per-character offset map, which was built only for documents the fold changed the length of.
+  A document carrying a combining mark takes a slower transliteration that can drop it onto its base, and a ligature expanding elsewhere in the same document restores the count: the length tied, no map was built, and the folded positions sliced the original directly.
+  `data$extract`, the note and the highlighted XLSX and gt then quoted text shifted off the match, with no error.
+
+- `edstr_extract()` no longer anchors `^` and `$` per line on the document where source confirmation falls back to a second engine.
+  That fallback runs for any document whose offset map fails its consistency check, and it anchored per line where the primary pass anchors on the whole text.
+  A concept pattern carrying `^` or `$` could therefore report more matches on the fallback path than on the normal one, which also moved the `mismatched` rows and the true-negative count derived from them.
+  One narrower difference remains between the two engines, reachable only through a `regex_replace` entry that injects an anchor: `$` matches before a single trailing newline on the fallback and at the very end of the text on the primary pass.
+
 - `edstr_extract()` creates its output directory private to the user (`0700`) instead of leaving it at the ambient umask.
   The saved XLSX, RDS and note quote the source text verbatim and `ano_hash` / `ano_hide` do not cover it, so on a shared host a clinical extract was readable by anyone able to traverse the parent directory.
   An output directory that already exists keeps the permissions it was created with, so restrict earlier ones by hand.
