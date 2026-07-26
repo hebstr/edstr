@@ -178,9 +178,9 @@
   applied to the source is reproduced on a faster Unicode fold.
 
 - The token-matching stage joins the occurrence table once instead of once per
-  concept, about 4 times faster at every `token` value.
-  The gain grows with the number of n-gram sizes searched: `token = c(1, 2, 3)`
-  goes from about 21 seconds to 5 on the reference corpus.
+  concept, about 4 times faster at every `ngram_max` value.
+  The gain grows with the number of n-gram sizes searched: `ngram_max = 3` goes
+  from about 21 seconds to 5 on the reference corpus.
 
 - The automatic exclusion scan is skipped when no n-gram reaches
   `exclus_auto_token_min`, which is what its default of `10` means in practice.
@@ -209,9 +209,9 @@
   recovered.
 
 - `exclus_auto_token_min` is now documented as what it is: a threshold measured in
-  n-gram sizes, whose default of `10` sits above every realistic `token` value and so
-  disables automatic exclusion entirely.
-  Lower it below the smallest n-gram size of interest to enable the heuristic.
+  n-gram sizes, whose default of `10` sits above every realistic `ngram_max` value
+  and so disables automatic exclusion entirely.
+  Set it to `0` to submit every n-gram size to the scan.
 
 - `ngrams` in `edstr_view()` is described consistently in the vignettes and the
   reference as the total window size, the matched token included.
@@ -219,6 +219,25 @@
   previously read as if all three were captured after the match.
 
 ## Breaking changes
+
+- `edstr_extract()`: the `token` argument is replaced by `ngram_max`, a single
+  whole number giving the largest n-gram size to tokenise.
+  Every smaller size is searched too, so `ngram_max = 3` covers what
+  `token = c(1, 2, 3)` covered.
+  The sequence was always contiguous from 1 in real use, so the vector form
+  only exposed the discontinuous and reordered inputs that produced the two
+  bugs fixed above; those inputs are now inexpressible.
+  A degenerate value (`0`, negative, fractional, `Inf`, `NA`, longer than one)
+  aborts with a named message instead of failing deep inside tokenisation.
+  Do not confuse `ngram_max` with `edstr_view()`'s `ngrams`, which widens the
+  window displayed around a match rather than the sizes searched.
+
+- `edstr_extract()`: the `params` record reports `ngram_max` (the bound passed)
+  where it used to report `token` (the expanded sizes).
+  This changes the `summary$params` element of the RDS, the `params` sheet of
+  the XLSX and gt output, and the `params` block of the JSON.
+  Nothing else in the delivered output moves: verified byte-identical on the
+  full 7883-document corpus for both the unigram and the `1:3` configurations.
 
 - `edstr_extract()`: the `mismatch_data` argument is renamed to
   `unmatched_data`.

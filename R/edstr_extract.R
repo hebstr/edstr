@@ -7,7 +7,7 @@
   seed,
   ano_hash,
   ano_hide,
-  token,
+  ngram_max,
   concepts,
   collapse,
   intersect,
@@ -26,6 +26,20 @@
 ) {
   check_class(data, "data.frame")
   check_class(text_input, "character")
+
+  if (
+    !is.numeric(ngram_max) ||
+      length(ngram_max) != 1L ||
+      !is.finite(ngram_max) ||
+      ngram_max < 1 ||
+      ngram_max != trunc(ngram_max)
+  ) {
+    cli_abort(c(
+      "{.arg ngram_max} must be a single whole number, {.val {1}} or more",
+      "x" = "Got {.val {ngram_max}}.",
+      "i" = "It is the largest n-gram size tokenised, every smaller size included: {.code ngram_max = 3} searches unigrams, bigrams and trigrams."
+    ))
+  }
 
   fs::dir_create(save_dir)
 
@@ -144,7 +158,9 @@
   cli_progress_step("{.strong Tokenising source text}")
   br()
 
-  token <- set_names(token, paste0("n", token))
+  # the stages below index by n-gram size rather than by position, so the scalar
+  # bound is expanded once here into the named size vector they consume
+  token <- set_names(seq_len(ngram_max), paste0("n", seq_len(ngram_max)))
 
   data_token <- .timed(
     "Tokenise",
@@ -276,7 +292,7 @@
     seed = seed,
     id = id,
     group = if (is.null(which_group)) NULL else group,
-    token = token,
+    ngram_max = ngram_max,
     concepts_root = concepts_list$root,
     concepts_names = concepts_list$regex_df$concept_name,
     collapse = collapse,
@@ -554,8 +570,11 @@
 #'   output quote `text_input` verbatim by design. Neither touches the Parquet
 #'   caches written upstream by [edstr_import()] and [edstr_clean()], which
 #'   keep the source in clear.
-#' @param token `<integer>` N-gram sizes to use for tokenisation. Default `1`
-#'   (unigrams). Use `c(1, 2)` for unigrams and bigrams.
+#' @param ngram_max `<integer(1)>` Largest n-gram size to tokenise. Every
+#'   smaller size is searched too, so `ngram_max = 2` covers unigrams and
+#'   bigrams. Default `1` (unigrams only). Distinct from the `ngrams` argument
+#'   of [edstr_view()], which sets a display window around a match rather than
+#'   the sizes searched.
 #' @param concepts `<character|list>` Named vector or nested named list of
 #'   regex patterns defining the concepts to search for. Each name becomes a
 #'   concept key; nested names create sub-concepts (e.g.
@@ -578,9 +597,9 @@
 #' @param exclus_auto_token_min `<numeric(1)>` Minimum n-gram size for
 #'   automatic exclusion heuristics (default `10`). Auto-exclusions only
 #'   apply to tokens with `n > exclus_auto_token_min`, measured in the same
-#'   unit as `token`. The default therefore disables the heuristic for every
-#'   realistic `token` value: with `token = c(1, 2, 3)` no token exceeds
-#'   `10`. Set it below the smallest n-gram size of interest to enable it.
+#'   unit as `ngram_max`. The default therefore disables the heuristic for
+#'   every realistic `ngram_max` value: with `ngram_max = 3` no token exceeds
+#'   `10`. Set it to `0` to submit every n-gram size to the scan.
 #'   When no n-gram clears the threshold the scan has nothing to look at and
 #'   is skipped, so the default costs nothing.
 #' @param regex_replace `<character>` Optional named vector of additional
@@ -678,7 +697,7 @@ edstr_extract <- \(
   seed = NULL,
   ano_hash = NULL,
   ano_hide = NULL,
-  token = 1,
+  ngram_max = 1,
   concepts = NULL,
   collapse = FALSE,
   intersect = FALSE,
@@ -727,7 +746,7 @@ edstr_extract <- \(
       seed,
       ano_hash,
       ano_hide,
-      token,
+      ngram_max,
       concepts,
       collapse,
       intersect,

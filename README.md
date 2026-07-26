@@ -135,7 +135,7 @@ independent concept:
 result <- edstr_extract(
   data = df_clean,
   concepts = c(fracture = "fractur", femur = "femur|fesf"),
-  token = c(1, 2),
+  ngram_max = 2,
   group = "id_pat"
 )
 ```
@@ -199,9 +199,9 @@ overwritten, loaded silently, or trigger an interactive prompt.
   `exclus_auto_escape` only shrinks the rows it scans. Watch for
   slowdowns on large corpora.
 - At the default `exclus_auto_token_min = 10`, auto-exclusions only
-  apply to n-grams larger than the threshold and no realistic `token`
-  value reaches 11, so nothing is scanned and the heuristic never fires.
-  Lower the threshold to enable it.
+  apply to n-grams larger than the threshold and no realistic
+  `ngram_max` value reaches 11, so nothing is scanned and the heuristic
+  never fires. Lower the threshold to enable it.
 - `ano_hash` is pseudonymisation, not anonymisation. The hash is
   unsalted and stable across runs, which is what makes a patient
   traceable between two extractions; it also means a small identifier

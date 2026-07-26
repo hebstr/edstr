@@ -122,7 +122,7 @@ A simple vector creates independent concepts; a named list creates sub-concepts.
 df_extract <- edstr_extract(
   data = df_clean,
   concepts = c(fracture = "fracture", femur = "femur|fesf"),
-  token = c(1, 2),
+  ngram_max = 2,
   group = "id_pat"
 )
 ```
@@ -152,7 +152,7 @@ False positives can be filtered in two ways:
 
 - **Manual**: a regex pattern via `exclus_manual`.
 - **Automatic**: heuristics on long tokens, applied to n-grams larger than `exclus_auto_token_min`.
-  Its default of `10` sits above any realistic `token` value, so the heuristic is disabled unless the threshold is lowered.
+  Its default of `10` sits above any realistic `ngram_max` value, so the heuristic is disabled unless the threshold is lowered.
 
 ```{r}
 #| label: extract-exclusions
@@ -161,7 +161,7 @@ False positives can be filtered in two ways:
 df_extract <- edstr_extract(
   data = df_clean,
   concepts = c(fracture = "fracture"),
-  token = c(1, 2, 3),
+  ngram_max = 3,
   exclus_manual = "fracture ouverte",
   exclus_auto_token_min = 0,
   group = "id_pat"
@@ -184,6 +184,7 @@ df_view <- edstr_view(
 ```
 
 `ngrams` sets the total window size including the matched token: `ngrams = 3` with `pattern = "fractur"` captures up to two further tokens, matching e.g. `"fracture col femoral"`.
+It widens what is displayed around a match, unlike `edstr_extract()`'s `ngram_max` above, which sets the n-gram sizes actually searched.
 
 ## Output summary
 

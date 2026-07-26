@@ -13,7 +13,7 @@ edstr_extract(
   seed = NULL,
   ano_hash = NULL,
   ano_hide = NULL,
-  token = 1,
+  ngram_max = 1,
   concepts = NULL,
   collapse = FALSE,
   intersect = FALSE,
@@ -71,8 +71,11 @@ output quote \code{text_input} verbatim by design. Neither touches the Parquet
 caches written upstream by \code{\link[=edstr_import]{edstr_import()}} and \code{\link[=edstr_clean]{edstr_clean()}}, which
 keep the source in clear.}
 
-\item{token}{\verb{<integer>} N-gram sizes to use for tokenisation. Default \code{1}
-(unigrams). Use \code{c(1, 2)} for unigrams and bigrams.}
+\item{ngram_max}{\verb{<integer(1)>} Largest n-gram size to tokenise. Every
+smaller size is searched too, so \code{ngram_max = 2} covers unigrams and
+bigrams. Default \code{1} (unigrams only). Distinct from the \code{ngrams} argument
+of \code{\link[=edstr_view]{edstr_view()}}, which sets a display window around a match rather than
+the sizes searched.}
 
 \item{concepts}{\verb{<character|list>} Named vector or nested named list of
 regex patterns defining the concepts to search for. Each name becomes a
@@ -102,9 +105,9 @@ auto-exclusion runs.}
 \item{exclus_auto_token_min}{\verb{<numeric(1)>} Minimum n-gram size for
 automatic exclusion heuristics (default \code{10}). Auto-exclusions only
 apply to tokens with \code{n > exclus_auto_token_min}, measured in the same
-unit as \code{token}. The default therefore disables the heuristic for every
-realistic \code{token} value: with \code{token = c(1, 2, 3)} no token exceeds
-\code{10}. Set it below the smallest n-gram size of interest to enable it.
+unit as \code{ngram_max}. The default therefore disables the heuristic for
+every realistic \code{ngram_max} value: with \code{ngram_max = 3} no token exceeds
+\code{10}. Set it to \code{0} to submit every n-gram size to the scan.
 When no n-gram clears the threshold the scan has nothing to look at and
 is skipped, so the default costs nothing.}
 

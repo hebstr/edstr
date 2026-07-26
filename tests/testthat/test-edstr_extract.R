@@ -22,7 +22,7 @@ test_that("edstr_extract: a true negative is separated from an empty source", {
     edstr_extract(
       data = data,
       concepts = c(diag = "oedeme"),
-      token = 1,
+      ngram_max = 1,
       unmatched_data = TRUE
     )
   )
@@ -54,7 +54,7 @@ test_that("edstr_extract: excluding every match yields empty output without cras
     edstr_extract(
       data = data,
       concepts = c(diag = "oedeme"),
-      token = 1,
+      ngram_max = 1,
       exclus_manual = "oedeme"
     )
   ))
@@ -88,7 +88,7 @@ test_that("edstr_extract: a document whose every match is excluded is a true neg
     edstr_extract(
       data = data,
       concepts = c(diabete = "diabet", cancer = "cancer"),
-      token = 1,
+      ngram_max = 1,
       exclus_manual = "diabetique",
       unmatched_data = TRUE
     )
@@ -131,7 +131,7 @@ test_that("edstr_extract: a concept matching nothing still gets its dummy column
   concepts <- c(diabete = "diabet", cancer = "cancer", tumeur = "tumeurxyz")
 
   result <- suppressMessages(
-    edstr_extract(data = data, concepts = concepts, token = 1)
+    edstr_extract(data = data, concepts = concepts, ngram_max = 1)
   )
 
   # the dummy block follows the declared set, so a downstream loop over the keys
@@ -166,7 +166,7 @@ test_that("edstr_extract: a vector of sub-patterns under collapse = FALSE errors
     suppressMessages(edstr_extract(
       data = data,
       concepts = list(cancer = c(sein = "sein", poumon = "poumon")),
-      token = 1,
+      ngram_max = 1,
       collapse = FALSE
     )),
     "cannot keep separate"
@@ -179,7 +179,7 @@ test_that("edstr_extract: a vector of sub-patterns under collapse = FALSE errors
         cancer = c(sein = "sein", poumon = "poumon"),
         diab = "diabet"
       ),
-      token = 1,
+      ngram_max = 1,
       collapse = FALSE
     )),
     "cannot keep separate"
@@ -194,7 +194,7 @@ test_that("edstr_extract: a vector of sub-patterns under collapse = FALSE errors
         cancer = list(sein = c("sein", "mammaire")),
         diab = "diabet"
       ),
-      token = 1,
+      ngram_max = 1,
       collapse = FALSE
     )),
     "cancer_sein"
@@ -204,7 +204,7 @@ test_that("edstr_extract: a vector of sub-patterns under collapse = FALSE errors
     suppressMessages(edstr_extract(
       data = data,
       concepts = list(cancer = list(sein = "sein", poumon = "poumon")),
-      token = 1,
+      ngram_max = 1,
       collapse = FALSE
     ))
   )
@@ -235,7 +235,7 @@ test_that("edstr_extract: a user column the output builds for itself errors", {
     suppressMessages(edstr_extract(
       data = data,
       concepts = c(diag = "oedeme"),
-      token = 1,
+      ngram_max = 1,
       id = "doc_id",
       ...
     ))
@@ -266,6 +266,36 @@ test_that("edstr_extract: a missing concepts set is named before the pipeline ru
   )
 })
 
+test_that("edstr_extract: a degenerate ngram_max is named before the pipeline runs", {
+  tmp <- withr::local_tempdir()
+  withr::local_options(
+    edstr_dirname = tmp,
+    edstr_filename = "test_ngram_max",
+    edstr_text = "texte",
+    edstr_overwrite = TRUE
+  )
+
+  data <- data.frame(doc_id = "1", texte = '<p class="t">oedeme aigu</p>')
+
+  extract_with <- function(ngram_max) {
+    suppressMessages(edstr_extract(
+      data = data,
+      concepts = c(diag = "oedeme"),
+      ngram_max = ngram_max
+    ))
+  }
+
+  # `0` reaches `max(integer(0))` as `-Inf` deep inside tokenisation and `Inf`
+  # dies on an opaque `seq_len()` message, so both have to abort here by name
+  expect_error(extract_with(0), "single whole number")
+  expect_error(extract_with(-1), "single whole number")
+  expect_error(extract_with(2.5), "single whole number")
+  expect_error(extract_with(Inf), "single whole number")
+  expect_error(extract_with(NA), "single whole number")
+  expect_error(extract_with(c(1, 2)), "single whole number")
+  expect_error(extract_with("2"), "single whole number")
+})
+
 test_that("edstr_extract: an identifier column named `id` is not masked", {
   tmp <- withr::local_tempdir()
   withr::local_options(
@@ -291,7 +321,7 @@ test_that("edstr_extract: an identifier column named `id` is not masked", {
     edstr_extract(
       data = data,
       concepts = c(diag = "oedeme"),
-      token = 1,
+      ngram_max = 1,
       unmatched_data = TRUE
     )
   )
@@ -327,7 +357,7 @@ test_that("edstr_extract: document counts partition the screened set exactly", {
     edstr_extract(
       data = data,
       concepts = c(diag = "oedeme"),
-      token = 1,
+      ngram_max = 1,
       unmatched_data = TRUE
     )
   )
@@ -364,7 +394,7 @@ test_that("edstr_extract: a document with no source contributes no token", {
     edstr_extract(
       data = data,
       concepts = c(sodium = "na"),
-      token = 1
+      ngram_max = 1
     )
   )
 
@@ -391,14 +421,14 @@ test_that("edstr_extract: the default concept name survives the full pipeline", 
   )
 
   unnamed <- suppressMessages(
-    edstr_extract(data = data, concepts = "oedeme", token = 1)
+    edstr_extract(data = data, concepts = "oedeme", ngram_max = 1)
   )
 
   collapsed <- suppressMessages(
     edstr_extract(
       data = data,
       concepts = c(a = "oedeme", b = "diabet"),
-      token = 1,
+      ngram_max = 1,
       collapse = TRUE,
       filename_suffix = "collapse"
     )
@@ -424,7 +454,7 @@ test_that("edstr_extract: an apostrophe separator is not a source mismatch", {
     suppressMessages(edstr_extract(
       data = data.frame(doc_id = "1", texte = texte, stringsAsFactors = FALSE),
       concepts = c(aorte = "l aorte"),
-      token = c(1, 2),
+      ngram_max = 2,
       starts_with_only = FALSE,
       filename_suffix = suffix
     ))
@@ -474,7 +504,7 @@ test_that("edstr_extract: excluded tokens are not reported as source mismatches"
     edstr_extract(
       data = data,
       concepts = c(diabete = "diabet"),
-      token = 1,
+      ngram_max = 1,
       exclus_manual = "logique$"
     )
   )
@@ -508,7 +538,7 @@ test_that("edstr_extract: full pipeline runs and produces expected output", {
     edstr_extract(
       data = data,
       concepts = c(diabete = "diabet"),
-      token = 1
+      ngram_max = 1
     )
   )
 
@@ -566,7 +596,7 @@ test_that("edstr_extract: extract and note output are stable (refactor oracle)",
     edstr_extract(
       data = data,
       concepts = c(diabete = "diabet", cancer = "cancer"),
-      token = 1
+      ngram_max = 1
     )
   )
 
@@ -601,7 +631,7 @@ test_that("edstr_extract: loads cached RDS when file exists", {
     edstr_extract(
       data = data,
       concepts = c(diabete = "diabet"),
-      token = 1
+      ngram_max = 1
     )
   )
 
@@ -621,7 +651,7 @@ test_that("edstr_extract: loads cached RDS when file exists", {
     edstr_extract(
       data = data,
       concepts = c(diabete = "diabet"),
-      token = 1
+      ngram_max = 1
     )
   )
 
@@ -655,7 +685,7 @@ test_that("edstr_extract: the summary renders every optional block", {
     edstr_extract(
       data = data,
       concepts = c(diabete = "diabet"),
-      token = 1,
+      ngram_max = 1,
       group = "patient_id",
       sample = 5,
       seed = 42,
@@ -701,7 +731,7 @@ test_that("edstr_extract: save_as_gt builds one gt table per sheet", {
     edstr_extract(
       data = data,
       concepts = c(diabete = "diabet"),
-      token = 1,
+      ngram_max = 1,
       exclus_manual = "logique$",
       save_as_gt = TRUE
     )
@@ -759,7 +789,7 @@ test_that("edstr_extract: multiple concepts with intersect", {
     edstr_extract(
       data = data,
       concepts = c(diabete = "diabet", cancer = "cancer"),
-      token = 1,
+      ngram_max = 1,
       intersect = TRUE
     )
   )
@@ -803,7 +833,7 @@ test_that("edstr_extract: dirname_suffix and filename_suffix affect paths", {
     edstr_extract(
       data = data,
       concepts = c(diabete = "diabet"),
-      token = 1,
+      ngram_max = 1,
       dirname_suffix = "custom",
       filename_suffix = "custom"
     )
@@ -844,7 +874,7 @@ test_that("edstr_extract: accented text in source is matched correctly", {
     edstr_extract(
       data = data,
       concepts = c(diabete = "diabet"),
-      token = 1
+      ngram_max = 1
     )
   )
 
@@ -876,7 +906,7 @@ test_that("edstr_extract: ligatures are matched and returned unchanged", {
     edstr_extract(
       data = data,
       concepts = c(diag = "oedeme|coeur"),
-      token = 1
+      ngram_max = 1
     )
   )
 
@@ -909,7 +939,7 @@ test_that("edstr_extract: bigram token matching works", {
     edstr_extract(
       data = data,
       concepts = c(sein = "cancer du"),
-      token = c(1, 2)
+      ngram_max = 2
     )
   )
 
@@ -941,7 +971,7 @@ test_that("edstr_extract: anonymised values reach no observable output", {
     edstr_extract(
       data = data,
       concepts = c(diag = "oedeme"),
-      token = 1,
+      ngram_max = 1,
       id = "doc_id",
       ano_hash = "ipp",
       ano_hide = "nom",

@@ -127,7 +127,7 @@ edstr_view(
 result <- edstr_extract(
   data = df_clean,
   concepts = c(fracture = "fractur", femur = "femur|fesf"),
-  token = c(1, 2),
+  ngram_max = 2,
   group = "id_pat"
 )
 ```
@@ -176,7 +176,7 @@ The `edstr_overwrite` option (`TRUE` / `FALSE` / `NULL`) controls whether existi
 ## Known limitations
 
 - Auto-exclusion in `edstr_extract()` scans every distinct matched text against every matched row, three times over (start, end, and start-end anchors). The scan runs whatever `exclus_manual` is set to, so its cost is not opt-in once any n-gram clears `exclus_auto_token_min`; `exclus_auto_escape` only shrinks the rows it scans. Watch for slowdowns on large corpora.
-- At the default `exclus_auto_token_min = 10`, auto-exclusions only apply to n-grams larger than the threshold and no realistic `token` value reaches 11, so nothing is scanned and the heuristic never fires. Lower the threshold to enable it.
+- At the default `exclus_auto_token_min = 10`, auto-exclusions only apply to n-grams larger than the threshold and no realistic `ngram_max` value reaches 11, so nothing is scanned and the heuristic never fires. Lower the threshold to enable it.
 - `ano_hash` is pseudonymisation, not anonymisation. The hash is unsalted and stable across runs, which is what makes a patient traceable between two extractions; it also means a small identifier space can be reversed by enumerating it.
 - Neither `ano_hash` nor `ano_hide` touches the clinical text. `data$extract`, `data$note` and the highlighted Excel output quote the source column verbatim, since showing that text is what they are for, and the Parquet caches written upstream by `edstr_import()` and `edstr_clean()` keep the source in clear.
 

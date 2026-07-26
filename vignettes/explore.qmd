@@ -54,6 +54,7 @@ The function prints a frequency table of distinct matches and a summary of match
 
 The `ngrams` argument sets the total window size captured, the matched token included.
 This is useful for discovering common multi-word patterns.
+It is a display window, not a search setting: the n-gram sizes `edstr_extract()` searches are set by its own `ngram_max` argument.
 
 ```{r}
 #| error: true

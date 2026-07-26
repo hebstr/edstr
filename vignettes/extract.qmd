@@ -68,8 +68,9 @@ result <- edstr_extract(
 
 ## Tokenisation
 
-The `token` argument controls the n-gram sizes used for tokenisation.
-Unigrams (`token = 1`) are the default; adding bigrams captures multi-word expressions.
+The `ngram_max` argument sets the largest n-gram size tokenised; every smaller size is searched too.
+Unigrams (`ngram_max = 1`) are the default; raising it to `2` adds bigrams, which capture multi-word expressions.
+Do not confuse it with the `ngrams` argument of `edstr_view()`, which widens the window displayed around a match instead of the sizes searched.
 
 ```{r}
 #| label: extract-bigrams
@@ -78,7 +79,7 @@ Unigrams (`token = 1`) are the default; adding bigrams captures multi-word expre
 result <- edstr_extract(
   data = df_clean,
   concepts = c(fracture = "fracture"),
-  token = c(1, 2),
+  ngram_max = 2,
   group = "id_pat"
 )
 ```
@@ -134,8 +135,8 @@ result <- edstr_extract(
 ### Automatic exclusions
 
 Heuristic-based filtering on long tokens.
-`exclus_auto_token_min` sets the n-gram size above which auto-exclusion applies, in the same unit as `token`.
-Its default of `10` is above any realistic n-gram size, so out of the box no token clears the threshold and the heuristic is skipped: lower it below your smallest `token` value to actually enable it.
+`exclus_auto_token_min` sets the n-gram size above which auto-exclusion applies, in the same unit as `ngram_max`.
+Its default of `10` is above any realistic n-gram size, so out of the box no token clears the threshold and the heuristic is skipped: set it to `0` to submit every n-gram size to the scan.
 `exclus_auto_escape` removes specific tokens from the match pool before auto-exclusion runs.
 
 ## Sampling
