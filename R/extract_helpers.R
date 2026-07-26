@@ -185,18 +185,22 @@
   }
 
   patterns <- c(ano_hash, ano_hide)
+  origin <- rep(
+    c("ano_hash", "ano_hide"),
+    c(length(ano_hash), length(ano_hide))
+  )
 
   matched <- map(
     patterns,
     ~ str_subset(names(data), regex(.x, ignore_case = TRUE))
   )
 
-  empty <- patterns[lengths(matched) == 0]
+  blank <- lengths(matched) == 0
 
-  if (length(empty) > 0) {
+  if (any(blank)) {
     cli_abort(c(
-      "{.arg ano_hash} and {.arg ano_hide} must each match a column.",
-      "x" = "{.val {empty}} matches no column of {.arg data}.",
+      "Every pattern in {.arg {unique(origin[blank])}} must match a column.",
+      "x" = "{.val {patterns[blank]}} match{?es/} no column of {.arg data}.",
       "i" = "Column names are matched as case-insensitive regular expressions."
     ))
   }
@@ -205,8 +209,10 @@
   keys <- intersect(hit, c(id, group))
 
   if (length(keys) > 0) {
+    on_key <- map_lgl(matched, ~ any(.x %in% c(id, group)))
+
     cli_abort(c(
-      "{.arg ano_hash} and {.arg ano_hide} cannot target a key column.",
+      "{.arg {unique(origin[on_key])}} cannot target a key column.",
       "x" = "The pattern matches {.val {keys}}, which {?is/are} used to join
              the outputs back together.",
       "i" = "Anonymise the key before calling {.fn edstr_extract}."
@@ -214,8 +220,10 @@
   }
 
   if (text_input %in% hit) {
+    on_text <- map_lgl(matched, ~ text_input %in% .x)
+
     cli_abort(c(
-      "{.arg ano_hash} and {.arg ano_hide} cannot target the text column.",
+      "{.arg {unique(origin[on_text])}} cannot target the text column.",
       "x" = "The pattern matches {.val {text_input}}, the source every match is
              read from.",
       "i" = "The {.field extract} and {.field note} outputs quote that source

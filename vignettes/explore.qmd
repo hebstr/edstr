@@ -19,8 +19,6 @@ Unlike other pipeline functions, it does not save any files; it is designed for 
 ## Prerequisites
 
 ```{r}
-#| error: true
-
 edstr_config(
   edstr_dirname = "output/my_study",
   edstr_filename = "my_study",
@@ -36,8 +34,6 @@ df_clean <- edstr_clean()
 Pass a regex pattern to search for in the text column.
 
 ```{r}
-#| error: true
-
 result <- edstr_view(
   data = df_clean,
   pattern = "fractur"
@@ -52,13 +48,11 @@ The function prints a frequency table of distinct matches and a summary of match
 
 ## Capturing multi-word expressions
 
-The `ngrams` argument sets the total window size captured, the matched token included.
+The `ngrams` argument sets the width of the regex window captured, the matched word included: `edstr_view()` does not tokenise, it widens `pattern` by up to `ngrams - 1` further words.
 This is useful for discovering common multi-word patterns.
 It is a display window, not a search setting: the n-gram sizes `edstr_extract()` searches are set by its own `ngram_max` argument.
 
 ```{r}
-#| error: true
-
 result <- edstr_view(
   data = df_clean,
   pattern = "fractur",
@@ -66,7 +60,7 @@ result <- edstr_view(
 )
 ```
 
-With `ngrams = 3`, a match on `"fractur"` captures up to two additional tokens, e.g. `"fracture col femoral"` or `"fracture extremite superieure"`.
+With `ngrams = 3`, a match on `"fractur"` captures up to two additional words, e.g. `"fracture col femoral"` or `"fracture extremite superieure"`.
 
 ## Applying cleaning rules inline
 
@@ -74,8 +68,6 @@ The `replace` argument accepts the same format as `edstr_clean()` and applies re
 This lets you test cleaning rules without modifying the data.
 
 ```{r}
-#| error: true
-
 result <- edstr_view(
   data = df_clean,
   pattern = "diabete",

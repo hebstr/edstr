@@ -163,8 +163,9 @@ clinical entities. A named character vector creates independent
 concepts; a nested named list groups sub-concepts under a root.
 
 **Collapse and intersect modes.** `collapse = TRUE` OR-combines patterns
-into a single regex: one for the whole set when concepts are flat, one
-per root concept when they are nested. `intersect = TRUE` keeps only
+into a single regex: one per root concept as soon as at least one root
+holds several patterns, otherwise one regex named `concepts` for the
+whole set, which drops the root names. `intersect = TRUE` keeps only
 documents matching all root-level concepts.
 
 **False-positive filtering.** Manual exclusions via a user-supplied

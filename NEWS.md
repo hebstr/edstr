@@ -76,6 +76,13 @@
 - `edstr_extract()` rejects an `ano_hash` or `ano_hide` pattern that matches the `id` or `group` column.
   Anonymising a key desynchronised the tokenised frame from the one carrying the results: pointing `ano_hide` at the document id reported every document as a true negative, with no error and no warning.
 
+- `edstr_config()` rejects an empty or missing value for the four string settings and for `edstr_overwrite`.
+  Type and length were checked, emptiness was not, and `str_glue()` renders `NA` as the literal `"NA"`: `edstr_filename = NA` was accepted and prefixed every saved file with `NA_`, while `edstr_overwrite = NA` passed `is.logical()` and surfaced much later as `missing value where TRUE/FALSE needed`.
+
+- The three anonymisation aborts name only the argument at fault.
+  All of them titled on `ano_hash` and `ano_hide` together, so a run that passed one of the two was pointed at an argument it had never supplied; each pattern is now traced back to the argument it came from.
+  Two agreement slips went with them, `must each match` on a single argument and `X and Y matches` in the plural.
+
 - `edstr_extract()` no longer reports an apostrophe separator as a source mismatch.
   Source matching accepts an apostrophe wherever a token holds a space, but the mismatch check normalised only hyphens and `<br/>`, so a span such as `l' aorte` was confirmed in the source and then reported as unconfirmed anyway.
 
@@ -232,9 +239,36 @@
   Set it to `0` to submit every n-gram size to the scan.
 
 - `ngrams` in `edstr_view()` is described consistently in the vignettes and the
-  reference as the total window size, the matched token included.
-  `ngrams = 3` captures the match plus up to two further tokens; the vignettes
-  previously read as if all three were captured after the match.
+  reference as the width of the regex window captured around a match, the
+  matched word included.
+  `edstr_view()` does not tokenise, so the earlier n-gram wording named the
+  wrong mechanism and read as if all three words were captured after the match;
+  `ngrams = 3` widens the pattern by up to two further words.
+  The reference now points at `ngram_max` in `edstr_extract()` as the distinct
+  argument it is easily confused with.
+
+- `collapse = TRUE` is described by the predicate it actually applies.
+  The reference and the three prose surfaces said one regex per root concept
+  "when they are nested", but nesting is not what decides it: a root holding
+  several patterns is, so a nested list whose roots each hold a single pattern
+  falls back to one regex named `concepts` for the whole set and loses the root
+  names.
+
+- `ano_hide` documents its precedence over `ano_hash`.
+  A column matched by both is hashed first and then masked, so `"---"` is what
+  reaches the outputs.
+
+- The vignettes drop 21 `#| error: true` chunk options.
+  `vignettes/_quarto.yml` sets `eval: false` for the whole project, so no chunk
+  in `clean`, `explore`, `extract` or `import` ever executed and none of those
+  options could fire; the four rendered pages are byte-identical without them.
+  The per-chunk `eval: false` in `config` and `edstr` stays: those two are the
+  vignettes that cannot evaluate at all, so the local option is what would keep
+  them safe if the project default were ever flipped.
+
+- Nine unused `man/figures/lifecycle-*.svg` files leave the tarball.
+  The README badge is served from shields.io and `lifecycle` is in neither
+  `Imports` nor `Suggests`, so nothing referenced them.
 
 ## Breaking changes
 

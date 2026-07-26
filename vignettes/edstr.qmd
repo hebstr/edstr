@@ -131,7 +131,7 @@ df_extract <- edstr_extract(
 
 Two modes alter extraction behaviour when multiple concepts are defined:
 
-- `collapse = TRUE`: OR-combines patterns into a single regex, one for the whole set when concepts are flat, one per root concept when they are nested.
+- `collapse = TRUE`: OR-combines patterns into a single regex, one per root concept as soon as at least one root holds several patterns, otherwise one regex named `concepts` for the whole set, which drops the root names.
 - `intersect = TRUE`: keeps only documents matching **all** root concepts.
 
 ```{r}
@@ -183,7 +183,7 @@ df_view <- edstr_view(
 )
 ```
 
-`ngrams` sets the total window size including the matched token: `ngrams = 3` with `pattern = "fractur"` captures up to two further tokens, matching e.g. `"fracture col femoral"`.
+`ngrams` sets the width of the regex window captured around a match, the matched word included: `edstr_view()` does not tokenise, it widens `pattern` by up to `ngrams - 1` further words, so `ngrams = 3` with `pattern = "fractur"` matches e.g. `"fracture col femoral"`.
 It widens what is displayed around a match, unlike `edstr_extract()`'s `ngram_max` above, which sets the n-gram sizes actually searched.
 
 ## Output summary

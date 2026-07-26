@@ -61,7 +61,9 @@ domain such as a patient identifier. It is not anonymisation.}
 
 \item{ano_hide}{\verb{<character>} Regex pattern(s) matched case-insensitively
 against column names; every matching column is masked (replaced with
-\code{"---"}). Same application point and coverage as \code{ano_hash}.
+\code{"---"}). Same application point and coverage as \code{ano_hash}. A column
+matched by both arguments is hashed first, then masked, so \code{"---"} is
+what reaches the outputs.
 
 Both arguments abort rather than act silently when a pattern matches no
 column at all, matches the \code{id} or \code{group} column (which join the outputs
@@ -84,8 +86,11 @@ concept key; nested names create sub-concepts (e.g.
 Required.}
 
 \item{collapse}{\verb{<logical(1)>} If \code{TRUE}, OR-combine concept patterns into
-a single regex: one for the whole set when \code{concepts} is flat, one per
-root concept when it is nested. Requires at least 2 concepts.}
+a single regex: one per root concept as soon as at least one root holds
+several patterns, otherwise one regex named \code{concepts} for the whole set,
+which drops the root names. Nesting alone does not decide it: a nested
+list whose roots each hold a single pattern takes the second branch.
+Requires at least 2 concepts.}
 
 \item{intersect}{\verb{<logical(1)>} If \code{TRUE}, keep only documents matching
 ALL root-level concepts. Requires at least 2 concepts.}

@@ -578,7 +578,9 @@
 #'   domain such as a patient identifier. It is not anonymisation.
 #' @param ano_hide `<character>` Regex pattern(s) matched case-insensitively
 #'   against column names; every matching column is masked (replaced with
-#'   `"---"`). Same application point and coverage as `ano_hash`.
+#'   `"---"`). Same application point and coverage as `ano_hash`. A column
+#'   matched by both arguments is hashed first, then masked, so `"---"` is
+#'   what reaches the outputs.
 #'
 #'   Both arguments abort rather than act silently when a pattern matches no
 #'   column at all, matches the `id` or `group` column (which join the outputs
@@ -598,8 +600,11 @@
 #'   `list(cancer = list(sein = "sein|mammaire", poumon = "poumon"))`).
 #'   Required.
 #' @param collapse `<logical(1)>` If `TRUE`, OR-combine concept patterns into
-#'   a single regex: one for the whole set when `concepts` is flat, one per
-#'   root concept when it is nested. Requires at least 2 concepts.
+#'   a single regex: one per root concept as soon as at least one root holds
+#'   several patterns, otherwise one regex named `concepts` for the whole set,
+#'   which drops the root names. Nesting alone does not decide it: a nested
+#'   list whose roots each hold a single pattern takes the second branch.
+#'   Requires at least 2 concepts.
 #' @param intersect `<logical(1)>` If `TRUE`, keep only documents matching
 #'   ALL root-level concepts. Requires at least 2 concepts.
 #' @param starts_with_only `<logical(1)>` If `TRUE` (default), token matching

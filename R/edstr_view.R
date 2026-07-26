@@ -15,9 +15,12 @@
 #'   Optional regex replacements applied to the text *before* matching
 #'   (see [edstr_clean()] for details).
 #' @param pattern `<character(1)>` Regex pattern to search for. Required.
-#' @param ngrams `<integer(1)>` Total n-gram window size including the
-#'   matched token (default `1`). For example, `ngrams = 3` with
-#'   `pattern = "diabete"` matches `"diabete type 2"`.
+#' @param ngrams `<integer(1)>` Width of the regex window captured around a
+#'   match, the matched word included (default `1`). `edstr_view()` does not
+#'   tokenise: the value widens `pattern` by up to `ngrams - 1` further words,
+#'   so `ngrams = 3` with `pattern = "diabete"` matches `"diabete type 2"`.
+#'   Distinct from the `ngram_max` argument of [edstr_extract()], which sets
+#'   the n-gram sizes searched rather than a display window.
 #' @param ... Additional arguments passed to [stringr::str_view()].
 #'
 #' @return Invisibly returns a list with three elements:
@@ -68,7 +71,7 @@ edstr_view <- \(
     cli_abort(c(
       "{.arg ngrams} must be a single whole number, {.val {1}} or more",
       "x" = "Got {.val {ngrams}}.",
-      "i" = "It is the total window width captured around a match, the matched token included: {.code ngrams = 3} captures up to two further tokens."
+      "i" = "It is the width of the regex window captured around a match, the matched word included: {.code ngrams = 3} captures up to two further words."
     ))
   }
 

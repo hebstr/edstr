@@ -19,8 +19,6 @@ It tokenises cleaned text, matches user-defined concepts via regex, filters fals
 ## Prerequisites
 
 ```{r}
-#| error: true
-
 edstr_config(
   edstr_dirname = "output/my_study",
   edstr_filename = "my_study",
@@ -39,7 +37,6 @@ A named character vector creates flat, independent concepts:
 
 ```{r}
 #| label: extract-flat
-#| error: true
 
 result <- edstr_extract(
   data = df_clean,
@@ -52,7 +49,6 @@ A nested named list creates sub-concepts grouped under a root:
 
 ```{r}
 #| label: extract-nested
-#| error: true
 
 result <- edstr_extract(
   data = df_clean,
@@ -74,7 +70,6 @@ Do not confuse it with the `ngrams` argument of `edstr_view()`, which widens the
 
 ```{r}
 #| label: extract-bigrams
-#| error: true
 
 result <- edstr_extract(
   data = df_clean,
@@ -91,7 +86,7 @@ Set `starts_with_only = FALSE` for exact matching.
 
 When multiple concepts are defined, two modes alter the matching logic:
 
-- **`collapse = TRUE`**: OR-combines patterns into a single regex, one for the whole set when concepts are flat, one per root concept when they are nested.
+- **`collapse = TRUE`**: OR-combines patterns into a single regex, one per root concept as soon as at least one root holds several patterns, otherwise one regex named `concepts` for the whole set, which drops the root names.
   Useful when sub-concepts are synonyms that should be treated as one.
 - **`intersect = TRUE`**: keeps only documents that match **all** root-level concepts.
   Useful for narrowing results to co-occurrences.
@@ -102,7 +97,6 @@ Both require at least two concepts.
 
 ```{r}
 #| label: extract-intersect
-#| error: true
 
 result <- edstr_extract(
   data = df_clean,
@@ -122,7 +116,6 @@ A regex pattern passed to `exclus_manual` removes any matched token containing t
 
 ```{r}
 #| label: extract-exclus-manual
-#| error: true
 
 result <- edstr_extract(
   data = df_clean,
@@ -146,7 +139,6 @@ Use `seed` for reproducibility.
 
 ```{r}
 #| label: extract-sample
-#| error: true
 
 result <- edstr_extract(
   data = df_clean,
@@ -175,7 +167,6 @@ And neither argument touches the clinical text itself: `data$extract`, `data$not
 
 ```{r}
 #| label: extract-ano
-#| error: true
 
 result <- edstr_extract(
   data = df_clean,
@@ -207,7 +198,6 @@ Its count, `unmatched$n_no_concept`, is always exact regardless: read it for the
 
 ```{r}
 #| label: extract-unmatched
-#| error: true
 
 result <- edstr_extract(
   data = df_clean,

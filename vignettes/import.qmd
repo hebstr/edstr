@@ -45,8 +45,6 @@ Outside an interactive session there is no prompt to answer, so `password` is re
 An empty string is rejected in every session, `Sys.getenv()` returning one for an unset variable.
 
 ```{r}
-#| error: true
-
 df_import <- edstr_import(
   query = "SELECT * FROM clinical_notes WHERE rownum <= 1000",
   user = "my_user"
@@ -56,8 +54,6 @@ df_import <- edstr_import(
 Using a `.sql` file keeps queries out of R scripts and makes them easier to version:
 
 ```{r}
-#| error: true
-
 df_import <- edstr_import(
   query = "sql/clinical_notes.sql",
   user = "my_user"
@@ -70,8 +66,6 @@ The `head` argument appends `FETCH FIRST ... ROWS ONLY` to the query.
 This is useful for development and testing without modifying the SQL itself.
 
 ```{r}
-#| error: true
-
 df_import <- edstr_import(
   query = "sql/clinical_notes.sql",
   head = 500,
@@ -85,8 +79,6 @@ When the output file already exists, `edstr_import()` skips the database query e
 The behaviour depends on the `edstr_overwrite` option set in `edstr_config()`.
 
 ```{r}
-#| error: true
-
 df_import <- edstr_import()
 ```
 

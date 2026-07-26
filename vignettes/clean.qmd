@@ -32,7 +32,6 @@ The `replace` argument takes a named character vector where names are regex patt
 Replacements are applied sequentially via `stringr::str_replace_all()`.
 
 ```{r}
-#| error: true
 df_clean <- edstr_clean(
   data = df_import,
   replace = c(
@@ -50,7 +49,6 @@ When the order matters (e.g. fixing HTML entities before stripping tags), pass a
 Each element is applied in sequence.
 
 ```{r}
-#| error: true
 df_clean <- edstr_clean(
   data = df_import,
   replace = list(
@@ -66,7 +64,6 @@ For complex or project-specific patterns, define replacements in a standalone R 
 This keeps the cleaning logic versioned, testable, and reusable across scripts.
 
 ```{r}
-#| error: true
 df_clean <- edstr_clean(
   data = df_import,
   replace = source(here::here("config/clean.R"))$value
@@ -81,7 +78,6 @@ By default, `edstr_clean()` uses the `edstr_text` option set in `edstr_config()`
 To override it for a specific call:
 
 ```{r}
-#| error: true
 df_clean <- edstr_clean(
   data = df_import,
   text = "other_column",

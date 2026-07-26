@@ -650,6 +650,12 @@ test_that("edstr_extract: full pipeline runs and produces expected output", {
   expect_true("doc_id" %in% names(result$data$extract))
   expect_true("extract" %in% names(result$data$extract))
 
+  # the delivered XLSX and gt sort on this column, so it must not be text
+  expect_type(result$data$extract$n, "integer")
+  expect_equal(result$data$extract$n, seq_len(nrow(result$data$extract)))
+  expect_type(result$data$note$n, "integer")
+  expect_equal(result$data$note$n, seq_len(nrow(result$data$note)))
+
   save_dir <- file.path(tmp, "extract")
   expect_true(file.exists(file.path(save_dir, "test_extract_extract.xlsx")))
   expect_true(file.exists(file.path(save_dir, "test_extract_extract.rds")))
@@ -690,10 +696,6 @@ test_that("edstr_extract: extract and note output are stable (refactor oracle)",
 
   expect_snapshot_value(result$data$extract, style = "json2")
   expect_snapshot_value(result$data$note, style = "json2")
-
-  # the delivered XLSX and gt sort on this column, so it must not be text
-  expect_type(result$data$extract$n, "integer")
-  expect_equal(result$data$extract$n, seq_len(nrow(result$data$extract)))
 })
 
 test_that("edstr_extract: loads cached RDS when file exists", {

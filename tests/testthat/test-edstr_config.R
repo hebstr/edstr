@@ -83,11 +83,11 @@ test_that("edstr_config() produces CLI output", {
 test_that("edstr_config() rejects invalid edstr_dirname", {
   expect_error(
     edstr_config(edstr_dirname = 123, edstr_filename = "x"),
-    "edstr_dirname.*single character string"
+    "edstr_dirname.*single non-empty character string"
   )
   expect_error(
     edstr_config(edstr_dirname = c("a", "b"), edstr_filename = "x"),
-    "edstr_dirname.*single character string"
+    "edstr_dirname.*single non-empty character string"
   )
 })
 
@@ -96,11 +96,11 @@ test_that("edstr_config() rejects invalid edstr_filename", {
 
   expect_error(
     edstr_config(edstr_dirname = tmp, edstr_filename = 123),
-    "edstr_filename.*single character string"
+    "edstr_filename.*single non-empty character string"
   )
   expect_error(
     edstr_config(edstr_dirname = tmp, edstr_filename = c("a", "b")),
-    "edstr_filename.*single character string"
+    "edstr_filename.*single non-empty character string"
   )
 })
 
@@ -113,7 +113,7 @@ test_that("edstr_config() rejects invalid edstr_text", {
       edstr_filename = "x",
       edstr_text = 42
     ),
-    "edstr_text.*single character string"
+    "edstr_text.*single non-empty character string"
   )
   expect_error(
     edstr_config(
@@ -121,7 +121,7 @@ test_that("edstr_config() rejects invalid edstr_text", {
       edstr_filename = "x",
       edstr_text = c("a", "b")
     ),
-    "edstr_text.*single character string"
+    "edstr_text.*single non-empty character string"
   )
 })
 
@@ -166,6 +166,47 @@ test_that("edstr_config() rejects invalid edstr_connect_dir", {
       edstr_connect_dir = c("a.yml", "b.yml")
     ),
     "edstr_connect_dir"
+  )
+})
+
+test_that("edstr_config() rejects empty and missing string values", {
+  tmp <- withr::local_tempdir()
+
+  # `str_glue()` renders NA as the literal "NA", so an unguarded missing value
+  # would name every saved file `NA_...` without raising anything
+  expect_error(
+    edstr_config(edstr_dirname = NA_character_, edstr_filename = "x"),
+    "edstr_dirname.*single non-empty character string"
+  )
+  expect_error(
+    edstr_config(edstr_dirname = "", edstr_filename = "x"),
+    "edstr_dirname.*single non-empty character string"
+  )
+  expect_error(
+    edstr_config(edstr_dirname = tmp, edstr_filename = NA_character_),
+    "edstr_filename.*single non-empty character string"
+  )
+  expect_error(
+    edstr_config(edstr_dirname = tmp, edstr_filename = ""),
+    "edstr_filename.*single non-empty character string"
+  )
+  expect_error(
+    edstr_config(edstr_dirname = tmp, edstr_filename = "x", edstr_text = ""),
+    "edstr_text.*single non-empty character string"
+  )
+  expect_error(
+    edstr_config(
+      edstr_dirname = tmp,
+      edstr_filename = "x",
+      edstr_connect_dir = NA_character_
+    ),
+    "edstr_connect_dir"
+  )
+  # NA passes `is.logical()`, then surfaces downstream as "missing value where
+  # TRUE/FALSE needed"
+  expect_error(
+    edstr_config(edstr_dirname = tmp, edstr_filename = "x", edstr_overwrite = NA),
+    "edstr_overwrite.*`TRUE`"
   )
 })
 

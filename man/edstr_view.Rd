@@ -30,9 +30,12 @@ Optional regex replacements applied to the text \emph{before} matching
 
 \item{pattern}{\verb{<character(1)>} Regex pattern to search for. Required.}
 
-\item{ngrams}{\verb{<integer(1)>} Total n-gram window size including the
-matched token (default \code{1}). For example, \code{ngrams = 3} with
-\code{pattern = "diabete"} matches \code{"diabete type 2"}.}
+\item{ngrams}{\verb{<integer(1)>} Width of the regex window captured around a
+match, the matched word included (default \code{1}). \code{edstr_view()} does not
+tokenise: the value widens \code{pattern} by up to \code{ngrams - 1} further words,
+so \code{ngrams = 3} with \code{pattern = "diabete"} matches \code{"diabete type 2"}.
+Distinct from the \code{ngram_max} argument of \code{\link[=edstr_extract]{edstr_extract()}}, which sets
+the n-gram sizes searched rather than a display window.}
 
 \item{...}{Additional arguments passed to \code{\link[stringr:str_view]{stringr::str_view()}}.}
 }

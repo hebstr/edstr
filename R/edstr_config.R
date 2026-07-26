@@ -46,38 +46,40 @@ edstr_config <- \(
   edstr_connect_dir = NULL,
   ...
 ) {
-  if (!is.character(edstr_dirname) || length(edstr_dirname) != 1L) {
+  # `str_glue()` renders NA as the literal "NA", so an unguarded missing value
+  # reaches the saved paths as a real directory or filename component
+  is_string <- \(x) {
+    is.character(x) && length(x) == 1L && !is.na(x) && nzchar(x)
+  }
+
+  if (!is_string(edstr_dirname)) {
     cli_abort(
-      "{.arg edstr_dirname} must be a single character string ({.cls character(1)})"
+      "{.arg edstr_dirname} must be a single non-empty character string ({.cls character(1)})"
     )
   }
-  if (!is.character(edstr_filename) || length(edstr_filename) != 1L) {
+  if (!is_string(edstr_filename)) {
     cli_abort(
-      "{.arg edstr_filename} must be a single character string ({.cls character(1)})"
+      "{.arg edstr_filename} must be a single non-empty character string ({.cls character(1)})"
     )
   }
-  if (
-    !is.null(edstr_text) &&
-      (!is.character(edstr_text) || length(edstr_text) != 1L)
-  ) {
+  if (!is.null(edstr_text) && !is_string(edstr_text)) {
     cli_abort(
-      "{.arg edstr_text} must be a single character string ({.cls character(1)}) or {.code NULL}"
+      "{.arg edstr_text} must be a single non-empty character string ({.cls character(1)}) or {.code NULL}"
     )
   }
   if (
     !is.null(edstr_overwrite) &&
-      (!is.logical(edstr_overwrite) || length(edstr_overwrite) != 1L)
+      (!is.logical(edstr_overwrite) ||
+        length(edstr_overwrite) != 1L ||
+        is.na(edstr_overwrite))
   ) {
     cli_abort(
       "{.arg edstr_overwrite} must be {.code TRUE}, {.code FALSE}, or {.code NULL}"
     )
   }
-  if (
-    !is.null(edstr_connect_dir) &&
-      (!is.character(edstr_connect_dir) || length(edstr_connect_dir) != 1L)
-  ) {
+  if (!is.null(edstr_connect_dir) && !is_string(edstr_connect_dir)) {
     cli_abort(
-      "{.arg edstr_connect_dir} must be a single character string ({.cls character(1)}) or {.code NULL}"
+      "{.arg edstr_connect_dir} must be a single non-empty character string ({.cls character(1)}) or {.code NULL}"
     )
   }
 
