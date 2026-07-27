@@ -69,7 +69,7 @@ Both arguments abort rather than act silently when a pattern matches no
 column at all, matches the \code{id} or \code{group} column (which join the outputs
 back together), or matches \code{text_input}. Neither argument touches the
 source text: \code{data$extract}, \code{data$note} and the highlighted XLSX and gt
-output quote \code{text_input} verbatim by design. Neither touches the Parquet
+output carry \code{text_input} unredacted by design. Neither touches the Parquet
 caches written upstream by \code{\link[=edstr_import]{edstr_import()}} and \code{\link[=edstr_clean]{edstr_clean()}}, which
 keep the source in clear.}
 

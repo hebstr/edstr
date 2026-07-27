@@ -57,7 +57,7 @@
   .check_exclus(exclus_manual, "exclus_manual")
   .check_exclus(exclus_auto_escape, "exclus_auto_escape")
 
-  # the saved XLSX, RDS and note quote `text_input` verbatim, and `ano_hash` /
+  # the saved XLSX, RDS and note carry `text_input` unredacted, and `ano_hash` /
   # `ano_hide` do not cover it, so the directory is what keeps a clinical extract
   # off a shared host. Only applied on creation: an existing directory keeps the
   # permissions it was created with
@@ -247,6 +247,7 @@
     .extract_match_source(
       data_match_df,
       data_count,
+      data_id,
       text_input,
       id,
       regex_replace
@@ -586,7 +587,7 @@
 #'   column at all, matches the `id` or `group` column (which join the outputs
 #'   back together), or matches `text_input`. Neither argument touches the
 #'   source text: `data$extract`, `data$note` and the highlighted XLSX and gt
-#'   output quote `text_input` verbatim by design. Neither touches the Parquet
+#'   output carry `text_input` unredacted by design. Neither touches the Parquet
 #'   caches written upstream by [edstr_import()] and [edstr_clean()], which
 #'   keep the source in clear.
 #' @param ngram_max `<integer(1)>` Largest n-gram size to tokenise. Every

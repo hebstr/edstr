@@ -27,6 +27,7 @@
 #' @importFrom dplyr bind_rows
 #' @importFrom dplyr collect
 #' @importFrom dplyr count
+#' @importFrom dplyr desc
 #' @importFrom dplyr distinct
 #' @importFrom dplyr everything
 #' @importFrom dplyr filter

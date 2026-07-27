@@ -208,9 +208,9 @@ overwritten, loaded silently, or trigger an interactive prompt.
   traceable between two extractions; it also means a small identifier
   space can be reversed by enumerating it.
 - Neither `ano_hash` nor `ano_hide` touches the clinical text.
-  `data$extract`, `data$note` and the highlighted Excel output quote the
-  source column verbatim, since showing that text is what they are for,
-  and the Parquet caches written upstream by `edstr_import()` and
+  `data$extract`, `data$note` and the highlighted Excel output carry the
+  source column unredacted, since showing that text is what they are
+  for, and the Parquet caches written upstream by `edstr_import()` and
   `edstr_clean()` keep the source in clear.
 
 ## Output

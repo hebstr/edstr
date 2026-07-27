@@ -8,6 +8,25 @@
 
 ## Bug fixes
 
+- `edstr_extract()` marks and extracts the longest expression matching at a position instead of the most frequent one.
+  Each concept's alternation was ordered by decreasing frequency, and a trigram's constituent bigram is always at least as frequent as the trigram itself, so the bigram won every position the two shared.
+  `data$extract` delivered `accident vasculaire ; cérébral` where one span would do, and the highlight in `data$note`, the XLSX and the gt closed after `accident vasculaire`, leaving `cérébral` bare.
+  Branches are now ordered by decreasing token length, the only lever the two paths running on ICU have, and the re2 passes take its exact `longest_match` mode.
+  Measured on a 7883-document corpus: 15 of the 1804 extracts change, 13 of them ending with fewer spans, and no document changes bucket.
+  `mismatched` follows the same ordering, the confirmation failure moving from the trigram onto the bigram it displaced, 19 rows down to 18.
+
+- `edstr_extract()` confirms an n-gram the alternation displaced instead of reporting it as a mismatch.
+  One alternation per concept returns one match per position, so where a trigram and its constituent bigram both match, only the winner gets a row and the other surfaces in `mismatched` despite being present in the source.
+  Each unconfirmed token is now re-tested on its own, in its own document, and the span it finds is added through the same offset machinery, so it carries the original accents and case rather than the folded token.
+  The work is proportional to the failures rather than to the corpus: on a 7883-document corpus it costs 0.13 s against a 6.4 s stage and takes `mismatched` from the 18 rows the reordering above leaves to 4.
+  The four that remain have no confirmable span at all, one of them an expression straddling a paragraph boundary.
+  `data$extract`, `data$note`, `unmatched` and `n_no_concept` are untouched; the pass only ever adds to `data$regex$match` and the counts derived from it, and never records a span more often than the document actually carries it.
+
+- `edstr_extract()` no longer surfaces a raw `<br/>` in `data$extract`.
+  An expression the export split across a hard line break was captured with the tag inside its span, so the extract read `remaniements <br/>hémorragiques`.
+  The separator that admits the tag always holds a real whitespace character as well, so dropping the tag cannot glue the two words together.
+  The document text in `data$note` keeps it, being quoted as it stands.
+
 - `edstr_extract()` returns the true surface form for a document whose folded length ties the original by coincidence.
   Matches are located on a `Latin-ASCII` copy of the source and their positions travel back to the original through a per-character offset map, which was built only for documents the fold changed the length of.
   A document carrying a combining mark takes a slower transliteration that can drop it onto its base, and a ligature expanding elsewhere in the same document restores the count: the length tied, no map was built, and the folded positions sliced the original directly.

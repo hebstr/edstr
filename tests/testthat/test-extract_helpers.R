@@ -884,3 +884,75 @@ test_that("anonymise: a pattern matching no column errors", {
     "matches no column"
   )
 })
+
+# an expression merged across a hard line break would otherwise carry the raw
+# tag into the delivered extract; the separator that admitted the tag always
+# holds a real whitespace character, so the strip cannot glue two words
+extract_one <- \(texte) {
+  doc <- data.frame(
+    doc_id = "1",
+    id_group = 1,
+    texte = texte,
+    stringsAsFactors = FALSE
+  )
+
+  src <- edstr:::.extract_match_source(
+    data_match_df = doc,
+    data_count = data.frame(
+      concept = "avc",
+      texte = c("accident vasculaire", "cerebral", "accident vasculaire cerebral"),
+      n = c(12L, 9L, 3L),
+      stringsAsFactors = FALSE
+    ),
+    data_id = data.frame(
+      doc_id = "1",
+      concept = "avc",
+      texte = "accident vasculaire cerebral",
+      stringsAsFactors = FALSE
+    ),
+    text_input = "texte",
+    id = "doc_id",
+    regex_replace = NULL
+  )
+
+  edstr:::.extract_results(
+    data_match_df = doc,
+    data_id = data.frame(
+      doc_id = "1",
+      id_group = 1,
+      concept_key = "avc",
+      stringsAsFactors = FALSE
+    ),
+    data_regex_match = src$data_regex_match,
+    data_regex_str = src$data_regex_str,
+    data_regex_prep = src$data_regex_prep,
+    concept_keys = "avc",
+    id = "doc_id",
+    group = "id_group"
+  )$extract
+}
+
+test_that("results: a trigram is extracted as one span, not two", {
+  expect_equal(
+    extract_one("un accident vasculaire cerebral massif"),
+    "accident vasculaire cerebral"
+  )
+})
+
+test_that("results: a line-break tag inside a span is dropped", {
+  expect_equal(
+    extract_one("un accident vasculaire <br/>cerebral massif"),
+    "accident vasculaire cerebral"
+  )
+  expect_equal(
+    extract_one("un accident vasculaire<br/> cerebral massif"),
+    "accident vasculaire cerebral"
+  )
+})
+
+test_that("results: a tag with no separator neither merges nor glues", {
+  expect_equal(
+    extract_one("un accident vasculaire<br/>cerebral massif"),
+    "accident vasculaire ; cerebral"
+  )
+})

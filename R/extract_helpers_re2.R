@@ -143,10 +143,28 @@
   )
 }
 
+# the fold is built once for the whole corpus and shared, so a pass that only
+# concerns a handful of documents narrows it rather than paying the corpus again
+.re2_prep_subset <- \(prep, i) {
+  list(
+    text = prep$text[i],
+    folded = prep$folded[i],
+    ascii = prep$ascii[i],
+    folded_len = prep$folded_len[i],
+    expand = prep$expand[i],
+    width = prep$width[i]
+  )
+}
+
 .re2_extract_prepared <- \(prep, pattern) {
   pattern <- as.character(pattern)
-  loc <- re2_locate_all(prep$folded, re2_regexp(pattern))
-  # stands in for the re2 pass, so it takes re2's anchors, not per-line ones
+  # every n-gram must be tagged, so a position where a trigram and its
+  # constituent bigram both match belongs to the trigram: leftmost-first would
+  # take the bigram and leave the tail to arrive as a separate span
+  loc <- re2_locate_all(prep$folded, re2_regexp(pattern, longest_match = TRUE))
+  # stands in for the re2 pass, so it takes re2's anchors, not per-line ones.
+  # ICU has no longest-match mode, so here the branch order carried by
+  # `.extract_match_source()` is the only approximation of it
   icu_pattern <- regex(pattern)
 
   map2(loc, seq_along(prep$folded), \(m, i) {

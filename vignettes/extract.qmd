@@ -163,7 +163,7 @@ They abort rather than act silently when a pattern matches no column, matches th
 Two limits are worth stating plainly.
 The hash is unsalted and stable across runs, which is what makes a patient traceable between two extractions; it also means a small identifier space can be reversed by enumerating it.
 This is pseudonymisation, not anonymisation.
-And neither argument touches the clinical text itself: `data$extract`, `data$note` and the highlighted Excel output quote the source verbatim, since showing that text is what they are for.
+And neither argument touches the clinical text itself: `data$extract`, `data$note` and the highlighted Excel output carry the source unredacted, since showing that text is what they are for.
 
 ```{r}
 #| label: extract-ano
