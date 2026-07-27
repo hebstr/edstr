@@ -11,6 +11,28 @@
     str_replace_all(c("-(<br/>)?|-?<br/>" = " ", "'" = " ", "\\s+" = " "))
 }
 
+# each rule rewrites the raw token once. The replacement is parked behind a
+# private-use sentinel until every rule has run, so no rule can match the
+# machinery an earlier one emitted: applied in sequence, a user `regex_replace`
+# on `a`, or on any of `s`, `b`, `r`, `[` that the built-in space rule emits,
+# rewrites that output into a broken character class and the source then
+# confirms nothing at all, silently. Backreferences in a replacement are not
+# carried across the parking and are out of scope for this argument.
+.extract_expand_rules <- \(x, rules) {
+  guard <- .pua_guard(c(x, rules), length(rules))
+
+  parked <- reduce2(
+    names(rules),
+    guard,
+    \(acc, pattern, sentinel) {
+      str_replace_all(acc, regex(pattern, multiline = TRUE), sentinel)
+    },
+    .init = x
+  )
+
+  str_replace_all(parked, set_names(rules, guard))
+}
+
 # a token the alternation failed to confirm can still be present on its own: the
 # branch that won the position displaced it, and every n-gram has to be tagged.
 # Re-testing each one alone recovers the span, and the work is proportional to
@@ -27,15 +49,41 @@
   id,
   text_input
 ) {
-  unconfirmed <-
+  spans <-
+    data_regex_match |>
+    mutate(key = .extract_source_key(.data$match)) |>
+    distinct(pick(all_of(c(id, "concept"))), .data$key)
+
+  tokens <-
     data_id |>
     select(all_of(id), "concept", token = all_of(text_input)) |>
     mutate(key = .extract_source_key(.data$token)) |>
-    anti_join(
-      y = data_regex_match |>
-        mutate(key = .extract_source_key(.data$match)) |>
-        select(all_of(id), "concept", "key"),
-      by = c(id, "concept", "key")
+    distinct()
+
+  # the key says whether a token stands anywhere in the document, never how many
+  # times, so an existence test drops a token confirmed at one position and
+  # displaced at another, and the occurrence the longer branch took is never
+  # recovered. A token a longer confirmed span contains is therefore re-tested
+  # even with its key present; the multiplicity guard below is what decides the
+  # addition, so the prefilter is free to over-select. One shape still escapes
+  # it: a token the winning span overlaps without containing, its own key
+  # standing elsewhere in the document, is neither anti-joined in nor caught by
+  # the containment test
+  unconfirmed <-
+    tokens |>
+    anti_join(spans, by = c(id, "concept", "key")) |>
+    bind_rows(
+      tokens |>
+        inner_join(
+          spans,
+          by = c(id, "concept"),
+          relationship = "many-to-many",
+          suffix = c("", "_span")
+        ) |>
+        filter(
+          .data$key_span != .data$key,
+          str_detect(.data$key_span, fixed(.data$key))
+        )
     ) |>
     distinct(pick(all_of(c(id, "concept"))), .data$token)
 
@@ -48,7 +96,7 @@
   hits <- map2(grouped$token, grouped$rows, \(token, rows) {
     pattern <- as.character(glue(
       regex_wrap,
-      x = str_replace_all(token, regex_replace)
+      x = .extract_expand_rules(token, regex_replace)
     ))
 
     found <- .re2_extract_prepared(
@@ -65,20 +113,28 @@
   found <-
     grouped |>
     mutate(hit = hits) |>
-    select("concept", "hit") |>
+    select("concept", "token", "hit") |>
     unnest("hit") |>
-    select(all_of(id), "concept", "match")
+    select(all_of(id), "concept", "token", "match")
+
+  if (nrow(found) == 0) {
+    return(NULL)
+  }
 
   # the key above compares a token to a span, so it cannot see a `regex_replace`
   # widening the user supplied: a token confirmed only through one reads as
   # unconfirmed and its span is found a second time here. Deciding on the span
   # itself, and on how many times it already stands, is what keeps the pass
-  # additive; the key stays as the cheap prefilter it is good for
+  # additive; the key stays as the cheap prefilter it is good for.
+  # Two tokens can reach the same span, each finding every one of its
+  # occurrences, so the groups have to be reconciled by the highest count rather
+  # than summed: a sum records the span once per token that reaches it
   by <- c(id, "concept", "match")
 
   add <-
     found |>
-    count(across(all_of(by)), name = "found") |>
+    count(across(all_of(c(by, "token"))), name = "found") |>
+    summarise(found = max(.data$found), .by = all_of(by)) |>
     left_join(
       count(data_regex_match, across(all_of(by)), name = "have"),
       by = by
@@ -107,8 +163,7 @@
     "u" = "[u\u00f9\u00fb\u00fc]",
     "\\s" = "(?:<br/>)?[\\\\s\\\\-']+(?:<br/>)?"
   ) |>
-    append(regex_replace) |>
-    regex(multiline = TRUE)
+    append(regex_replace)
 
   regex_wrap <- "(?i)\\b({x})\\b"
 
@@ -128,7 +183,9 @@
   data_regex_replace <-
     data_count |>
     arrange(desc(nchar(.data[[text_input]]))) |>
-    mutate(!!text_input := str_replace_all(.data[[text_input]], regex_replace))
+    mutate(
+      !!text_input := .extract_expand_rules(.data[[text_input]], regex_replace)
+    )
 
   data_regex_str <- glue(
     regex_wrap,

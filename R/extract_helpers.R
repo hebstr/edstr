@@ -481,8 +481,8 @@
   extract_data <- mutate(
     .data = data_match_df,
     # a span merged across a hard line break carries the raw tag. The separator
-    # that admitted it always holds at least one real whitespace character, so
-    # dropping the tag cannot glue the two words together
+    # that admitted it always retains at least one of space, hyphen or
+    # apostrophe, so dropping the tag cannot glue the two words together
     extract = .re2_extract_prepared(data_regex_prep, data_regex_str) |>
       map_chr(paste, collapse = " ; ") |>
       str_remove_all(regex("<br/>", ignore_case = TRUE))

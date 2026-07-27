@@ -37,6 +37,49 @@ test_that("match_source: regex_replace widens what the source matches", {
   expect_equal(with$data_regex_match$match, "displasie")
 })
 
+# applied in sequence, a rule on a character the built-ins emit rewrites their
+# output: `s` lands inside the `[\s\-']` separator and every source match dies
+test_that("match_source: a regex_replace rule cannot rewrite the built-in machinery", {
+  data_match_df <- data.frame(
+    doc_id = "1",
+    id_group = 1,
+    texte = "accident vasculaire cerebral",
+    stringsAsFactors = FALSE
+  )
+
+  data_count <- data.frame(
+    concept = "avc",
+    texte = "accident vasculaire",
+    stringsAsFactors = FALSE
+  )
+
+  match_source <- \(regex_replace) {
+    edstr:::.extract_match_source(
+      data_match_df = data_match_df,
+      data_count = data_count,
+      data_id = data.frame(
+        doc_id = "1",
+        concept = "avc",
+        texte = "accident vasculaire",
+        stringsAsFactors = FALSE
+      ),
+      text_input = "texte",
+      id = "doc_id",
+      regex_replace = regex_replace
+    )
+  }
+
+  expect_equal(
+    match_source(c("s" = "[sz]"))$data_regex_match$match,
+    "accident vasculaire"
+  )
+
+  expect_equal(
+    match_source(c("a" = "[a4]"))$data_regex_match$match,
+    "accident vasculaire"
+  )
+})
+
 # a trigram and its constituent bigram both match at the same position, and the
 # bigram is always the more frequent of the two, so it is what `count(sort =
 # TRUE)` puts first. Ordering by length is what keeps the trigram from losing
@@ -140,6 +183,39 @@ test_that("match_source: repair does not duplicate a match confirmed through reg
   expect_equal(out$data_regex_match$match, "displasie")
 })
 
+# two unconfirmed tokens can reach the same span, each finding all of its
+# occurrences, so summing the groups records it once per token that reaches it
+test_that("match_source: repair counts a span once when two tokens reach it", {
+  tokens <- c("dysplasie", "displasie", "dysplasie moderee", "displasie severe")
+
+  out <- edstr:::.extract_match_source(
+    data_match_df = data.frame(
+      doc_id = "1",
+      texte = "dysplasie moderee et displasie severe",
+      stringsAsFactors = FALSE
+    ),
+    data_count = data.frame(
+      concept = "lesion",
+      texte = tokens,
+      stringsAsFactors = FALSE
+    ),
+    data_id = data.frame(
+      doc_id = "1",
+      concept = "lesion",
+      texte = tokens,
+      stringsAsFactors = FALSE
+    ),
+    text_input = "texte",
+    id = "doc_id",
+    regex_replace = c("y" = "[yi]")
+  )
+
+  expect_equal(
+    sum(out$data_regex_match$match == "displasie"),
+    1
+  )
+})
+
 test_that("match_source: repair recovers the original surface form, not the token", {
   out <- ngram_source(
     tokens = c("accident vasculaire cerebral", "accident vasculaire"),
@@ -153,6 +229,17 @@ test_that("match_source: repair adds one row per occurrence", {
   out <- ngram_source(
     tokens = c("accident vasculaire cerebral", "accident vasculaire"),
     texte = "accident vasculaire cerebral puis accident vasculaire cerebral"
+  )
+
+  expect_equal(sum(out$data_regex_match$match == "accident vasculaire"), 2)
+})
+
+# the key is an existence test, so a token confirmed where it stands alone loses
+# the occurrence a longer branch took: both have to be recorded
+test_that("match_source: repair recovers a token confirmed at another position", {
+  out <- ngram_source(
+    tokens = c("accident vasculaire cerebral", "accident vasculaire"),
+    texte = "accident vasculaire cerebral et accident vasculaire seul"
   )
 
   expect_equal(sum(out$data_regex_match$match == "accident vasculaire"), 2)

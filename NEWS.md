@@ -8,6 +8,13 @@
 
 ## Bug fixes
 
+- `edstr_extract()` honours a `regex_replace` rule instead of letting it destroy the source-matching pattern.
+  The built-in accent rules and the user ones were applied in sequence over each other's output, so a rule whose pattern matched a character an earlier replacement had emitted rewrote that replacement.
+  A rule on any of `a`, `e`, `i`, `o`, `u` or whitespace, or on any of `s`, `b`, `r`, `[` that the built-in whitespace rule emits, turned the expanded pattern into a broken character class: no document confirmed a single match and the whole corpus landed in `unmatched$no_concept`, with no error.
+  Each replacement is now parked behind a private-use sentinel until every rule has run, so no rule reads another's output.
+  A rule whose pattern contains a character a built-in covers therefore never fires rather than widening it, which is what it already did whenever it was not destructive: `"oe"` is inert, `"y"` is not.
+  A backreference in a replacement is not supported.
+
 - `edstr_extract()` marks and extracts the longest expression matching at a position instead of the most frequent one.
   Each concept's alternation was ordered by decreasing frequency, and a trigram's constituent bigram is always at least as frequent as the trigram itself, so the bigram won every position the two shared.
   `data$extract` delivered `accident vasculaire ; cérébral` where one span would do, and the highlight in `data$note`, the XLSX and the gt closed after `accident vasculaire`, leaving `cérébral` bare.
@@ -18,13 +25,13 @@
 - `edstr_extract()` confirms an n-gram the alternation displaced instead of reporting it as a mismatch.
   One alternation per concept returns one match per position, so where a trigram and its constituent bigram both match, only the winner gets a row and the other surfaces in `mismatched` despite being present in the source.
   Each unconfirmed token is now re-tested on its own, in its own document, and the span it finds is added through the same offset machinery, so it carries the original accents and case rather than the folded token.
-  The work is proportional to the failures rather than to the corpus: on a 7883-document corpus it costs 0.13 s against a 6.4 s stage and takes `mismatched` from the 18 rows the reordering above leaves to 4.
+  The work is proportional to the failures rather than to the corpus: on a 7883-document corpus it costs about 0.27 s against a 6.4 s stage and takes `mismatched` from the 18 rows the reordering above leaves to 4.
   The four that remain have no confirmable span at all, one of them an expression straddling a paragraph boundary.
   `data$extract`, `data$note`, `unmatched` and `n_no_concept` are untouched; the pass only ever adds to `data$regex$match` and the counts derived from it, and never records a span more often than the document actually carries it.
 
 - `edstr_extract()` no longer surfaces a raw `<br/>` in `data$extract`.
   An expression the export split across a hard line break was captured with the tag inside its span, so the extract read `remaniements <br/>hémorragiques`.
-  The separator that admits the tag always holds a real whitespace character as well, so dropping the tag cannot glue the two words together.
+  The separator that admits the tag always retains at least one of space, hyphen or apostrophe, so dropping the tag cannot glue the two words together.
   The document text in `data$note` keeps it, being quoted as it stands.
 
 - `edstr_extract()` returns the true surface form for a document whose folded length ties the original by coincidence.

@@ -627,7 +627,11 @@
 #'   is skipped, so the default costs nothing.
 #' @param regex_replace `<character>` Optional named vector of additional
 #'   regex replacements for source matching (appended to the built-in accent
-#'   normalisation rules).
+#'   normalisation rules). Each rule matches the token with the earlier
+#'   replacements already parked, so a rule whose pattern contains a character
+#'   a built-in covers (`a`, `e`, `i`, `o`, `u`, or whitespace) never fires
+#'   rather than widening it: `"oe"` is inert, `"y"` is not. Backreferences in
+#'   a replacement are not supported.
 #' @param unmatched_data `<logical(1)>` If `TRUE`, materialise the row-level
 #'   `unmatched$no_concept` set (documents whose text was searched and matched
 #'   no concept, or no longer match the intersection when `intersect = TRUE`),

@@ -132,6 +132,8 @@ This is what the accent-aware fallback search relies on, and it is the extension
   | space   | whitespace, hyphens, apostrophes, and `<br/>` breaks |
 
 Pass `regex_replace` to `edstr_extract()` to add rules, for instance to let a term match a spelling variant specific to your corpus.
+The built-in rules run first and their output is inert, so a rule whose pattern contains a character the table above already covers never fires: `"y"` is a usable rule, `"oe"` is not.
+A backreference in a replacement is not supported either.
 
 ## What this means in practice
 
