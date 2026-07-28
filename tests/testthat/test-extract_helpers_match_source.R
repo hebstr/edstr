@@ -78,6 +78,94 @@ test_that("match_source: a regex_replace rule cannot rewrite the built-in machin
     match_source(c("a" = "[a4]"))$data_regex_match$match,
     "accident vasculaire"
   )
+
+  # the sentinel is an ordinary character to a later pattern, so a negated class
+  # or a `.` deletes the expansion it parks: without the guard the alternation
+  # confirms nothing and every match falls to `mismatched` silently
+  expect_error(match_source(c("[^a-z ]" = "Q")), "matches the machinery")
+  expect_error(match_source(c("." = "x")), "matches the machinery")
+})
+
+replace_source <- \(texte, token, regex_replace = NULL, concept = "avc") {
+  edstr:::.extract_match_source(
+    data_match_df = data.frame(
+      doc_id = "1",
+      id_group = 1,
+      texte = texte,
+      stringsAsFactors = FALSE
+    ),
+    data_count = data.frame(
+      concept = concept,
+      texte = token,
+      stringsAsFactors = FALSE
+    ),
+    data_id = data.frame(
+      doc_id = "1",
+      concept = concept,
+      texte = token,
+      stringsAsFactors = FALSE
+    ),
+    text_input = "texte",
+    id = "doc_id",
+    regex_replace = regex_replace
+  )
+}
+
+test_that("match_source: a backslash in a replacement reaches the pattern", {
+  # the replacement side goes through stringi's replacement grammar, where `\`
+  # is an escape: unescaped, `\d` arrives as the letter `d` and the class
+  # matches the wrong characters with nothing raised
+  expect_equal(
+    replace_source("stade 4 evolue", "stade x", c("x" = "\\d"))$data_regex_match$match,
+    "stade 4"
+  )
+
+  # `$` opens a group reference on that same side, but stringr escapes a literal
+  # one already: escaping it a second time aborts inside stringi, or leaks the
+  # sentinel into the class. The rule has to be live for either to show, a
+  # built-in covering `e` parking every `e` of the token before it runs
+  out <- replace_source("une dysplasie legere", "dysplasie", c("y" = "[y$]"))
+
+  expect_match(out$data_regex_list$avc, "[y$]", fixed = TRUE)
+  expect_equal(out$data_regex_match$match, "dysplasie")
+})
+
+test_that("match_source: the built-in separator covers hyphen and apostrophe", {
+  expect_equal(
+    replace_source("un accident-vasculaire massif", "accident vasculaire")$data_regex_match$match,
+    "accident-vasculaire"
+  )
+
+  expect_equal(
+    replace_source("un accident'vasculaire massif", "accident vasculaire")$data_regex_match$match,
+    "accident'vasculaire"
+  )
+})
+
+# a token is read off the folded text, so `œsophage` arrives as `oesophage` and
+# expands to two positions against the source's one. re2 matches the fold and
+# slices the original back through the offset maps, so `extract` is unaffected
+# and only the ICU consumers of the same pattern lose the word: the highlight
+# and the fallback of `.re2_extract_prepared()`
+test_that("match_source: the pattern matches a ligature the fold expanded", {
+  texte <- "cancer sur œsophage distal"
+  out <- replace_source(texte, "oesophage")
+
+  expect_equal(out$data_regex_match$match, "œsophage")
+
+  expect_match(
+    edstr:::set_class_css(texte, out$data_regex_list),
+    ">œsophage<",
+    fixed = TRUE
+  )
+
+  # the ligature alternative widens the pattern, it does not replace the accent
+  # classes the two-letter form still has to reach
+  expect_match(
+    edstr:::set_class_css("cancer sur oésophage distal", out$data_regex_list),
+    ">oésophage<",
+    fixed = TRUE
+  )
 })
 
 # a trigram and its constituent bigram both match at the same position, and the

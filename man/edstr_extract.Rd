@@ -118,11 +118,15 @@ is skipped, so the default costs nothing.}
 
 \item{regex_replace}{\verb{<character>} Optional named vector of additional
 regex replacements for source matching (appended to the built-in accent
-normalisation rules). Each rule matches the token with the earlier
-replacements already parked, so a rule whose pattern contains a character
-a built-in covers (\code{a}, \code{e}, \code{i}, \code{o}, \code{u}, or whitespace) never fires
-rather than widening it: \code{"oe"} is inert, \code{"y"} is not. Backreferences in
-a replacement are not supported.}
+normalisation rules). Every element must be named, the name being the
+pattern its value replaces, and the value reaches the source pattern as
+the regex fragment it is written as. Each rule matches the token with the
+earlier replacements already parked, so a rule whose pattern contains a
+character a built-in covers (\code{oe}, \code{ae}, \code{a}, \code{e}, \code{i}, \code{o}, \code{u}, or
+whitespace) never fires rather than widening it: \code{"oe"} is inert, \code{"y"} is
+not. A rule whose pattern reaches any character (\code{.}, \verb{\\\\W}, a negated
+class) also reaches that parking and is rejected. Backreferences in a
+replacement are not supported.}
 
 \item{unmatched_data}{\verb{<logical(1)>} If \code{TRUE}, materialise the row-level
 \code{unmatched$no_concept} set (documents whose text was searched and matched

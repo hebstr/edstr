@@ -124,15 +124,21 @@ This is what the accent-aware fallback search relies on, and it is the extension
 
   | Written | Matches                                              |
   | ------- | ---------------------------------------------------- |
-  | `a`     | `[aàâæ]`                                             |
-  | `e`     | `[eéèêëœ]`                                           |
+  | `oe`    | `[oô][eéèêë]` or the `œ` ligature                    |
+  | `ae`    | `[aàâ][eéèêë]` or the `æ` ligature                   |
+  | `a`     | `[aàâ]`                                              |
+  | `e`     | `[eéèêë]`                                            |
   | `i`     | `[iîï]`                                              |
   | `o`     | `[oô]`                                               |
   | `u`     | `[uùûü]`                                             |
   | space   | whitespace, hyphens, apostrophes, and `<br/>` breaks |
 
+A ligature needs the two-letter rules: the fold expands it, so it reaches a token as the pair it stands for and a single-letter class could never match it back.
+
 Pass `regex_replace` to `edstr_extract()` to add rules, for instance to let a term match a spelling variant specific to your corpus.
+Every element must be named, the name being the pattern its value replaces, and the value reaches the source pattern as the regex fragment you write.
 The built-in rules run first and their output is inert, so a rule whose pattern contains a character the table above already covers never fires: `"y"` is a usable rule, `"oe"` is not.
+A rule whose pattern reaches any character (`.`, `\W`, a negated class) reaches that same machinery and is rejected rather than applied.
 A backreference in a replacement is not supported either.
 
 ## What this means in practice

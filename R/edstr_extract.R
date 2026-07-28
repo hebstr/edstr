@@ -57,6 +57,28 @@
   .check_exclus(exclus_manual, "exclus_manual")
   .check_exclus(exclus_auto_escape, "exclus_auto_escape")
 
+  # each element is applied as `str_replace_all(x, name, value)`, so an unnamed
+  # one carries an empty pattern, which stringi refuses and returns `NA` for:
+  # the alternation then reads `(?i)\b(NA)\b`, confirms nothing anywhere and
+  # sends every match to `mismatched` behind a single warning
+  if (!is.null(regex_replace)) {
+    names_replace <- names(regex_replace)
+
+    if (
+      !is.character(regex_replace) ||
+        anyNA(regex_replace) ||
+        is.null(names_replace) ||
+        anyNA(names_replace) ||
+        !all(nzchar(names_replace))
+    ) {
+      cli_abort(c(
+        "{.arg regex_replace} must be a named character vector or {.code NULL}",
+        "x" = "Got {.obj_type_friendly {regex_replace}} of length {length(regex_replace)}.",
+        "i" = "Each name is the pattern its value replaces: {.code c(y = \"[yi]\")}."
+      ))
+    }
+  }
+
   # the saved XLSX, RDS and note carry `text_input` unredacted, and `ano_hash` /
   # `ano_hide` do not cover it, so the directory is what keeps a clinical extract
   # off a shared host. Only applied on creation: an existing directory keeps the
@@ -627,11 +649,15 @@
 #'   is skipped, so the default costs nothing.
 #' @param regex_replace `<character>` Optional named vector of additional
 #'   regex replacements for source matching (appended to the built-in accent
-#'   normalisation rules). Each rule matches the token with the earlier
-#'   replacements already parked, so a rule whose pattern contains a character
-#'   a built-in covers (`a`, `e`, `i`, `o`, `u`, or whitespace) never fires
-#'   rather than widening it: `"oe"` is inert, `"y"` is not. Backreferences in
-#'   a replacement are not supported.
+#'   normalisation rules). Every element must be named, the name being the
+#'   pattern its value replaces, and the value reaches the source pattern as
+#'   the regex fragment it is written as. Each rule matches the token with the
+#'   earlier replacements already parked, so a rule whose pattern contains a
+#'   character a built-in covers (`oe`, `ae`, `a`, `e`, `i`, `o`, `u`, or
+#'   whitespace) never fires rather than widening it: `"oe"` is inert, `"y"` is
+#'   not. A rule whose pattern reaches any character (`.`, `\\W`, a negated
+#'   class) also reaches that parking and is rejected. Backreferences in a
+#'   replacement are not supported.
 #' @param unmatched_data `<logical(1)>` If `TRUE`, materialise the row-level
 #'   `unmatched$no_concept` set (documents whose text was searched and matched
 #'   no concept, or no longer match the intersection when `intersect = TRUE`),

@@ -1,10 +1,12 @@
 # equality key between a token and a source span: the two differ by accents,
 # case and whichever separator the source happened to carry. Both the repair
 # pass and the `mismatched` anti-join rest on it, and they must agree exactly,
-# a drift of one substitution moving the mismatch count with nothing to show it
+# a drift of one substitution moving the mismatch count with nothing to show it.
+# The span it folds was sliced through the offset maps `.re2_fold()` built, so
+# the key folds through that same entry point rather than a second copy of it
 .extract_source_key <- \(x) {
   x |>
-    stri_trans_general("Latin-ASCII") |>
+    .re2_fold() |>
     tolower() |>
     # the separators source matching accepts for a token space, per the
     # `[\s\-']+` substitution in `.extract_match_source()`
@@ -25,12 +27,45 @@
     names(rules),
     guard,
     \(acc, pattern, sentinel) {
-      str_replace_all(acc, regex(pattern, multiline = TRUE), sentinel)
+      text <- str_replace_all(acc$text, regex(pattern, multiline = TRUE), sentinel)
+
+      list(
+        text = text,
+        placed = c(acc$placed, sum(stri_count_fixed(text, sentinel)))
+      )
     },
-    .init = x
+    .init = list(text = x, placed = integer())
   )
 
-  str_replace_all(parked, set_names(rules, guard))
+  # parking a replacement puts it out of reach of a later rule's *replacement*,
+  # not of its pattern: a sentinel is an ordinary character, so a negated class,
+  # a `.` or a `\W` matches it and the expansion it stood for is deleted. Left
+  # unchecked the alternation confirms nothing and every match of the concept
+  # falls to `mismatched` with nothing raised
+  eaten <- map_lgl(
+    seq_along(guard),
+    ~ sum(stri_count_fixed(parked$text, guard[[.x]])) < parked$placed[[.x]]
+  )
+
+  if (any(eaten)) {
+    cli_abort(c(
+      "A {.arg regex_replace} rule matches the machinery another rule emits",
+      "x" = "The expansion of rule{?s} {.val {names(rules)[eaten]}} {?is/are} deleted by a later rule before being restored.",
+      "i" = "A pattern reaching any character ({.code .}, {.code \\W}, a negated class) also reaches the private-use sentinels the expansion parks: narrow it to the characters it means to match."
+    ))
+  }
+
+  # the unparking treats a rule's value as a replacement, where `\` escapes the
+  # grammar, so it has to be escaped out for the value to reach the pattern as
+  # the regex fragment it is written as. `$` opens a group reference on that
+  # same side but is left alone: `str_replace_all()` escapes a literal one
+  # before ICU sees it, and escaping it twice aborts inside stringi or leaks a
+  # sentinel into the value. This is why it cannot copy `set_class_css()`,
+  # which escapes both for a raw `stri_replace_all_regex()` call
+  str_replace_all(
+    parked$text,
+    set_names(stri_replace_all_regex(rules, "(\\\\)", "\\\\$1"), guard)
+  )
 }
 
 # a token the alternation failed to confirm can still be present on its own: the
@@ -82,7 +117,13 @@
         ) |>
         filter(
           .data$key_span != .data$key,
-          str_detect(.data$key_span, fixed(.data$key))
+          # a token and a span are both whole-word sequences, and the re-test is
+          # `\b`-anchored, so a sub-word hit is selected work that can never
+          # confirm anything: containment is padded to stay word-level
+          str_detect(
+            paste0(" ", .data$key_span, " "),
+            fixed(paste0(" ", .data$key, " "))
+          )
         )
     ) |>
     distinct(pick(all_of(c(id, "concept"))), .data$token)
@@ -155,21 +196,27 @@
 ) {
   regex_replace_arg <- regex_replace
 
+  # a ligature is not length preserving through the fold, so it reaches a token
+  # as the two letters it expands to and a single-character class can never
+  # match it back: the pair has to be handled as a pair, and before the vowel
+  # rules park each of its letters separately
   regex_replace <- c(
-    "a" = "[a\u00e0\u00e2\u00e6]",
-    "e" = "[e\u00e9\u00e8\u00ea\u00eb\u0153]",
+    "oe" = "(?:[o\u00f4][e\u00e9\u00e8\u00ea\u00eb]|\u0153)",
+    "ae" = "(?:[a\u00e0\u00e2][e\u00e9\u00e8\u00ea\u00eb]|\u00e6)",
+    "a" = "[a\u00e0\u00e2]",
+    "e" = "[e\u00e9\u00e8\u00ea\u00eb]",
     "i" = "[i\u00ee\u00ef]",
     "o" = "[o\u00f4]",
     "u" = "[u\u00f9\u00fb\u00fc]",
-    "\\s" = "(?:<br/>)?[\\\\s\\\\-']+(?:<br/>)?"
+    "\\s" = "(?:<br/>)?[\\s\\-']+(?:<br/>)?"
   ) |>
     append(regex_replace)
 
   regex_wrap <- "(?i)\\b({x})\\b"
 
   regex_replace_df <- tibble(
-    pattern = names(as.list(regex_replace)),
-    replace = regex_replace
+    pattern = names(regex_replace),
+    replace = unname(regex_replace)
   )
 
   # branch order decides which alternative wins a position on the ICU paths,
@@ -248,14 +295,14 @@
     bind_rows(
       data_regex_match,
       .extract_repair_source(
-        data_id,
-        data_regex_match,
-        data_regex_prep,
-        data_match_df[[id]],
-        regex_replace,
-        regex_wrap,
-        id,
-        text_input
+        data_id = data_id,
+        data_regex_match = data_regex_match,
+        prep = data_regex_prep,
+        prep_ids = data_match_df[[id]],
+        regex_replace = regex_replace,
+        regex_wrap = regex_wrap,
+        id = id,
+        text_input = text_input
       )
     ) |>
       arrange(.data$concept)

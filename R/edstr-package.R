@@ -95,7 +95,8 @@
 #' @importFrom rlang is_named
 #' @importFrom rlang list2
 #' @importFrom rlang set_names
-#' @importFrom stringi stri_c stri_detect_regex stri_replace_all_fixed
+#' @importFrom stringi stri_c stri_count_fixed stri_detect_regex
+#' @importFrom stringi stri_replace_all_fixed
 #' @importFrom stringi stri_replace_all_regex stri_sub stri_trans_general
 #' @importFrom stringr fixed
 #' @importFrom stringr regex

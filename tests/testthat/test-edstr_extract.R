@@ -384,6 +384,45 @@ test_that("edstr_extract: a non-scalar exclusion pattern is named before the pip
   expect_no_error(extract_with(exclus_manual = NA_character_))
 })
 
+test_that("edstr_extract: an unnamed source replacement rule is named before the pipeline runs", {
+  tmp <- withr::local_tempdir()
+  withr::local_options(
+    edstr_dirname = tmp,
+    edstr_filename = "test_regex_replace",
+    edstr_text = "texte",
+    edstr_overwrite = TRUE
+  )
+
+  data <- data.frame(doc_id = "1", texte = '<p class="t">dysplasie</p>')
+
+  extract_with <- function(...) {
+    suppressMessages(edstr_extract(
+      data = data,
+      concepts = c(diag = "dysplasie"),
+      ngram_max = 1,
+      ...
+    ))
+  }
+
+  # an unnamed element carries an empty pattern into `str_replace_all()`, which
+  # stringi refuses and returns `NA` for: the alternation then reads
+  # `(?i)\b(NA)\b`, confirms nothing at all, and every match lands in
+  # `mismatched` behind a single warning
+  bad <- list(
+    "[yi]",
+    c(y = "[yi]", "[qz]"),
+    c(y = NA_character_),
+    stats::setNames("[yi]", ""),
+    stats::setNames("[yi]", NA_character_),
+    c(y = 42),
+    list(y = "[yi]")
+  )
+
+  for (x in bad) {
+    expect_error(extract_with(regex_replace = x), "named character vector")
+  }
+})
+
 test_that("edstr_extract: an identifier column named `id` is not masked", {
   tmp <- withr::local_tempdir()
   withr::local_options(

@@ -8,6 +8,20 @@
 
 ## Bug fixes
 
+- `edstr_extract()` highlights a word carrying a ligature instead of leaving it bare.
+  A token is read off the folded text, so `œsophage` arrived as `oesophage` and expanded to two positions against the source's one, which no single-character class could match back: `æ` in the `a` class and `œ` in the `e` class were unreachable by construction.
+  `data$extract` was unaffected, re2 matching the fold and slicing the original back through the offset maps, so the loss fell on the ICU consumers of the same pattern alone: the highlight in `data$note`, the XLSX and the gt, and the fallback of the source pass on a document whose transliteration is context dependent.
+  Two rules `oe` and `ae` now run before the vowel rules and carry the ligature as an alternative to the letter pair, the accent classes the pair still has to reach included.
+
+- `edstr_extract()` rejects a `regex_replace` rule it cannot apply instead of returning an empty extraction.
+  An unnamed element carried an empty pattern into the expansion, which stringi refuses and returns `NA` for, so the alternation read `(?i)\b(NA)\b`, confirmed nothing anywhere and sent every match to `mismatched` behind a single `mutate()` warning.
+  A rule whose pattern reaches any character (`.`, `\W`, a negated class) matched the private-use sentinels the expansion parks and deleted the replacement they stood for, with the same silent outcome.
+  Both abort now, the second naming the rule whose expansion was destroyed.
+
+- `edstr_extract()` carries a `regex_replace` value to the source pattern as the regex fragment it is written as.
+  The value was applied as a replacement, where `\` is an escape, so `c(y = "[y\\s]")` reached the pattern as `[ys]` and matched the letter `s` in place of a whitespace, silently.
+  It is escaped out of the replacement side now, and the built-in whitespace rule drops the doubling it needed to survive it.
+
 - `edstr_extract()` honours a `regex_replace` rule instead of letting it destroy the source-matching pattern.
   The built-in accent rules and the user ones were applied in sequence over each other's output, so a rule whose pattern matched a character an earlier replacement had emitted rewrote that replacement.
   A rule on any of `a`, `e`, `i`, `o`, `u` or whitespace, or on any of `s`, `b`, `r`, `[` that the built-in whitespace rule emits, turned the expanded pattern into a broken character class: no document confirmed a single match and the whole corpus landed in `unmatched$no_concept`, with no error.
