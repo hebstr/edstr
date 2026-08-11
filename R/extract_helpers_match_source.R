@@ -27,7 +27,11 @@
     names(rules),
     guard,
     \(acc, pattern, sentinel) {
-      text <- str_replace_all(acc$text, regex(pattern, multiline = TRUE), sentinel)
+      text <- str_replace_all(
+        acc$text,
+        regex(pattern, multiline = TRUE),
+        sentinel
+      )
 
       list(
         text = text,

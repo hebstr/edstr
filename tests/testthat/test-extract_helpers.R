@@ -877,8 +877,14 @@ test_that("anonymise: targeting the text column errors", {
 })
 
 test_that("anonymise: a pattern matching no column errors", {
-  expect_error(ano_one(ano_hash = "absent", ano_hide = NULL), "matches no column")
-  expect_error(ano_one(ano_hash = NULL, ano_hide = "absent"), "matches no column")
+  expect_error(
+    ano_one(ano_hash = "absent", ano_hide = NULL),
+    "matches no column"
+  )
+  expect_error(
+    ano_one(ano_hash = NULL, ano_hide = "absent"),
+    "matches no column"
+  )
   expect_error(
     ano_one(ano_hash = c("ipp", "absent"), ano_hide = NULL),
     "matches no column"
@@ -900,7 +906,11 @@ extract_one <- \(texte) {
     data_match_df = doc,
     data_count = data.frame(
       concept = "avc",
-      texte = c("accident vasculaire", "cerebral", "accident vasculaire cerebral"),
+      texte = c(
+        "accident vasculaire",
+        "cerebral",
+        "accident vasculaire cerebral"
+      ),
       n = c(12L, 9L, 3L),
       stringsAsFactors = FALSE
     ),

@@ -194,10 +194,11 @@ overwritten, loaded silently, or trigger an interactive prompt.
 ## Known limitations
 
 - Auto-exclusion in `edstr_extract()` scans every distinct matched text
-  against every matched row, three times over (start, end, and start-end
-  anchors). The scan runs whatever `exclus_manual` is set to, so its
-  cost is not opt-in once any n-gram clears `exclus_auto_token_min`;
-  `exclus_auto_escape` only shrinks the rows it scans. Watch for
+  against every row whose n-gram size exceeds `exclus_auto_token_min`,
+  three times over (start, end, and start-end anchors). The scan runs
+  whatever `exclus_manual` is set to, so its cost is not opt-in once any
+  n-gram clears that threshold; `exclus_auto_escape` shrinks both the
+  rows it scans and the distinct texts scanned against them. Watch for
   slowdowns on large corpora.
 - At the default `exclus_auto_token_min = 10`, auto-exclusions only
   apply to n-grams larger than the threshold and no realistic

@@ -122,7 +122,8 @@
       unlist(use.names = FALSE)
   }
 
-  multi_leaf <- imap(concepts, ~ .multi_leaf(.x, .y)) |> unlist(use.names = FALSE)
+  multi_leaf <- imap(concepts, ~ .multi_leaf(.x, .y)) |>
+    unlist(use.names = FALSE)
 
   if (!collapse && length(multi_leaf) > 0) {
     cli_abort(c(

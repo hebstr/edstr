@@ -26,7 +26,8 @@ edstr_config(
   edstr_overwrite = FALSE
 )
 
-df_clean <- edstr_clean()
+df_import <- edstr_import()
+df_clean <- edstr_clean(data = df_import, replace = c("\\s+" = " "))
 ```
 
 ## Basic usage

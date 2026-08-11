@@ -205,7 +205,11 @@ test_that("edstr_config() rejects empty and missing string values", {
   # NA passes `is.logical()`, then surfaces downstream as "missing value where
   # TRUE/FALSE needed"
   expect_error(
-    edstr_config(edstr_dirname = tmp, edstr_filename = "x", edstr_overwrite = NA),
+    edstr_config(
+      edstr_dirname = tmp,
+      edstr_filename = "x",
+      edstr_overwrite = NA
+    ),
     "edstr_overwrite.*`TRUE`"
   )
 })

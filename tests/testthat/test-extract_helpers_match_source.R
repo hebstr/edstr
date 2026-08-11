@@ -116,7 +116,11 @@ test_that("match_source: a backslash in a replacement reaches the pattern", {
   # is an escape: unescaped, `\d` arrives as the letter `d` and the class
   # matches the wrong characters with nothing raised
   expect_equal(
-    replace_source("stade 4 evolue", "stade x", c("x" = "\\d"))$data_regex_match$match,
+    replace_source(
+      "stade 4 evolue",
+      "stade x",
+      c("x" = "\\d")
+    )$data_regex_match$match,
     "stade 4"
   )
 
@@ -132,12 +136,18 @@ test_that("match_source: a backslash in a replacement reaches the pattern", {
 
 test_that("match_source: the built-in separator covers hyphen and apostrophe", {
   expect_equal(
-    replace_source("un accident-vasculaire massif", "accident vasculaire")$data_regex_match$match,
+    replace_source(
+      "un accident-vasculaire massif",
+      "accident vasculaire"
+    )$data_regex_match$match,
     "accident-vasculaire"
   )
 
   expect_equal(
-    replace_source("un accident'vasculaire massif", "accident vasculaire")$data_regex_match$match,
+    replace_source(
+      "un accident'vasculaire massif",
+      "accident vasculaire"
+    )$data_regex_match$match,
     "accident'vasculaire"
   )
 })
@@ -185,7 +195,11 @@ ngram_source <- \(
     ),
     data_count = data.frame(
       concept = "avc",
-      texte = c("accident vasculaire", "cerebral", "accident vasculaire cerebral"),
+      texte = c(
+        "accident vasculaire",
+        "cerebral",
+        "accident vasculaire cerebral"
+      ),
       n = c(12L, 9L, 3L),
       stringsAsFactors = FALSE
     ),
@@ -202,7 +216,9 @@ ngram_source <- \(
 }
 
 test_that("match_source: alternation branches are ordered by decreasing length", {
-  branches <- strsplit(ngram_source()$data_regex_list$avc, "|", fixed = TRUE)[[1]]
+  branches <- strsplit(ngram_source()$data_regex_list$avc, "|", fixed = TRUE)[[
+    1
+  ]]
 
   expect_length(branches, 3)
   expect_equal(nchar(branches), sort(nchar(branches), decreasing = TRUE))
@@ -232,7 +248,11 @@ test_that("match_source: branch order alone merges the trigram, leftmost-first",
 # branch displaced have to be recovered by re-testing each one on its own
 test_that("match_source: a displaced n-gram is repaired, keeping the winner", {
   out <- ngram_source(
-    tokens = c("accident vasculaire cerebral", "accident vasculaire", "cerebral")
+    tokens = c(
+      "accident vasculaire cerebral",
+      "accident vasculaire",
+      "cerebral"
+    )
   )
 
   expect_setequal(
