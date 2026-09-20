@@ -1,0 +1,23 @@
+/* @font-face lives here, not in extra.scss: pkgdown copies this file to the
+   site root while extra.scss compiles into deps/, where the relative url() no
+   longer resolves. Files come from pkgdown/assets/fonts/. */
+
+@font-face {
+  font-family: Luciole;
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src:
+    local("Luciole-Regular"),
+    url("fonts/Luciole-Regular.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: Luciole;
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  src:
+    local("Luciole-Bold"),
+    url("fonts/Luciole-Bold.woff2") format("woff2");
+}
