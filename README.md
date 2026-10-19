@@ -186,6 +186,16 @@ tables. Both abort rather than act silently when a pattern matches no
 column, matches the identifier or group column, or matches the text
 column.
 
+**Chunked extraction.** `chunk` runs a corpus too large to tokenise in
+one pass as chunks of documents, each a contiguous range of `group` read
+from the Parquet cache in its own subprocess, and combines them into one
+output indistinguishable from a single-pass run: the summary is
+recomputed rather than summed, the metadata is joined back after
+extraction, and the per-chunk directories are removed once the combine
+succeeds. `chunk = TRUE` takes the default of 15000 documents. It
+requires `id` and `group`, takes no `data`, and is incompatible with
+`sample`, `seed`, `ano_hash` and `ano_hide`.
+
 **Built-in caching.** `edstr_import()` and `edstr_clean()` write Parquet
 files; `edstr_extract()` writes an RDS file. The `edstr_overwrite`
 option (`TRUE` / `FALSE` / `NULL`) controls whether existing files are
@@ -213,6 +223,12 @@ overwritten, loaded silently, or trigger an interactive prompt.
   source column unredacted, since showing that text is what they are
   for, and the Parquet caches written upstream by `edstr_import()` and
   `edstr_clean()` keep the source in clear.
+- Under `chunk`, the exclusion arguments are evaluated inside each
+  subprocess, so an exclusion that fires is scoped to a chunk rather
+  than to the corpus.
+- A chunk whose slice matches no concept at all aborts, as a single-pass
+  run on the same slice would. The chunks already written are kept, so
+  the run resumes, but it is the corpus slice that has to change.
 
 ## Output
 

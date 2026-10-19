@@ -190,14 +190,7 @@
   add[rep(seq_len(nrow(add)), add$add), by]
 }
 
-.extract_match_source <- \(
-  data_match_df,
-  data_count,
-  data_id,
-  text_input,
-  id,
-  regex_replace
-) {
+.extract_source_regex <- \(data_count, text_input, regex_replace) {
   regex_replace_arg <- regex_replace
 
   # a ligature is not length preserving through the fold, so it reaches a token
@@ -259,6 +252,35 @@
     data_regex_df[[text_input]] |>
     as.list() |>
     set_names(data_regex_df$concept)
+
+  lst(
+    regex_replace_arg = regex_replace_arg,
+    regex_replace = regex_replace,
+    regex_wrap = regex_wrap,
+    regex_replace_df = regex_replace_df,
+    data_regex_str = data_regex_str,
+    data_regex_df = data_regex_df,
+    data_regex_list = data_regex_list
+  )
+}
+
+.extract_match_source <- \(
+  data_match_df,
+  data_count,
+  data_id,
+  text_input,
+  id,
+  regex_replace
+) {
+  source_regex <- .extract_source_regex(data_count, text_input, regex_replace)
+
+  regex_replace_arg <- source_regex$regex_replace_arg
+  regex_replace <- source_regex$regex_replace
+  regex_wrap <- source_regex$regex_wrap
+  regex_replace_df <- source_regex$regex_replace_df
+  data_regex_str <- source_regex$data_regex_str
+  data_regex_df <- source_regex$data_regex_df
+  data_regex_list <- source_regex$data_regex_list
 
   data_regex_prep <- .timed_sub(
     "  source: re2 prepare",

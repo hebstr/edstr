@@ -2,6 +2,16 @@
 
 ## New features
 
+- `edstr_extract()` gains `chunk`, which runs a corpus too large for memory in chunks of documents and combines the result into one output indistinguishable from a single-pass run.
+  Each chunk is a contiguous range of `group` read from the Parquet cache `edstr_clean()` wrote, extracted in its own `callr` subprocess, and the per-chunk directories are removed once the combine succeeds.
+  `chunk = TRUE` takes the documented default of 15000 documents; a count sets it explicitly.
+  The budget is a document count because the memory a chunk needs follows the text volume it carries, and hospital report length varies by about 25% across three EDS corpora against the factor-2 margin the default was chosen with.
+  Each subprocess receives `id`, `group` and the text column alone, the rest of the corpus being joined back at the combine, which is what keeps a chunk's peak proportional to its text: three columns and eleven measure alike, a 23-column table half again as much.
+  `data` is therefore optional and rejected with `chunk`, `id` and `group` become required, `chunk_sort` orders the combined output, and `sample`, `seed`, `ano_hash` and `ano_hide` are rejected: the first two would draw within each chunk, and the last two target columns no subprocess sees.
+  `callr`, `DBI` and `duckdb` enter `Suggests` and are checked at the call.
+  The global summary is recomputed from the chunk objects rather than summed: `match_distinct` counts distinct matched tokens, which a sum inflates once per chunk the token recurs in.
+  Measured on a 109957-document corpus in 8 chunks, it returns the summary of the last single-pass run over the same corpus cell for cell, and `data$extract` and `data$note` identically.
+
 - `edstr_config()` gains `edstr_connect_dir`, the connection file path `edstr_import()` reads.
   It was the one package option reachable only through `...`, so it never appeared in `?edstr_config` and a mistyped value reached `fs::file_exists()` as a bare R error instead of a cli abort.
   Like the other optional settings, leaving it out resets it.

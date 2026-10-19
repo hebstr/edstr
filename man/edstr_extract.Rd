@@ -5,7 +5,7 @@
 \title{Extract structured variables from clinical text}
 \usage{
 edstr_extract(
-  data,
+  data = NULL,
   text_input = getOption("edstr_text"),
   id = NULL,
   group = NULL,
@@ -26,13 +26,16 @@ edstr_extract(
   concept_color = "#0099FF",
   text_color = "#FF0000",
   save_as_gt = FALSE,
+  chunk = NULL,
+  chunk_sort = NULL,
   dirname_suffix = if (!is.null(sample)) str_glue("sample_{sample}") else NULL,
   filename_suffix = dirname_suffix
 )
 }
 \arguments{
 \item{data}{\verb{<data.frame>} Input data containing at least a text column
-and a unique identifier column.}
+and a unique identifier column. Required unless \code{chunk} is set, which
+reads the Parquet cache \code{\link[=edstr_clean]{edstr_clean()}} wrote instead.}
 
 \item{text_input}{\verb{<character(1)>} Name of the text column to analyse.
 Defaults to \code{getOption("edstr_text")} set by \code{\link[=edstr_config]{edstr_config()}}.}
@@ -145,6 +148,27 @@ highlighting in XLSX and gt output. Default \code{"#FF0000"}.}
 \item{save_as_gt}{\verb{<logical(1)>} If \code{TRUE}, generate \code{\link[gt:gt]{gt::gt()}} tables
 alongside XLSX output. Requires the \code{gt} package.}
 
+\item{chunk}{\verb{<integer(1)|logical(1)>} Optional. Run the extraction in
+chunks of at most \code{chunk} documents, each in its own subprocess, and
+combine the results into one output indistinguishable from a single-pass
+run. \code{TRUE} takes the default of \code{15000}, \code{NULL} (default) and \code{FALSE}
+extract in one pass. A chunk is a contiguous range of \code{group}, never a
+split one, so a group larger than the budget forms a chunk of its own and
+warns. Requires the \code{callr}, \code{DBI} and \code{duckdb} packages.
+
+The budget is a document count because the memory a chunk needs is set by
+the text volume it carries, and hospital report length varies far less
+than the factor-2 margin \code{15000} was chosen with: measured over three EDS
+corpora, about 20,600 characters per document within 25\%. Re-derive it
+(\code{mean(nchar(text))} on the Parquet cache) only past roughly 30,000
+characters per document, on another machine, or on documents that are not
+hospital reports.}
+
+\item{chunk_sort}{\verb{<character>} Optional. Column names to order
+\code{data$extract} and \code{data$note} by, after \code{group} and before \code{id}, once the
+metadata is joined back. Inactive by default, which leaves the \code{group},
+\code{id} order a single-pass run produces. Only used when \code{chunk} is set.}
+
 \item{dirname_suffix}{\verb{<character(1)>} Optional suffix appended to the
 \verb{extract/} subdirectory, not to \code{edstr_dirname} (e.g. \code{extract_sample_500}).
 Defaults to \code{"sample_{sample}"} when \code{sample} is set.}
@@ -205,6 +229,40 @@ XLSX, JSON, and RDS files.
 \details{
 Requires \code{\link[=edstr_config]{edstr_config()}} to be called first.
 }
+\section{Single-pass and chunked mode}{
+
+
+Without \code{chunk}, the extraction runs in one pass over \code{data}.
+
+With \code{chunk}, it runs over the Parquet cache \code{\link[=edstr_clean]{edstr_clean()}} wrote, one
+subprocess per chunk, and the results are combined into a single output: the
+summary, the three saved files and every frame of the return value are what a
+single-pass run over the whole corpus produces, and the per-chunk directories
+are removed once the combine succeeds. A chunked run that is interrupted
+resumes from the chunks already on disk unless \code{edstr_overwrite} is \code{TRUE},
+and a chunk left over from a call with other arguments aborts the combine
+rather than being reused.
+
+Four arguments change meaning between the two modes:
+\itemize{
+\item \code{data} is required without \code{chunk} and rejected with it.
+\item \code{id} and \code{group} are optional without \code{chunk} and required with it: a chunk
+is a range of \code{group}, and each subprocess receives \code{id}, \code{group} and the
+text column alone, so neither key can be detected from that projection.
+Every other column is joined back after the extraction, which is what keeps
+a chunk's memory proportional to its text.
+\item \code{chunk_sort} is only read with \code{chunk}.
+}
+
+And four are rejected with \code{chunk}: \code{sample} and \code{seed}, which would draw
+within each chunk rather than over the corpus, and \code{ano_hash} and \code{ano_hide},
+whose target columns no subprocess ever sees.
+
+\code{exclus_manual}, \code{exclus_auto_escape} and \code{exclus_auto_token_min} apply
+inside each subprocess, so an exclusion that fires is evaluated per chunk and
+not over the corpus.
+}
+
 \examples{
 \donttest{
 edstr_config(

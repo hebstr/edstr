@@ -554,6 +554,33 @@
   data_save
 }
 
+.extract_paths <- \(dirname_suffix, filename_suffix) {
+  config_dir <- getOption("edstr_dirname")
+  filename <- getOption("edstr_filename")
+  dirname <- "extract"
+
+  save_dir <- fs::path(config_dir, dirname)
+
+  if (!is.null(dirname_suffix)) {
+    save_dir <- glue("{save_dir}_{dirname_suffix}")
+  }
+
+  save_files <- glue("{filename}_{dirname}")
+
+  if (!is.null(filename_suffix)) {
+    save_files <- glue("{save_files}_{filename_suffix}")
+  }
+
+  lst(
+    save_dir = save_dir,
+    save_files = save_files,
+    save_extract = map(
+      set_names(c("xlsx", "rds", "json")),
+      ~ fs::path(save_dir, save_files, ext = .)
+    )
+  )
+}
+
 .extract_load <- \(save_dir, save_files, save_extract) {
   cli_h1("edstr_extract")
   br()
@@ -579,8 +606,40 @@
 #'
 #' Requires [edstr_config()] to be called first.
 #'
+#' @section Single-pass and chunked mode:
+#'
+#' Without `chunk`, the extraction runs in one pass over `data`.
+#'
+#' With `chunk`, it runs over the Parquet cache [edstr_clean()] wrote, one
+#' subprocess per chunk, and the results are combined into a single output: the
+#' summary, the three saved files and every frame of the return value are what a
+#' single-pass run over the whole corpus produces, and the per-chunk directories
+#' are removed once the combine succeeds. A chunked run that is interrupted
+#' resumes from the chunks already on disk unless `edstr_overwrite` is `TRUE`,
+#' and a chunk left over from a call with other arguments aborts the combine
+#' rather than being reused.
+#'
+#' Four arguments change meaning between the two modes:
+#'
+#' - `data` is required without `chunk` and rejected with it.
+#' - `id` and `group` are optional without `chunk` and required with it: a chunk
+#'   is a range of `group`, and each subprocess receives `id`, `group` and the
+#'   text column alone, so neither key can be detected from that projection.
+#'   Every other column is joined back after the extraction, which is what keeps
+#'   a chunk's memory proportional to its text.
+#' - `chunk_sort` is only read with `chunk`.
+#'
+#' And four are rejected with `chunk`: `sample` and `seed`, which would draw
+#' within each chunk rather than over the corpus, and `ano_hash` and `ano_hide`,
+#' whose target columns no subprocess ever sees.
+#'
+#' `exclus_manual`, `exclus_auto_escape` and `exclus_auto_token_min` apply
+#' inside each subprocess, so an exclusion that fires is evaluated per chunk and
+#' not over the corpus.
+#'
 #' @param data `<data.frame>` Input data containing at least a text column
-#'   and a unique identifier column.
+#'   and a unique identifier column. Required unless `chunk` is set, which
+#'   reads the Parquet cache [edstr_clean()] wrote instead.
 #' @param text_input `<character(1)>` Name of the text column to analyse.
 #'   Defaults to `getOption("edstr_text")` set by [edstr_config()].
 #' @param id `<character(1)>` Name of the unique identifier column. If not
@@ -672,6 +731,25 @@
 #'   highlighting in XLSX and gt output. Default `"#FF0000"`.
 #' @param save_as_gt `<logical(1)>` If `TRUE`, generate [gt::gt()] tables
 #'   alongside XLSX output. Requires the `gt` package.
+#' @param chunk `<integer(1)|logical(1)>` Optional. Run the extraction in
+#'   chunks of at most `chunk` documents, each in its own subprocess, and
+#'   combine the results into one output indistinguishable from a single-pass
+#'   run. `TRUE` takes the default of `15000`, `NULL` (default) and `FALSE`
+#'   extract in one pass. A chunk is a contiguous range of `group`, never a
+#'   split one, so a group larger than the budget forms a chunk of its own and
+#'   warns. Requires the `callr`, `DBI` and `duckdb` packages.
+#'
+#'   The budget is a document count because the memory a chunk needs is set by
+#'   the text volume it carries, and hospital report length varies far less
+#'   than the factor-2 margin `15000` was chosen with: measured over three EDS
+#'   corpora, about 20,600 characters per document within 25%. Re-derive it
+#'   (`mean(nchar(text))` on the Parquet cache) only past roughly 30,000
+#'   characters per document, on another machine, or on documents that are not
+#'   hospital reports.
+#' @param chunk_sort `<character>` Optional. Column names to order
+#'   `data$extract` and `data$note` by, after `group` and before `id`, once the
+#'   metadata is joined back. Inactive by default, which leaves the `group`,
+#'   `id` order a single-pass run produces. Only used when `chunk` is set.
 #' @param dirname_suffix `<character(1)>` Optional suffix appended to the
 #'   `extract/` subdirectory, not to `edstr_dirname` (e.g. `extract_sample_500`).
 #'   Defaults to `"sample_{sample}"` when `sample` is set.
@@ -746,7 +824,7 @@
 #' }
 #'
 edstr_extract <- \(
-  data,
+  data = NULL,
   text_input = getOption("edstr_text"),
   id = NULL,
   group = NULL,
@@ -767,58 +845,89 @@ edstr_extract <- \(
   concept_color = "#0099FF",
   text_color = "#FF0000",
   save_as_gt = FALSE,
+  chunk = NULL,
+  chunk_sort = NULL,
   dirname_suffix = if (!is.null(sample)) str_glue("sample_{sample}") else NULL,
   filename_suffix = dirname_suffix
 ) {
   check_config()
 
-  config_dir <- getOption('edstr_dirname')
-  filename <- getOption('edstr_filename')
-  dirname <- "extract"
+  chunk <- .extract_chunk_n(chunk)
 
-  save_dir <- fs::path(config_dir, dirname)
-
-  if (!is.null(dirname_suffix)) {
-    save_dir <- glue("{save_dir}_{dirname_suffix}")
+  if (is.null(chunk)) {
+    if (is.null(data)) {
+      cli_abort(c(
+        "{.arg data} is not set",
+        "i" = "Pass a data frame, or set {.arg chunk} to read the Parquet cache
+               {.fn edstr_clean} wrote."
+      ))
+    }
+  } else {
+    .extract_chunk_guard(data, id, group, sample, seed, ano_hash, ano_hide)
   }
 
-  save_files <- glue("{filename}_{dirname}")
+  paths <- .extract_paths(dirname_suffix, filename_suffix)
 
-  if (!is.null(filename_suffix)) {
-    save_files <- glue("{save_files}_{filename_suffix}")
-  }
-
-  save_extract <- map(
-    set_names(c("xlsx", "rds", "json")),
-    ~ fs::path(save_dir, save_files, ext = .)
-  )
+  save_dir <- paths$save_dir
+  save_files <- paths$save_files
+  save_extract <- paths$save_extract
 
   fun_save <- \() {
-    .extract_save(
-      data,
-      text_input,
-      id,
-      group,
-      sample,
-      seed,
-      ano_hash,
-      ano_hide,
-      ngram_max,
-      concepts,
-      collapse,
-      intersect,
-      starts_with_only,
-      exclus_manual,
-      exclus_auto_escape,
-      exclus_auto_token_min,
-      regex_replace,
-      unmatched_data,
-      concept_color,
-      text_color,
-      save_as_gt,
-      save_dir,
-      save_files,
-      save_extract
+    if (is.null(chunk)) {
+      return(.extract_save(
+        data,
+        text_input,
+        id,
+        group,
+        sample,
+        seed,
+        ano_hash,
+        ano_hide,
+        ngram_max,
+        concepts,
+        collapse,
+        intersect,
+        starts_with_only,
+        exclus_manual,
+        exclus_auto_escape,
+        exclus_auto_token_min,
+        regex_replace,
+        unmatched_data,
+        concept_color,
+        text_color,
+        save_as_gt,
+        save_dir,
+        save_files,
+        save_extract
+      ))
+    }
+
+    .extract_chunked(
+      args = list(
+        text_input = text_input,
+        id = id,
+        group = group,
+        ngram_max = ngram_max,
+        concepts = concepts,
+        collapse = collapse,
+        intersect = intersect,
+        starts_with_only = starts_with_only,
+        exclus_manual = exclus_manual,
+        exclus_auto_escape = exclus_auto_escape,
+        exclus_auto_token_min = exclus_auto_token_min,
+        regex_replace = regex_replace,
+        unmatched_data = unmatched_data,
+        concept_color = concept_color,
+        text_color = text_color,
+        save_as_gt = save_as_gt
+      ),
+      chunk = chunk,
+      chunk_sort = chunk_sort,
+      dirname_suffix = dirname_suffix,
+      filename_suffix = filename_suffix,
+      save_dir = save_dir,
+      save_files = save_files,
+      save_extract = save_extract
     )
   }
 

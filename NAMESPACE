@@ -5,135 +5,168 @@ export(edstr_config)
 export(edstr_extract)
 export(edstr_import)
 export(edstr_view)
-importFrom(cli,cli_abort)
-importFrom(cli,cli_alert_info)
-importFrom(cli,cli_alert_success)
-importFrom(cli,cli_alert_warning)
-importFrom(cli,cli_code)
-importFrom(cli,cli_end)
-importFrom(cli,cli_h1)
-importFrom(cli,cli_h2)
-importFrom(cli,cli_li)
-importFrom(cli,cli_progress_done)
-importFrom(cli,cli_progress_step)
-importFrom(cli,cli_rule)
-importFrom(cli,cli_text)
-importFrom(cli,cli_ul)
-importFrom(cli,cli_verbatim)
-importFrom(cli,qty)
-importFrom(dplyr,across)
-importFrom(dplyr,add_row)
-importFrom(dplyr,all_of)
-importFrom(dplyr,anti_join)
-importFrom(dplyr,any_of)
-importFrom(dplyr,arrange)
-importFrom(dplyr,bind_rows)
-importFrom(dplyr,collect)
-importFrom(dplyr,count)
-importFrom(dplyr,desc)
-importFrom(dplyr,distinct)
-importFrom(dplyr,everything)
-importFrom(dplyr,filter)
-importFrom(dplyr,full_join)
-importFrom(dplyr,if_any)
-importFrom(dplyr,inner_join)
-importFrom(dplyr,last_col)
-importFrom(dplyr,lead)
-importFrom(dplyr,left_join)
-importFrom(dplyr,lst)
-importFrom(dplyr,matches)
-importFrom(dplyr,mutate)
-importFrom(dplyr,n_distinct)
-importFrom(dplyr,pick)
-importFrom(dplyr,pull)
-importFrom(dplyr,relocate)
-importFrom(dplyr,rename)
-importFrom(dplyr,row_number)
-importFrom(dplyr,select)
-importFrom(dplyr,slice)
-importFrom(dplyr,sql)
-importFrom(dplyr,summarise)
-importFrom(dplyr,tbl)
+importFrom(cli,
+  cli_abort,
+  cli_alert_info,
+  cli_alert_success,
+  cli_alert_warning,
+  cli_code,
+  cli_end,
+  cli_h1,
+  cli_h2,
+  cli_li,
+  cli_progress_done,
+  cli_progress_step,
+  cli_rule,
+  cli_text,
+  cli_ul,
+  cli_verbatim,
+  cli_warn,
+  qty
+)
+importFrom(dplyr,
+  across,
+  add_row,
+  all_of,
+  anti_join,
+  any_of,
+  arrange,
+  bind_rows,
+  collect,
+  count,
+  desc,
+  distinct,
+  everything,
+  filter,
+  first,
+  full_join,
+  if_any,
+  inner_join,
+  last,
+  last_col,
+  lead,
+  left_join,
+  lst,
+  matches,
+  mutate,
+  n_distinct,
+  pick,
+  pull,
+  relocate,
+  rename,
+  row_number,
+  select,
+  slice,
+  sql,
+  summarise,
+  tbl
+)
 importFrom(glue,glue)
 importFrom(here,here)
-importFrom(nanoparquet,parquet_options)
-importFrom(nanoparquet,read_parquet)
-importFrom(nanoparquet,write_parquet)
-importFrom(openxlsx2,wb_add_border)
-importFrom(openxlsx2,wb_add_cell_style)
-importFrom(openxlsx2,wb_add_data_table)
-importFrom(openxlsx2,wb_add_fill)
-importFrom(openxlsx2,wb_add_font)
-importFrom(openxlsx2,wb_add_worksheet)
-importFrom(openxlsx2,wb_color)
-importFrom(openxlsx2,wb_dims)
-importFrom(openxlsx2,wb_get_cell_style)
-importFrom(openxlsx2,wb_save)
-importFrom(openxlsx2,wb_set_cell_style)
-importFrom(openxlsx2,wb_set_col_widths)
-importFrom(openxlsx2,wb_workbook)
-importFrom(purrr,accumulate)
-importFrom(purrr,compact)
-importFrom(purrr,imap)
-importFrom(purrr,keep)
-importFrom(purrr,list_flatten)
-importFrom(purrr,list_rbind)
-importFrom(purrr,map)
-importFrom(purrr,map2)
-importFrom(purrr,map_chr)
-importFrom(purrr,map_lgl)
-importFrom(purrr,pluck)
-importFrom(purrr,pluck_depth)
-importFrom(purrr,reduce)
-importFrom(purrr,reduce2)
-importFrom(re2,re2_locate_all)
-importFrom(re2,re2_regexp)
+importFrom(nanoparquet,
+  parquet_options,
+  read_parquet,
+  write_parquet
+)
+importFrom(openxlsx2,
+  wb_add_border,
+  wb_add_cell_style,
+  wb_add_data_table,
+  wb_add_fill,
+  wb_add_font,
+  wb_add_worksheet,
+  wb_color,
+  wb_dims,
+  wb_get_cell_style,
+  wb_save,
+  wb_set_cell_style,
+  wb_set_col_widths,
+  wb_workbook
+)
+importFrom(purrr,
+  accumulate,
+  compact,
+  imap,
+  keep,
+  list_flatten,
+  list_rbind,
+  map,
+  map2,
+  map2_lgl,
+  map_chr,
+  map_int,
+  map_lgl,
+  pluck,
+  pluck_depth,
+  reduce,
+  reduce2,
+  walk
+)
+importFrom(re2,
+  re2_locate_all,
+  re2_regexp
+)
 importFrom(readr,read_lines)
-importFrom(rlang,"%||%")
-importFrom(rlang,":=")
-importFrom(rlang,.data)
-importFrom(rlang,.env)
-importFrom(rlang,check_installed)
-importFrom(rlang,enexpr)
-importFrom(rlang,is_named)
-importFrom(rlang,list2)
-importFrom(rlang,set_names)
-importFrom(stringi,stri_c)
-importFrom(stringi,stri_count_fixed)
-importFrom(stringi,stri_detect_regex)
-importFrom(stringi,stri_replace_all_fixed)
-importFrom(stringi,stri_replace_all_regex)
-importFrom(stringi,stri_sub)
-importFrom(stringi,stri_trans_general)
-importFrom(stringr,fixed)
-importFrom(stringr,regex)
-importFrom(stringr,str_detect)
-importFrom(stringr,str_ends)
-importFrom(stringr,str_extract)
-importFrom(stringr,str_extract_all)
-importFrom(stringr,str_flatten)
-importFrom(stringr,str_flatten_comma)
-importFrom(stringr,str_glue)
-importFrom(stringr,str_match_all)
-importFrom(stringr,str_remove)
-importFrom(stringr,str_remove_all)
-importFrom(stringr,str_replace_all)
-importFrom(stringr,str_split_1)
-importFrom(stringr,str_squish)
-importFrom(stringr,str_sub)
-importFrom(stringr,str_subset)
-importFrom(stringr,str_view)
-importFrom(tibble,enframe)
-importFrom(tibble,tibble)
-importFrom(tictoc,tic)
-importFrom(tictoc,tic.clearlog)
-importFrom(tictoc,tic.log)
-importFrom(tictoc,toc)
-importFrom(tidyr,drop_na)
-importFrom(tidyr,nest)
-importFrom(tidyr,pivot_wider)
-importFrom(tidyr,unnest)
+importFrom(rlang,
+  "%||%",
+  ":=",
+  .data,
+  .env,
+  check_installed,
+  enexpr,
+  is_named,
+  list2,
+  set_names
+)
+importFrom(stringi,
+  stri_c,
+  stri_count_fixed,
+  stri_detect_regex,
+  stri_replace_all_fixed,
+  stri_replace_all_regex,
+  stri_sub,
+  stri_trans_general
+)
+importFrom(stringr,
+  fixed,
+  regex,
+  str_detect,
+  str_ends,
+  str_extract,
+  str_extract_all,
+  str_flatten,
+  str_flatten_comma,
+  str_glue,
+  str_match_all,
+  str_remove,
+  str_remove_all,
+  str_replace_all,
+  str_split_1,
+  str_squish,
+  str_sub,
+  str_subset,
+  str_view
+)
+importFrom(tibble,
+  as_tibble,
+  enframe,
+  tibble
+)
+importFrom(tictoc,
+  tic,
+  tic.clearlog,
+  tic.log,
+  toc
+)
+importFrom(tidyr,
+  drop_na,
+  nest,
+  pivot_wider,
+  unnest
+)
 importFrom(tidytext,unnest_tokens)
 importFrom(utils,menu)
-importFrom(withr,local_options)
-importFrom(withr,local_seed)
+importFrom(withr,
+  local_options,
+  local_seed
+)

@@ -98,6 +98,18 @@
   )
 }
 
+# every one of these is written by `.extract_results()`, silently overwriting
+# or mangling a user column of the same name
+.extract_reserved <- \(cols, concept_keys, group) {
+  reserved <- c("n", "concept", "extract", concept_keys)
+
+  if (is.null(group)) {
+    reserved <- c(reserved, "id_group")
+  }
+
+  intersect(cols, reserved)
+}
+
 .extract_check_ids <- \(
   data,
   sample,
@@ -106,15 +118,7 @@
   group,
   concept_keys
 ) {
-  # every one of these is written by `.extract_results()`, silently overwriting
-  # or mangling a user column of the same name
-  reserved <- c("n", "concept", "extract", concept_keys)
-
-  if (is.null(group)) {
-    reserved <- c(reserved, "id_group")
-  }
-
-  clash <- intersect(names(data), reserved)
+  clash <- .extract_reserved(names(data), concept_keys, group)
 
   if (length(clash) > 0) {
     cli_abort(c(
