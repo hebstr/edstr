@@ -199,12 +199,13 @@ test_that("chunk_plan: a group column out of file order warns", {
   )
 })
 
-test_that("chunk_plan: a group larger than the budget warns", {
+test_that("chunk_plan: a group larger than the budget warns and names the cause", {
   skip_if_not_installed("duckdb")
 
   local_chunk_config()
+  withr::local_options(cli.width = 200)
 
-  expect_warning(
+  warned <- tryCatch(
     .extract_chunk_plan(
       path = check_config("clean")$save,
       id = "id_doc",
@@ -214,8 +215,37 @@ test_that("chunk_plan: a group larger than the budget warns", {
       chunk_sort = NULL,
       concept_keys = character()
     ),
-    "budget"
+    warning = \(cnd) cnd
   )
+
+  expect_s3_class(warned, "warning")
+
+  msg <- conditionMessage(warned)
+
+  expect_match(msg, "4 groups are larger than the `chunk` budget of 2 documents")
+  expect_match(msg, 'The widest is "p1", carrying 3 documents')
+  expect_match(msg, 'A chunk cannot split a "id_pat"')
+  expect_match(msg, "straddling a boundary goes whole into the later chunk")
+})
+
+test_that("chunk_plan: a chunk overshooting on a straddling group stays silent", {
+  skip_if_not_installed("duckdb")
+
+  local_chunk_config()
+
+  plan <- expect_no_warning(
+    .extract_chunk_plan(
+      path = check_config("clean")$save,
+      id = "id_doc",
+      group = "id_pat",
+      text_input = "doc_texte",
+      chunk = 4L,
+      chunk_sort = NULL,
+      concept_keys = character()
+    )
+  )
+
+  expect_equal(plan$bound$doc, c(3L, 3L, 6L))
 })
 
 test_that("edstr_extract: the chunked run reproduces the single-pass output", {

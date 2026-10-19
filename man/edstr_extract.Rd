@@ -149,12 +149,15 @@ highlighting in XLSX and gt output. Default \code{"#FF0000"}.}
 alongside XLSX output. Requires the \code{gt} package.}
 
 \item{chunk}{\verb{<integer(1)|logical(1)>} Optional. Run the extraction in
-chunks of at most \code{chunk} documents, each in its own subprocess, and
+chunks of about \code{chunk} documents, each in its own subprocess, and
 combine the results into one output indistinguishable from a single-pass
 run. \code{TRUE} takes the default of \code{15000}, \code{NULL} (default) and \code{FALSE}
 extract in one pass. A chunk is a contiguous range of \code{group}, never a
-split one, so a group larger than the budget forms a chunk of its own and
-warns. Requires the \code{callr}, \code{DBI} and \code{duckdb} packages.
+split one, so the budget is a soft bound: a group straddling a boundary
+goes whole into the later chunk, and that chunk exceeds the budget by at
+most the straddling group's document count. A group larger than the budget
+itself forms a chunk of its own, which no budget bounds, and warns.
+Requires the \code{callr}, \code{DBI} and \code{duckdb} packages.
 
 The budget is a document count because the memory a chunk needs is set by
 the text volume it carries, and hospital report length varies far less

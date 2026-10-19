@@ -203,15 +203,16 @@
       .by = "chunk"
     )
 
-  oversized <- sum(bound$doc > chunk)
+  oversized <- sum(groups$doc > chunk)
 
   if (oversized > 0) {
-    widest <- which.max(bound$doc)
+    widest <- which.max(groups$doc)
 
     cli_warn(c(
-      "{oversized} chunk{?s} exceed{?s/} the {.arg chunk} budget of {chunk} documents.",
-      "x" = "The widest is chunk {bound$chunk[widest]}, carrying {bound$doc[widest]} documents.",
-      "i" = "A chunk cannot split a {.val {group}}, so a group larger than the budget forms a chunk of its own."
+      "{oversized} group{?s} {?is/are} larger than the {.arg chunk} budget of {chunk} documents.",
+      "x" = "The widest is {.val {groups$id_group[widest]}}, carrying {groups$doc[widest]} document{?s}.",
+      "i" = "A chunk cannot split a {.val {group}}, so each forms a chunk of its own and no budget bounds its size.",
+      "i" = "{.arg chunk} is a soft bound in any case: a group straddling a boundary goes whole into the later chunk."
     ))
   }
 
@@ -644,7 +645,7 @@
   )
 
   cli_alert_info(
-    "{.strong {nrow(plan$bound)} chunk{?s}} of at most {chunk} document{?s} over {plan$doc_total} {args$id}"
+    "{.strong {nrow(plan$bound)} chunk{?s}} of about {chunk} document{?s} over {plan$doc_total} {args$id}"
   )
   br()
 

@@ -732,12 +732,15 @@
 #' @param save_as_gt `<logical(1)>` If `TRUE`, generate [gt::gt()] tables
 #'   alongside XLSX output. Requires the `gt` package.
 #' @param chunk `<integer(1)|logical(1)>` Optional. Run the extraction in
-#'   chunks of at most `chunk` documents, each in its own subprocess, and
+#'   chunks of about `chunk` documents, each in its own subprocess, and
 #'   combine the results into one output indistinguishable from a single-pass
 #'   run. `TRUE` takes the default of `15000`, `NULL` (default) and `FALSE`
 #'   extract in one pass. A chunk is a contiguous range of `group`, never a
-#'   split one, so a group larger than the budget forms a chunk of its own and
-#'   warns. Requires the `callr`, `DBI` and `duckdb` packages.
+#'   split one, so the budget is a soft bound: a group straddling a boundary
+#'   goes whole into the later chunk, and that chunk exceeds the budget by at
+#'   most the straddling group's document count. A group larger than the budget
+#'   itself forms a chunk of its own, which no budget bounds, and warns.
+#'   Requires the `callr`, `DBI` and `duckdb` packages.
 #'
 #'   The budget is a document count because the memory a chunk needs is set by
 #'   the text volume it carries, and hospital report length varies far less

@@ -5,6 +5,7 @@
 - `edstr_extract()` gains `chunk`, which runs a corpus too large for memory in chunks of documents and combines the result into one output indistinguishable from a single-pass run.
   Each chunk is a contiguous range of `group` read from the Parquet cache `edstr_clean()` wrote, extracted in its own `callr` subprocess, and the per-chunk directories are removed once the combine succeeds.
   `chunk = TRUE` takes the documented default of 15000 documents; a count sets it explicitly.
+  The budget is a soft bound, a group straddling a boundary going whole into the later chunk, and the warning names the one case no budget bounds: a group larger than the budget itself.
   The budget is a document count because the memory a chunk needs follows the text volume it carries, and hospital report length varies by about 25% across three EDS corpora against the factor-2 margin the default was chosen with.
   Each subprocess receives `id`, `group` and the text column alone, the rest of the corpus being joined back at the combine, which is what keeps a chunk's peak proportional to its text: three columns and eleven measure alike, a 23-column table half again as much.
   `data` is therefore optional and rejected with `chunk`, `id` and `group` become required, `chunk_sort` orders the combined output, and `sample`, `seed`, `ano_hash` and `ano_hide` are rejected: the first two would draw within each chunk, and the last two target columns no subprocess sees.
