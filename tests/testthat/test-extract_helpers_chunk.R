@@ -215,10 +215,10 @@ test_that("chunk_plan: a group larger than the budget warns and names the cause"
       chunk_sort = NULL,
       concept_keys = character()
     ),
-    warning = \(cnd) cnd
+    rlang_warning = \(cnd) cnd
   )
 
-  expect_s3_class(warned, "warning")
+  expect_s3_class(warned, "rlang_warning")
 
   msg <- conditionMessage(warned)
 
@@ -242,7 +242,8 @@ test_that("chunk_plan: a chunk overshooting on a straddling group stays silent",
       chunk = 4L,
       chunk_sort = NULL,
       concept_keys = character()
-    )
+    ),
+    class = "rlang_warning"
   )
 
   expect_equal(plan$bound$doc, c(3L, 3L, 6L))
