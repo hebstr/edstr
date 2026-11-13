@@ -337,6 +337,88 @@ test_that("format_text: strips HTML tags and transliterates", {
   expect_match(result$texte, "Resultat negatif")
 })
 
+test_that("format_text: an intra-word apostrophe splits the token text", {
+  df <- data.frame(
+    doc_id = c("1", "2", "3", "4", "5", "6"),
+    id_group = 1:6,
+    texte = c(
+      '<p class="t">prothèse de L\'ÉPAULE droite</p>',
+      '<p class="t">d\'arthroplastie</p>',
+      '<p class="t">aujourd\'hui</p>',
+      '<p class="t">de l’épaule</p>',
+      '<p class="t">l\' epaule et \'epaule</p>',
+      '<p class="t">l\'\'epaule</p>'
+    ),
+    stringsAsFactors = FALSE
+  )
+
+  result <- edstr:::.extract_format_text(
+    data = df,
+    text_input = "texte",
+    id = "doc_id",
+    group = "id_group"
+  )
+
+  expect_equal(
+    result$texte,
+    c(
+      "prothese de L EPAULE droite",
+      "d arthroplastie",
+      "aujourd hui",
+      "de l epaule",
+      "l' epaule et 'epaule",
+      "l''epaule"
+    )
+  )
+})
+
+test_that("format_text: an intra-word apostrophe yields one token per word", {
+  df <- data.frame(
+    doc_id = "1",
+    id_group = 1,
+    texte = '<p class="t">prothese de L\'EPAULE droite</p>',
+    stringsAsFactors = FALSE
+  )
+
+  formatted <- edstr:::.extract_format_text(
+    data = df,
+    text_input = "texte",
+    id = "doc_id",
+    group = "id_group"
+  )
+  tokens <- edstr:::.extract_tokenize(formatted, "texte", c(n1 = 1L))$n1
+
+  expect_equal(
+    tokens$texte,
+    c("prothese", "de", "l", "epaule", "droite")
+  )
+})
+
+test_that("format_text: an elision takes one n-gram slot and leaves no apostrophe in the tokens", {
+  df <- data.frame(
+    doc_id = "1",
+    id_group = 1,
+    texte = '<p class="t">prothese d\'epaule</p>',
+    stringsAsFactors = FALSE
+  )
+
+  formatted <- edstr:::.extract_format_text(
+    data = df,
+    text_input = "texte",
+    id = "doc_id",
+    group = "id_group"
+  )
+  tokens <- edstr:::.extract_tokenize(
+    formatted,
+    "texte",
+    c(n1 = 1L, n2 = 2L, n3 = 3L)
+  )
+
+  expect_equal(tokens$n2$texte, c("prothese d", "d epaule"))
+  expect_equal(tokens$n3$texte, "prothese d epaule")
+  expect_false(any(grepl("'", unlist(lapply(tokens, `[[`, "texte")))))
+})
+
 test_that("format_text: keeps only id, group and text columns", {
   df <- data.frame(
     doc_id = "1",

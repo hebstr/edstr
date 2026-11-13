@@ -47,7 +47,7 @@ result <- edstr_extract(
 The second stage has to locate each matched token in the raw text, so that the extracted result shows what the clinician actually wrote rather than an ASCII approximation.
 
 It does this by applying the **same** `Latin-ASCII` transliteration to the source before searching.
-Token and folded source are then the same string by construction, so nothing has to bridge a spelling gap between them.
+Token and folded source are then spelled the same way, so nothing has to bridge a spelling gap between them; the one spelling difference is an apostrophe between two letters, which the tokeniser splits (see the separators table below).
 
 ```{r}
 #| eval: true
@@ -132,6 +132,9 @@ This is what the accent-aware fallback search relies on, and it is the extension
   | `o`     | `[oô]`                                               |
   | `u`     | `[uùûü]`                                             |
   | space   | whitespace, hyphens, apostrophes, and `<br/>` breaks |
+
+The tokeniser applies the same separator to the text it reads: an apostrophe between two letters splits the token, so `epaule` matches in `l'épaule`, and `aujourd'hui` reads as `aujourd` and `hui`.
+An elision therefore takes one n-gram slot, and a pattern holding a literal apostrophe between two letters never matches: write the bare word, or let a `.` stand for the apostrophe and raise `ngram_max` by one.
 
 A ligature needs the two-letter rules: the fold expands it, so it reaches a token as the pair it stands for and a single-letter class could never match it back.
 

@@ -3,7 +3,9 @@
 # linear pass where ICU backtracking re-evaluates each branch per document.
 #
 # The fold uses the same Latin-ASCII transliteration as tokenisation, so a
-# matched token and the folded source are the same string by construction.
+# matched token and the folded source are the same string by construction, an
+# apostrophe between two letters aside: tokenisation splits it, the source
+# keeps it.
 # re2's \b is ASCII-only, so it lands on real word edges wherever the fold is
 # pure ASCII, which is not everywhere: Latin-ASCII transliterates Latin script
 # only, and a Greek or Cyrillic letter survives it (micro sign, beta, gamma,
@@ -28,7 +30,7 @@
 # all of Unicode.
 #
 # Only the code points actually present in `x` are repaired, which is what keeps
-# the repair free: a clinical corpus carries a couple of dozen of the ~4300.
+# the repair free: a text carries few of the ~4300.
 # Detecting the protected ones among them needs a character class of escaped
 # code points. The set holds combining marks and zero-width characters, which
 # attach to their neighbour when written literally and silently mangle the

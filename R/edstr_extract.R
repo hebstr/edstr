@@ -674,14 +674,20 @@
 #'   keep the source in clear.
 #' @param ngram_max `<integer(1)>` Largest n-gram size to tokenise. Every
 #'   smaller size is searched too, so `ngram_max = 2` covers unigrams and
-#'   bigrams. Default `1` (unigrams only). Distinct from the `ngrams` argument
-#'   of [edstr_view()], which sets a display window around a match rather than
-#'   the sizes searched.
+#'   bigrams. Default `1` (unigrams only). An apostrophe between two letters
+#'   splits a word in two before tokenisation, so an elision (`l'epaule`)
+#'   takes two tokens, one n-gram slot more than the word alone. Distinct from
+#'   the `ngrams` argument of [edstr_view()], which sets a display window
+#'   around a match rather than the sizes searched.
 #' @param concepts `<character|list>` Named vector or nested named list of
 #'   regex patterns defining the concepts to search for. Each name becomes a
 #'   concept key; nested names create sub-concepts (e.g.
 #'   `list(cancer = list(sein = "sein|mammaire", poumon = "poumon"))`).
-#'   Required.
+#'   Required. Patterns are matched against the tokenised text, where an
+#'   apostrophe between two letters has become a space (`l'epaule` reads
+#'   `l epaule`): a pattern holding a literal apostrophe between two letters
+#'   never matches, and one that bridges an elision (`d.arthroplastie`) needs
+#'   `ngram_max` large enough for the extra token.
 #' @param collapse `<logical(1)>` If `TRUE`, OR-combine concept patterns into
 #'   a single regex: one per root concept as soon as at least one root holds
 #'   several patterns, otherwise one regex named `concepts` for the whole set,
@@ -695,10 +701,17 @@
 #'   rest of the token is accepted (`\\S*$` appended).
 #' @param exclus_manual `<character(1)>` Optional regex pattern. Matched
 #'   tokens containing this pattern are excluded (manual false-positive
-#'   filter).
+#'   filter). The pattern is tested against the tokenised text, where an
+#'   apostrophe between two letters has become a space: `l.epaule` excludes
+#'   the n-gram spanning `l'epaule`, and `l'epaule` excludes nothing. The word
+#'   behind the elision is a token of its own, so a document stays matched
+#'   through it: an elided occurrence can no longer be excluded from a
+#'   document.
 #' @param exclus_auto_escape `<character(1)>` Optional regex pattern. Tokens
 #'   matching this pattern are removed from `data_match` before
-#'   auto-exclusion runs.
+#'   auto-exclusion runs. Tested against the same tokenised text as
+#'   `exclus_manual`, so it never matches an intra-word apostrophe and has the
+#'   same limit on an elided occurrence.
 #' @param exclus_auto_token_min `<numeric(1)>` Minimum n-gram size for
 #'   automatic exclusion heuristics (default `10`). Auto-exclusions only
 #'   apply to tokens with `n > exclus_auto_token_min`, measured in the same
@@ -744,8 +757,7 @@
 #'
 #'   The budget is a document count because the memory a chunk needs is set by
 #'   the text volume it carries, and hospital report length varies far less
-#'   than the factor-2 margin `15000` was chosen with: measured over three EDS
-#'   corpora, about 20,600 characters per document within 25%. Re-derive it
+#'   than the factor-2 margin `15000` was chosen with. Re-derive it
 #'   (`mean(nchar(text))` on the Parquet cache) only past roughly 30,000
 #'   characters per document, on another machine, or on documents that are not
 #'   hospital reports.

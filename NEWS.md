@@ -6,18 +6,29 @@
   Each chunk is a contiguous range of `group` read from the Parquet cache `edstr_clean()` wrote, extracted in its own `callr` subprocess, and the per-chunk directories are removed once the combine succeeds.
   `chunk = TRUE` takes the documented default of 15000 documents; a count sets it explicitly.
   The budget is a soft bound, a group straddling a boundary going whole into the later chunk, and the warning names the one case no budget bounds: a group larger than the budget itself.
-  The budget is a document count because the memory a chunk needs follows the text volume it carries, and hospital report length varies by about 25% across three EDS corpora against the factor-2 margin the default was chosen with.
-  Each subprocess receives `id`, `group` and the text column alone, the rest of the corpus being joined back at the combine, which is what keeps a chunk's peak proportional to its text: three columns and eleven measure alike, a 23-column table half again as much.
+  The budget is a document count because the memory a chunk needs follows the text volume it carries, and hospital report length varies far less than the factor-2 margin the default was chosen with.
+  Each subprocess receives `id`, `group` and the text column alone, the rest of the corpus being joined back at the combine, which is what keeps a chunk's peak proportional to its text.
   `data` is therefore optional and rejected with `chunk`, `id` and `group` become required, `chunk_sort` orders the combined output, and `sample`, `seed`, `ano_hash` and `ano_hide` are rejected: the first two would draw within each chunk, and the last two target columns no subprocess sees.
   `callr`, `DBI` and `duckdb` enter `Suggests` and are checked at the call.
   The global summary is recomputed from the chunk objects rather than summed: `match_distinct` counts distinct matched tokens, which a sum inflates once per chunk the token recurs in.
-  Measured on a 109957-document corpus in 8 chunks, it returns the summary of the last single-pass run over the same corpus cell for cell, and `data$extract` and `data$note` identically.
+  It returns the summary of the equivalent single-pass run cell for cell, and `data$extract` and `data$note` identically.
 
 - `edstr_config()` gains `edstr_connect_dir`, the connection file path `edstr_import()` reads.
   It was the one package option reachable only through `...`, so it never appeared in `?edstr_config` and a mistyped value reached `fs::file_exists()` as a bare R error instead of a cli abort.
   Like the other optional settings, leaving it out resets it.
 
 ## Bug fixes
+
+- `edstr_extract()` finds a word behind an elision: `epaule` now matches in `l'épaule` and `arthroplastie` in `d'arthroplastie`.
+  The tokeniser kept `l'epaule` as one token and a concept pattern is anchored at the start of a token, so a concept written for the bare word never matched it, while source matching already treated the apostrophe as a separator.
+  An apostrophe between two letters, straight or typographic, now splits the token before tokenisation; the source text is untouched, so the highlight in `data$note` is unchanged.
+  `aujourd'hui` reads as `aujourd` and `hui`.
+  Only texts holding an intra-word apostrophe change.
+  An elision now costs one n-gram slot, and the matched text of a split word carries no apostrophe.
+  A pattern that bridged the old token, `d.arthroplastie` or `(accid|lesions?\b).+\b(vasc|isc|cereb)` over "lesion d'origine ischemique", needs `ngram_max` one higher for each elision it spans, and a pattern holding a literal apostrophe between two letters (`d'arthroplastie`) no longer matches at any `ngram_max`: write the bare word instead.
+  `exclus_manual` and `exclus_auto_escape` read the same token text, so an exclusion written with an apostrophe (`l'epaule`) stops excluding.
+  `l.epaule` (the dot standing for the space) excludes the n-gram that spans the elision, but the bare word `epaule` still matches on its own, so an elided occurrence can no longer be excluded from a document.
+  Extractions saved by an earlier version return the old matches until they are run again.
 
 - `edstr_extract()` highlights a word carrying a ligature instead of leaving it bare.
   A token is read off the folded text, so `œsophage` arrived as `oesophage` and expanded to two positions against the source's one, which no single-character class could match back: `æ` in the `a` class and `œ` in the `e` class were unreachable by construction.
@@ -44,14 +55,13 @@
   Each concept's alternation was ordered by decreasing frequency, and a trigram's constituent bigram is always at least as frequent as the trigram itself, so the bigram won every position the two shared.
   `data$extract` delivered `accident vasculaire ; cérébral` where one span would do, and the highlight in `data$note`, the XLSX and the gt closed after `accident vasculaire`, leaving `cérébral` bare.
   Branches are now ordered by decreasing token length, the only lever the two paths running on ICU have, and the re2 passes take its exact `longest_match` mode.
-  Measured on a 7883-document corpus: 15 of the 1804 extracts change, 13 of them ending with fewer spans, and no document changes bucket.
-  `mismatched` follows the same ordering, the confirmation failure moving from the trigram onto the bigram it displaced, 19 rows down to 18.
+  `mismatched` follows the same ordering, the confirmation failure moving from the trigram onto the bigram it displaced.
 
 - `edstr_extract()` confirms an n-gram the alternation displaced instead of reporting it as a mismatch.
   One alternation per concept returns one match per position, so where a trigram and its constituent bigram both match, only the winner gets a row and the other surfaces in `mismatched` despite being present in the source.
   Each unconfirmed token is now re-tested on its own, in its own document, and the span it finds is added through the same offset machinery, so it carries the original accents and case rather than the folded token.
-  The work is proportional to the failures rather than to the corpus: on a 7883-document corpus it costs about 0.27 s against a 6.4 s stage and takes `mismatched` from the 18 rows the reordering above leaves to 4.
-  The four that remain have no confirmable span at all, one of them an expression straddling a paragraph boundary.
+  The work is proportional to the failures rather than to the corpus.
+  The tokens that remain have no confirmable span at all, an expression straddling a paragraph boundary being one.
   `data$extract`, `data$note`, `unmatched` and `n_no_concept` are untouched; the pass only ever adds to `data$regex$match` and the counts derived from it, and never records a span more often than the document actually carries it.
 
 - `edstr_extract()` no longer surfaces a raw `<br/>` in `data$extract`.
@@ -265,8 +275,7 @@
 
 - The token-matching stage joins the occurrence table once instead of once per
   concept, about 4 times faster at every `ngram_max` value.
-  The gain grows with the number of n-gram sizes searched: `ngram_max = 3` goes
-  from about 21 seconds to 5 on the reference corpus.
+  The gain grows with the number of n-gram sizes searched.
 
 - The automatic exclusion scan is skipped when no n-gram reaches
   `exclus_auto_token_min`, which is what its default of `10` means in practice.
@@ -349,8 +358,8 @@
   where it used to report `token` (the expanded sizes).
   This changes the `summary$params` element of the RDS, the `params` sheet of
   the XLSX and gt output, and the `params` block of the JSON.
-  Nothing else in the delivered output moves: verified byte-identical on the
-  full 7883-document corpus for both the unigram and the `1:3` configurations.
+  Nothing else in the delivered output moves: verified byte-identical for both
+  the unigram and the `1:3` configurations.
 
 - `edstr_extract()`: the `mismatch_data` argument is renamed to
   `unmatched_data`.

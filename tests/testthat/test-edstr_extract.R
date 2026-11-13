@@ -608,6 +608,40 @@ test_that("edstr_extract: an apostrophe separator is not a source mismatch", {
   expect_equal(hyphen$data$extract$extract, "l-aorte")
 })
 
+test_that("edstr_extract: a start-anchored concept matches after an elision", {
+  tmp <- withr::local_tempdir()
+  withr::local_options(
+    edstr_dirname = tmp,
+    edstr_filename = "test_elision",
+    edstr_text = "texte",
+    edstr_overwrite = TRUE
+  )
+
+  result <- suppressMessages(edstr_extract(
+    data = data.frame(
+      doc_id = c("1", "2", "3"),
+      texte = c(
+        '<p class="t">douleur de l\'épaule droite</p>',
+        '<p class="t">pose d\'arthroplastie</p>',
+        '<p class="t">douleur du genou</p>'
+      ),
+      stringsAsFactors = FALSE
+    ),
+    concepts = c(epaule = "epaule", arthroplastie = "arthroplastie"),
+    ngram_max = 1,
+    filename_suffix = "elision"
+  ))
+
+  expect_setequal(result$data$extract$doc_id, c("1", "2"))
+  expect_equal(nrow(result$mismatched), 0)
+  expect_equal(result$unmatched$n_no_concept, 1)
+  expect_match(
+    result$data$note$texte[result$data$note$doc_id == "1"],
+    "l'<span class='extract epaule'>épaule</span> droite",
+    fixed = TRUE
+  )
+})
+
 test_that("edstr_extract: excluded tokens are not reported as source mismatches", {
   tmp <- withr::local_tempdir()
   withr::local_options(

@@ -271,9 +271,12 @@
         str_squish()
     )
 
-    # the same fold source matching uses, so a token and the folded source are
-    # the same string by construction
-    .timed_sub("  format: re2 fold", .re2_fold(stripped))
+    folded <- .timed_sub("  format: re2 fold", .re2_fold(stripped))
+
+    .timed_sub(
+      "  format: split elisions",
+      stri_replace_all_regex(folded, "(?<=\\p{L})'(?=\\p{L})", " ")
+    )
   }
 
   data <- data[c(id, group, text_input)]
@@ -376,7 +379,7 @@
   # higher-order n-grams are the n=1 stream slid within each document: a gram of
   # size k pastes w[i..i+k-1], kept only where the span stays in one document
   # (doc[i] == doc[i+k-1]). This reproduces unnest_tokens(n = k) exactly at a
-  # single tokenisation (verified against the per-n unnest over the corpus), so
+  # single tokenisation (verified against the per-n unnest), so
   # the n>=2 passes no longer re-tokenise the source.
   leads <- .timed_sub(
     "  tokenise: leads",
