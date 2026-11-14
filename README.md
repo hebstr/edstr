@@ -240,23 +240,6 @@ overwritten, loaded silently, or trigger an interactive prompt.
 | `.json` | Summary tables (by token, by concept) and the call parameters (JSON format) |
 | `.rds` | Full nested list with all intermediate objects (R-native, used for caching) |
 
-## Articles
-
-Detailed documentation is available as articles on the [package
-website](https://hebstr.github.io/edstr/):
-
-- [Get started](https://hebstr.github.io/edstr/articles/edstr.html)
-- [Pipeline
-  configuration](https://hebstr.github.io/edstr/articles/config.html)
-- [Data import](https://hebstr.github.io/edstr/articles/import.html)
-- [Text cleaning](https://hebstr.github.io/edstr/articles/clean.html)
-- [Text
-  extraction](https://hebstr.github.io/edstr/articles/extract.html)
-- [Interactive
-  exploration](https://hebstr.github.io/edstr/articles/explore.html)
-- [Matching: tokens, accents, and the source
-  text](https://hebstr.github.io/edstr/articles/matching.html)
-
 ## Contributing
 
 Bug reports and feature requests:
