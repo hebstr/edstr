@@ -44,7 +44,7 @@ Two arguments are required: the output directory and the file name prefix.
 edstr_config(
   edstr_dirname = "output/fesf",
   edstr_filename = "fesf",
-  edstr_text = "doc_texte",
+  edstr_text = "texte",
   edstr_overwrite = TRUE
 )
 ```
@@ -123,7 +123,7 @@ df_extract <- edstr_extract(
   data = df_clean,
   concepts = c(fracture = "fracture", femur = "femur|fesf"),
   ngram_max = 2,
-  group = "id_pat"
+  group = "patient_id"
 )
 ```
 
@@ -142,7 +142,7 @@ df_extract <- edstr_extract(
   data = df_clean,
   concepts = c(fracture = "fracture", femur = "femur|fesf"),
   intersect = TRUE,
-  group = "id_pat"
+  group = "patient_id"
 )
 ```
 
@@ -164,7 +164,7 @@ df_extract <- edstr_extract(
   ngram_max = 3,
   exclus_manual = "fracture ouverte",
   exclus_auto_token_min = 0,
-  group = "id_pat"
+  group = "patient_id"
 )
 ```
 

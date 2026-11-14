@@ -136,7 +136,7 @@ result <- edstr_extract(
   data = df_clean,
   concepts = c(fracture = "fractur", femur = "femur|fesf"),
   ngram_max = 2,
-  group = "id_pat"
+  group = "patient_id"
 )
 ```
 
@@ -151,7 +151,7 @@ result <- edstr_extract(
       col = "col (du )?femur"
     )
   ),
-  group = "id_pat",
+  group = "patient_id",
   exclus_manual = "ancienne fracture|fracture ouverte"
 )
 ```

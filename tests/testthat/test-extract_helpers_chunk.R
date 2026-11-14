@@ -1,9 +1,9 @@
 chunk_fixture <- \() {
   tibble::tibble(
-    id_doc = sprintf("d%02d", 1:12),
-    id_pat = rep(c("p1", "p2", "p3", "p4"), each = 3),
-    sej_date = rep(c("2024-03-01", "2024-01-01", "2024-02-01"), times = 4),
-    doc_texte = rep(
+    doc_id = sprintf("d%02d", 1:12),
+    patient_id = rep(c("p1", "p2", "p3", "p4"), each = 3),
+    visit_date = rep(c("2024-03-01", "2024-01-01", "2024-02-01"), times = 4),
+    texte = rep(
       c(
         '<p class="t">diabete de type 2</p>',
         '<p class="t">cancer du sein</p>',
@@ -23,7 +23,7 @@ local_chunk_config <- \(data = chunk_fixture(), env = parent.frame()) {
     .local_envir = env,
     edstr_dirname = tmp,
     edstr_filename = "test_chunk",
-    edstr_text = "doc_texte",
+    edstr_text = "texte",
     edstr_overwrite = TRUE
   )
 
@@ -51,9 +51,9 @@ test_that("chunk_plan: the bounds partition the corpus", {
 
   plan <- .extract_chunk_plan(
     path = check_config("clean")$save,
-    id = "id_doc",
-    group = "id_pat",
-    text_input = "doc_texte",
+    id = "doc_id",
+    group = "patient_id",
+    text_input = "texte",
     chunk = 6L,
     chunk_sort = NULL,
     concept_keys = c("diabete", "cancer")
@@ -65,7 +65,7 @@ test_that("chunk_plan: the bounds partition the corpus", {
   expect_equal(plan$bound$lo, c("p1", "p3"))
   expect_equal(plan$bound$hi, c("p2", "p4"))
   expect_equal(plan$cols$schema, names(chunk_fixture()))
-  expect_equal(plan$cols$meta, c("id_doc", "sej_date"))
+  expect_equal(plan$cols$meta, c("doc_id", "visit_date"))
 })
 
 test_that("chunk_plan: a single chunk covers a corpus smaller than the budget", {
@@ -75,9 +75,9 @@ test_that("chunk_plan: a single chunk covers a corpus smaller than the budget", 
 
   plan <- .extract_chunk_plan(
     path = check_config("clean")$save,
-    id = "id_doc",
-    group = "id_pat",
-    text_input = "doc_texte",
+    id = "doc_id",
+    group = "patient_id",
+    text_input = "texte",
     chunk = 15000L,
     chunk_sort = NULL,
     concept_keys = character()
@@ -91,16 +91,16 @@ test_that("chunk_plan: a duplicated or missing id aborts", {
   skip_if_not_installed("duckdb")
 
   data <- chunk_fixture()
-  data$id_doc[[2]] <- data$id_doc[[1]]
+  data$doc_id[[2]] <- data$doc_id[[1]]
 
   local_chunk_config(data)
 
   expect_error(
     .extract_chunk_plan(
       path = check_config("clean")$save,
-      id = "id_doc",
-      group = "id_pat",
-      text_input = "doc_texte",
+      id = "doc_id",
+      group = "patient_id",
+      text_input = "texte",
       chunk = 6L,
       chunk_sort = NULL,
       concept_keys = character()
@@ -113,16 +113,16 @@ test_that("chunk_plan: a missing group value aborts", {
   skip_if_not_installed("duckdb")
 
   data <- chunk_fixture()
-  data$id_pat[[1]] <- NA_character_
+  data$patient_id[[1]] <- NA_character_
 
   local_chunk_config(data)
 
   expect_error(
     .extract_chunk_plan(
       path = check_config("clean")$save,
-      id = "id_doc",
-      group = "id_pat",
-      text_input = "doc_texte",
+      id = "doc_id",
+      group = "patient_id",
+      text_input = "texte",
       chunk = 6L,
       chunk_sort = NULL,
       concept_keys = character()
@@ -142,9 +142,9 @@ test_that("chunk_plan: a column the output builds for itself aborts", {
   expect_error(
     .extract_chunk_plan(
       path = check_config("clean")$save,
-      id = "id_doc",
-      group = "id_pat",
-      text_input = "doc_texte",
+      id = "doc_id",
+      group = "patient_id",
+      text_input = "texte",
       chunk = 6L,
       chunk_sort = NULL,
       concept_keys = c("diabete", "cancer")
@@ -160,21 +160,21 @@ test_that("chunk_plan: an unknown column name aborts", {
 
   args <- list(
     path = check_config("clean")$save,
-    id = "id_doc",
-    group = "id_pat",
-    text_input = "doc_texte",
+    id = "doc_id",
+    group = "patient_id",
+    text_input = "texte",
     chunk = 6L,
     concept_keys = character()
   )
 
   expect_error(
-    do.call(.extract_chunk_plan, c(args, list(chunk_sort = "sej_absent"))),
+    do.call(.extract_chunk_plan, c(args, list(chunk_sort = "visit_absent"))),
     "not found"
   )
   expect_error(
     do.call(
       .extract_chunk_plan,
-      c(utils::modifyList(args, list(group = "pat_absent")), list(chunk_sort = NULL))
+      c(utils::modifyList(args, list(group = "patient_absent")), list(chunk_sort = NULL))
     ),
     "not found"
   )
@@ -188,9 +188,9 @@ test_that("chunk_plan: a group column out of file order warns", {
   expect_warning(
     .extract_chunk_plan(
       path = check_config("clean")$save,
-      id = "id_doc",
-      group = "id_pat",
-      text_input = "doc_texte",
+      id = "doc_id",
+      group = "patient_id",
+      text_input = "texte",
       chunk = 6L,
       chunk_sort = NULL,
       concept_keys = character()
@@ -208,9 +208,9 @@ test_that("chunk_plan: a group larger than the budget warns and names the cause"
   warned <- tryCatch(
     .extract_chunk_plan(
       path = check_config("clean")$save,
-      id = "id_doc",
-      group = "id_pat",
-      text_input = "doc_texte",
+      id = "doc_id",
+      group = "patient_id",
+      text_input = "texte",
       chunk = 2L,
       chunk_sort = NULL,
       concept_keys = character()
@@ -224,7 +224,7 @@ test_that("chunk_plan: a group larger than the budget warns and names the cause"
 
   expect_match(msg, "4 groups are larger than the `chunk` budget of 2 documents")
   expect_match(msg, 'The widest is "p1", carrying 3 documents')
-  expect_match(msg, 'A chunk cannot split a "id_pat"')
+  expect_match(msg, 'A chunk cannot split a "patient_id"')
   expect_match(msg, "straddling a boundary goes whole into the later chunk")
 })
 
@@ -236,9 +236,9 @@ test_that("chunk_plan: a chunk overshooting on a straddling group stays silent",
   plan <- expect_no_warning(
     .extract_chunk_plan(
       path = check_config("clean")$save,
-      id = "id_doc",
-      group = "id_pat",
-      text_input = "doc_texte",
+      id = "doc_id",
+      group = "patient_id",
+      text_input = "texte",
       chunk = 4L,
       chunk_sort = NULL,
       concept_keys = character()
@@ -260,14 +260,14 @@ test_that("edstr_extract: the chunked run reproduces the single-pass output", {
     list(
       edstr_dirname = ref_dir,
       edstr_filename = "test_ref",
-      edstr_text = "doc_texte",
+      edstr_text = "texte",
       edstr_overwrite = TRUE
     ),
     suppressMessages(suppressWarnings(edstr_extract(
       data = data,
       concepts = chunk_concepts,
-      id = "id_doc",
-      group = "id_pat",
+      id = "doc_id",
+      group = "patient_id",
       ngram_max = 2
     )))
   )
@@ -282,8 +282,8 @@ test_that("edstr_extract: the chunked run reproduces the single-pass output", {
 
   got <- suppressMessages(suppressWarnings(edstr_extract(
     concepts = chunk_concepts,
-    id = "id_doc",
-    group = "id_pat",
+    id = "doc_id",
+    group = "patient_id",
     ngram_max = 2,
     chunk = 6
   )))
@@ -315,8 +315,8 @@ test_that("edstr_extract: the chunked run saves the three files and clears the c
 
   suppressMessages(suppressWarnings(edstr_extract(
     concepts = chunk_concepts,
-    id = "id_doc",
-    group = "id_pat",
+    id = "doc_id",
+    group = "patient_id",
     chunk = 6
   )))
 
@@ -341,24 +341,24 @@ test_that("edstr_extract: the chunked run orders the output by the sort argument
 
   got <- suppressMessages(suppressWarnings(edstr_extract(
     concepts = chunk_concepts,
-    id = "id_doc",
-    group = "id_pat",
+    id = "doc_id",
+    group = "patient_id",
     chunk = 6,
-    chunk_sort = "sej_date"
+    chunk_sort = "visit_date"
   )))
 
   expect_equal(
-    got$data$extract$sej_date[got$data$extract$id_pat == "p1"],
+    got$data$extract$visit_date[got$data$extract$patient_id == "p1"],
     c("2024-01-01", "2024-03-01")
   )
   expect_equal(got$data$extract$n, seq_len(nrow(got$data$extract)))
-  expect_equal(got$data$extract$id_pat, rep(c("p1", "p2", "p3", "p4"), each = 2))
+  expect_equal(got$data$extract$patient_id, rep(c("p1", "p2", "p3", "p4"), each = 2))
 })
 
 chunk_stub <- \(ids, params) {
   list(
     summary = list(params = params),
-    data = list(base = tibble::tibble(id_doc = ids))
+    data = list(base = tibble::tibble(doc_id = ids))
   )
 }
 
@@ -374,7 +374,7 @@ test_that("chunk_check: a chunk run with other arguments aborts the combine", {
       c("a.rds", "b.rds"),
       list(ngram_max = 1),
       4L,
-      "id_doc"
+      "doc_id"
     ),
     "other arguments"
   )
@@ -385,7 +385,7 @@ test_that("chunk_check: a chunk run with other arguments aborts the combine", {
       "a.rds",
       list(ngram_max = 1),
       2L,
-      "id_doc"
+      "doc_id"
     )
   )
 })
@@ -399,7 +399,7 @@ test_that("chunk_check: chunks that do not partition the corpus abort", {
       c("a.rds", "b.rds"),
       params,
       4L,
-      "id_doc"
+      "doc_id"
     ),
     "do not partition"
   )
@@ -410,7 +410,7 @@ test_that("chunk_check: chunks that do not partition the corpus abort", {
       c("a.rds", "b.rds"),
       params,
       5L,
-      "id_doc"
+      "doc_id"
     ),
     "do not partition"
   )
@@ -420,15 +420,15 @@ test_that("edstr_extract: chunk rejects the arguments it cannot honour", {
   withr::local_options(
     edstr_dirname = withr::local_tempdir(),
     edstr_filename = "test_guard",
-    edstr_text = "doc_texte",
+    edstr_text = "texte",
     edstr_overwrite = TRUE
   )
 
   guard <- \(...) {
     edstr_extract(
       concepts = chunk_concepts,
-      id = "id_doc",
-      group = "id_pat",
+      id = "doc_id",
+      group = "patient_id",
       chunk = 6,
       ...
     )
@@ -445,16 +445,16 @@ test_that("edstr_extract: chunk requires the id and group columns", {
   withr::local_options(
     edstr_dirname = withr::local_tempdir(),
     edstr_filename = "test_keys",
-    edstr_text = "doc_texte",
+    edstr_text = "texte",
     edstr_overwrite = TRUE
   )
 
   expect_error(
-    edstr_extract(concepts = chunk_concepts, group = "id_pat", chunk = 6),
+    edstr_extract(concepts = chunk_concepts, group = "patient_id", chunk = 6),
     "\\{\\.arg id\\}|`id`"
   )
   expect_error(
-    edstr_extract(concepts = chunk_concepts, id = "id_doc", chunk = 6),
+    edstr_extract(concepts = chunk_concepts, id = "doc_id", chunk = 6),
     "\\{\\.arg group\\}|`group`"
   )
 })
@@ -463,7 +463,7 @@ test_that("edstr_extract: a missing data without chunk still aborts", {
   withr::local_options(
     edstr_dirname = withr::local_tempdir(),
     edstr_filename = "test_nodata",
-    edstr_text = "doc_texte",
+    edstr_text = "texte",
     edstr_overwrite = TRUE
   )
 
@@ -479,15 +479,15 @@ test_that("edstr_extract: chunk aborts when the clean Parquet cache is absent", 
   withr::local_options(
     edstr_dirname = withr::local_tempdir(),
     edstr_filename = "test_nocache",
-    edstr_text = "doc_texte",
+    edstr_text = "texte",
     edstr_overwrite = TRUE
   )
 
   expect_error(
     edstr_extract(
       concepts = chunk_concepts,
-      id = "id_doc",
-      group = "id_pat",
+      id = "doc_id",
+      group = "patient_id",
       chunk = 6
     ),
     "not found"

@@ -41,7 +41,7 @@ A named character vector creates flat, independent concepts:
 result <- edstr_extract(
   data = df_clean,
   concepts = c(fracture = "fracture", femur = "femur|fesf"),
-  group = "id_pat"
+  group = "patient_id"
 )
 ```
 
@@ -58,7 +58,7 @@ result <- edstr_extract(
       col = "col (du )?femur"
     )
   ),
-  group = "id_pat"
+  group = "patient_id"
 )
 ```
 
@@ -75,7 +75,7 @@ result <- edstr_extract(
   data = df_clean,
   concepts = c(fracture = "fracture"),
   ngram_max = 2,
-  group = "id_pat"
+  group = "patient_id"
 )
 ```
 
@@ -102,7 +102,7 @@ result <- edstr_extract(
   data = df_clean,
   concepts = c(fracture = "fracture", femur = "femur|fesf"),
   intersect = TRUE,
-  group = "id_pat"
+  group = "patient_id"
 )
 ```
 
@@ -121,7 +121,7 @@ result <- edstr_extract(
   data = df_clean,
   concepts = c(fracture = "fracture"),
   exclus_manual = "fracture ouverte|ancienne fracture",
-  group = "id_pat"
+  group = "patient_id"
 )
 ```
 
@@ -145,7 +145,7 @@ result <- edstr_extract(
   concepts = c(fracture = "fracture"),
   sample = 500,
   seed = 42,
-  group = "id_pat"
+  group = "patient_id"
 )
 ```
 
@@ -173,7 +173,7 @@ result <- edstr_extract(
   concepts = c(fracture = "fracture"),
   ano_hash = "ipp",
   ano_hide = "patient_name",
-  group = "id_pat"
+  group = "patient_id"
 )
 ```
 
@@ -203,7 +203,7 @@ result <- edstr_extract(
   data = df_clean,
   concepts = c(fracture = "fracture"),
   unmatched_data = TRUE,
-  group = "id_pat"
+  group = "patient_id"
 )
 ```
 
